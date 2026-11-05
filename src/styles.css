@@ -1,0 +1,1309 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-serif: "Source Serif 4", Georgia, Cambria, "Times New Roman", serif;
+  --font-display: "Inter Tight", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, Menlo, monospace;
+
+  /* semantic colors -> resolve to runtime vars so .dark can swap them */
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle); /* decorative only, never text */
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2); /* chips, skeletons, hover */
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-inverse: var(--inverse); /* black pill bg */
+  --color-on-inverse: var(--on-inverse);
+  --color-danger: var(--danger);
+  --color-overlay: var(--overlay);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-glow: var(--glow);
+
+  --breakpoint-sm: 40rem; /* 640 */
+  --breakpoint-md: 48rem; /* 768 */
+  --breakpoint-lg: 64rem; /* 1024 */
+  --breakpoint-xl: 80rem; /* 1280 */
+
+  --container-feed: 48rem; /* 768 */
+  --container-sidebar: 20rem; /* 320 */
+  --container-shell: 84rem; /* 1344 */
+
+  --radius-xs: 0.25rem; /* 4  kbd, inline code */
+  --radius-sm: 0.5rem; /* 8  chips, inputs */
+  --radius-md: 0.625rem; /* 10 buttons */
+  --radius-lg: 1rem; /* 16 cards, panels, menus */
+  --radius-xl: 1.25rem; /* 20 modals, dock panel */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-clap-bubble: clap-bubble 600ms ease-out forwards;
+  --animate-clap-pop: clap-pop 200ms ease-out;
+  @keyframes clap-bubble {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, 0) scale(0.8);
+    }
+    20% {
+      opacity: 1;
+      transform: translate(-50%, -16px) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -32px) scale(1);
+    }
+  }
+  @keyframes clap-pop {
+    50% {
+      transform: scale(1.15);
+    }
+  }
+}
+
+:root {
+  --fg: #0f2414;
+  --muted: #3f5f46;
+  --subtle: #cfe6d3; /* decorative only */
+  --surface: #f3faf4;
+  --surface-2: #e1f2e4;
+  --line: #cfe6d3; /* decorative hairlines */
+  --line-strong: #6f9a78; /* input/control borders, >= 3:1 */
+  --accent: #2f7d45;
+  --accent-hover: #256638;
+  --on-accent: #ffffff;
+  --inverse: #0f2414;
+  --on-inverse: #d9dcff;
+  --danger: #b91c1c;
+  --overlay: rgb(15 36 20 / 0.55);
+  --card: #ffffff;
+  --popover: #ffffff;
+  --glow: color-mix(in srgb, var(--fg) 6%, transparent);
+  color-scheme: light;
+}
+.dark {
+  --fg: #eceeff;
+  --muted: #a6abd6;
+  --subtle: #1f2346;
+  --surface: #04050d;
+  --surface-2: #11142b;
+  --line: #1f2346;
+  --line-strong: #4d5490;
+  --accent: #9aa6ff;
+  --accent-hover: #bcc4ff;
+  --on-accent: #04050d;
+  --inverse: #9aa6ff;
+  --on-inverse: #04050d;
+  --danger: #f87171;
+  --overlay: rgb(0 0 0 / 0.72);
+  --card: #0a0c1c;
+  --popover: #0e1226;
+  --glow: color-mix(in srgb, var(--fg) 5%, transparent);
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    @apply bg-surface text-fg font-sans antialiased;
+  }
+  /* transparent so the fixed Galaxy canvas (z -10) shows; html carries the surface colour */
+  body {
+    background: transparent;
+  }
+  *,
+  ::before,
+  ::after {
+    border-color: var(--line);
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+}
+
+@layer components {
+  .prose-article {
+    @apply prose max-w-none text-fg;
+    font-family: var(--article-font, var(--font-serif));
+    --tw-prose-body: var(--fg);
+    --tw-prose-headings: var(--fg);
+    --tw-prose-bold: var(--fg);
+    --tw-prose-links: var(--fg);
+    --tw-prose-quotes: var(--fg);
+    --tw-prose-quote-borders: var(--fg);
+    --tw-prose-code: var(--fg);
+    --tw-prose-pre-bg: var(--surface-2);
+    --tw-prose-pre-code: var(--fg);
+    --tw-prose-hr: var(--line);
+    --tw-prose-captions: var(--muted);
+    --tw-prose-bullets: var(--fg);
+    --tw-prose-counters: var(--fg);
+    font-size: 1.125rem;
+    line-height: 1.75rem; /* 18/28 mobile */
+    letter-spacing: -0.003em;
+  }
+  @media (width >= 48rem) {
+    .prose-article {
+      font-size: var(--article-size, 1.25rem);
+      line-height: 1.6;
+    } /* 20/32 */
+  }
+  .prose-article :where(p) {
+    margin-top: 2em;
+    margin-bottom: 0;
+  }
+  .prose-article :where(p:first-child) {
+    margin-top: 0;
+  }
+  .prose-article :where(h2) {
+    @apply font-display font-bold;
+    font-size: 1.5rem;
+    line-height: 1.25;
+    margin: 1.6em 0 0;
+    letter-spacing: -0.016em;
+  }
+  .prose-article :where(h3) {
+    @apply font-display font-bold;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    margin: 1.4em 0 0;
+  }
+  .prose-article :where(a) {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+  }
+  .prose-article :where(a:hover) {
+    text-decoration-thickness: 2px;
+  }
+  .prose-article :where(blockquote) {
+    @apply border-l-[3px] pl-5 italic font-normal;
+    quotes: none;
+  }
+  .prose-article :where(blockquote p::before, blockquote p::after) {
+    content: none;
+  }
+  .prose-article :where(:not(pre) > code) {
+    @apply font-mono bg-surface-2 rounded px-1 py-0.5;
+    font-size: 0.85em;
+  }
+  .prose-article :where(:not(pre) > code)::before,
+  .prose-article :where(:not(pre) > code)::after {
+    content: none;
+  }
+  .prose-article :where(pre) {
+    @apply font-mono rounded-sm p-5 overflow-x-auto;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+  .prose-article :where(img) {
+    @apply mx-auto my-10 w-full h-auto;
+  }
+  .prose-article :where(figcaption) {
+    @apply text-center font-sans text-sm;
+  }
+  /* ::diagram embeds: <figure class="diagram-embed"><a href="/d/v/slug"><img><figcaption> — a figure like any image of a story */
+  .prose-article :where(figure.diagram-embed) {
+    @apply my-10;
+  }
+  .prose-article :where(figure.diagram-embed > a) {
+    @apply block overflow-hidden no-underline;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--card);
+    box-shadow: none;
+    transition: box-shadow 120ms;
+  }
+  .prose-article :where(figure.diagram-embed > a:hover, figure.diagram-embed > a:focus-visible) {
+    box-shadow: 3px 3px 0 0 var(--fg);
+  }
+  .prose-article :where(figure.diagram-embed img) {
+    @apply m-0 block w-full h-auto;
+  }
+  .prose-article :where(figure.diagram-embed figcaption) {
+    @apply mt-0 px-4 py-2 text-left font-mono text-xs;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+  }
+  .prose-article :where(hr) {
+    @apply border-0 my-12 mx-auto h-px w-1/3;
+    background: var(--grad-brand);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---- reading preferences (ported from principal-swe-knowledge-graph) ---- */
+.article-column {
+  max-width: min(100%, var(--article-measure, 80ch));
+}
+html.bold-text .prose-article :where(p, li, blockquote, td, th, figcaption) {
+  font-weight: 600;
+}
+html.bold-text .prose-article :where(strong, b:not(.bionic)) {
+  font-weight: 700;
+}
+b.bionic {
+  font-weight: 600;
+  color: var(--fg);
+}
+:where(html.dark) b.bionic {
+  font-weight: 550;
+}
+/* Titles are already bold, so a 600 fixation vanishes: drop the rest of each word to regular and push the fixation heavier. */
+:where(h1, h2, h3, h4, .font-semibold, .font-bold, .font-extrabold) .bionic-rest {
+  font-weight: 400;
+}
+:where(h1, h2, h3, h4, .font-semibold, .font-bold, .font-extrabold) b.bionic {
+  font-weight: 800;
+}
+html.bold-text b.bionic {
+  font-weight: 700;
+}
+/* Focus mode: only the story — no top bar, related stories or floating chrome. */
+html.focus-mode [data-chrome] {
+  display: none !important;
+}
+
+/* ===================================================== iBlog premium layer */
+@theme {
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-wiggle: wiggle 600ms ease-in-out;
+  --animate-float: float 6s ease-in-out infinite;
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0);
+    }
+    25% {
+      transform: rotate(-14deg);
+    }
+    50% {
+      transform: rotate(10deg);
+    }
+    75% {
+      transform: rotate(-6deg);
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
+
+:root {
+  --brand-2: #2f7d45;
+  --brand-3: #6cc283;
+  --grad-brand: linear-gradient(120deg, #0f2414, var(--brand-2) 50%, var(--brand-3));
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.05), 0 8px 24px -12px rgb(0 0 0 / 0.14);
+  --shadow-lift: 0 2px 6px rgb(0 0 0 / 0.06), 0 24px 48px -20px rgb(0 0 0 / 0.24);
+  --radius-card: var(--radius-md);
+}
+.dark {
+  --brand-2: #9aa6ff;
+  --brand-3: #b18cff;
+  --grad-brand: linear-gradient(120deg, #d9dcff, var(--brand-2) 50%, var(--brand-3));
+  --shadow-soft: 0 0 0 1px rgb(255 255 255 / 0.04) inset, 0 8px 24px -12px rgb(0 0 0 / 0.8);
+  --shadow-lift: 0 0 0 1px rgb(255 255 255 / 0.07) inset, 0 24px 48px -16px rgb(0 0 0 / 0.9);
+}
+
+@layer base {
+  body {
+    font-feature-settings: "kern", "liga", "calt";
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  .text-gradient {
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .glass {
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    backdrop-filter: saturate(1.6) blur(18px);
+    -webkit-backdrop-filter: saturate(1.6) blur(18px);
+  }
+  .shimmer {
+    background: linear-gradient(90deg, var(--surface-2) 0%, color-mix(in srgb, var(--surface-2) 40%, var(--surface)) 50%, var(--surface-2) 100%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .card-premium {
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+    transition:
+      box-shadow 300ms var(--ease-out, ease),
+      transform 300ms var(--ease-out, ease);
+  }
+  .card-premium:hover {
+    box-shadow: var(--shadow-lift);
+  }
+  /* Drop cap on the first paragraph of a story. flow-root keeps the float from indenting whatever follows a short paragraph. */
+  .prose-article > p:first-of-type {
+    display: flow-root;
+  }
+  .prose-article > p:first-of-type::first-letter {
+    float: left;
+    font-size: 3.4em;
+    line-height: 0.85;
+    font-weight: 700;
+    padding: 0.08em 0.1em 0 0;
+    background: var(--grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+/* Route changes cross-fade and lift (View Transitions API). */
+::view-transition-old(root) {
+  animation: 220ms ease-out both vt-out;
+}
+::view-transition-new(root) {
+  animation: 320ms cubic-bezier(0.22, 1, 0.36, 1) both vt-in;
+}
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+  .shimmer {
+    animation: none;
+  }
+}
+
+/* Radix state-driven enter/exit for dialogs, popovers and menus. */
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
+@keyframes pop-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+.overlay-fade[data-state="open"] {
+  animation: fade-in 200ms ease-out;
+}
+.overlay-fade[data-state="closed"] {
+  animation: fade-out 160ms ease-in;
+}
+.dialog-pop[data-state="open"],
+.menu-pop[data-state="open"] {
+  animation: pop-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.dialog-pop[data-state="closed"],
+.menu-pop[data-state="closed"] {
+  animation: pop-out 160ms ease-in;
+}
+@media (width < 48rem) {
+  .dialog-pop[data-state="open"] {
+    animation: sheet-up 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+.drawer-right[data-state="open"] {
+  animation: slide-in-right 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.drawer-right[data-state="closed"] {
+  animation: slide-out-right 220ms ease-in;
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay-fade,
+  .dialog-pop,
+  .menu-pop,
+  .drawer-right {
+    animation: none !important;
+  }
+}
+
+/* ===================================================== iBlog identity layer */
+@layer base {
+  /* page colour lives on html; body stays clear so the Galaxy canvas shows through */
+  html {
+    background: var(--surface);
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+}
+@layer components {
+  /* Raised content surface: cards, panels, menus. */
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-soft);
+  }
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .ring-grad {
+    position: relative;
+  }
+  .ring-grad::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--fg);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 300ms;
+    pointer-events: none;
+  }
+  .ring-grad:hover::before,
+  .ring-grad:focus-within::before {
+    opacity: 0.9;
+  }
+  /* Console language (REDESIGN-3 §1.2). */
+  .tile {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
+  .tile-hover {
+    transition:
+      transform 160ms var(--ease-out),
+      box-shadow 160ms var(--ease-out),
+      border-color 160ms;
+  }
+  .tile-hover:hover,
+  .tile-hover:focus-within {
+    border-color: var(--fg);
+    transform: translate(-2px, -2px);
+    box-shadow: 2px 2px 0 0 var(--fg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tile-hover:hover,
+    .tile-hover:focus-within {
+      transform: none;
+    }
+  }
+  .tile-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+    border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .idx {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+  .kbd {
+    display: inline-grid;
+    place-items: center;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    padding: 0 0.25rem;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--card);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    color: var(--muted);
+  }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.75rem;
+    max-width: 14rem;
+    padding: 0 0.25rem 0 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    background: var(--card);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--fg);
+    white-space: nowrap;
+    transition:
+      background-color 120ms,
+      border-color 120ms,
+      color 120ms;
+  }
+  .tag:hover {
+    border-color: var(--fg);
+    background: var(--surface-2);
+  }
+  .tag[aria-current="page"] {
+    background: var(--inverse);
+    color: var(--on-inverse);
+    border-color: var(--inverse);
+  }
+  .tag-count {
+    border-radius: 2px;
+    background: var(--surface-2);
+    padding: 0 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .tag[aria-current="page"] .tag-count {
+    background: color-mix(in srgb, var(--on-inverse) 18%, transparent);
+    color: var(--on-inverse);
+  }
+  .seg {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+  }
+  .seg-item {
+    display: inline-flex;
+    white-space: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: calc(var(--radius-sm) - 3px);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition:
+      background-color 120ms,
+      color 120ms;
+    cursor: pointer;
+  }
+  .seg-item:hover {
+    color: var(--fg);
+    background: var(--card);
+  }
+  .seg-item[aria-checked="true"],
+  .seg-item[aria-selected="true"],
+  .seg-item[aria-pressed="true"] {
+    background: var(--inverse);
+    color: var(--on-inverse);
+  }
+  .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 120ms,
+      color 120ms;
+    cursor: pointer;
+  }
+  .key:hover {
+    background: var(--surface-2);
+    color: var(--fg);
+  }
+  .key:focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: -2px;
+  }
+  .key[aria-pressed="true"] {
+    color: var(--fg);
+  }
+  .key:disabled,
+  .key[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .hatch {
+    background: repeating-linear-gradient(-45deg, var(--surface-2) 0 6px, var(--card) 6px 12px);
+  }
+}
+
+/* Bold text applies site-wide. Base layer, so explicit font-* utilities still win. */
+@layer base {
+  html.bold-text body {
+    font-weight: 600;
+  }
+  html.bold-text :where(.font-normal) {
+    font-weight: 600;
+  }
+}
+html.bold-text :where(.font-medium) {
+  font-weight: 650;
+}
+
+/* ===================================================== Galaxy glassmorphism */
+html[data-palette="galaxy"] {
+  --card: rgb(16 18 44 / 0.42);
+}
+html.dark:not([data-palette="galaxy"]) {
+  --card: color-mix(in srgb, var(--surface) 55%, transparent);
+}
+/* Daylight: the inverse of Galaxy — white glass over a pale sky, deep-indigo ink */
+html[data-palette="daylight"] {
+  --card: rgb(255 255 255 / 0.55);
+  --line-strong: #7d86bd;
+  --overlay: rgb(11 16 48 / 0.45);
+  --brand-2: #4b55d6;
+  --brand-3: #7a4fd0;
+  --grad-brand: linear-gradient(120deg, #0b1030, var(--brand-2) 50%, var(--brand-3));
+}
+
+/* Apple-style liquid glass: heavy blur + saturation, light sheen, specular top edge */
+.liquid-glass {
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.03) 45%, rgb(255 255 255 / 0.06)), rgb(8 10 26 / 0.62);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.28),
+    inset 0 -1px 0 0 rgb(255 255 255 / 0.05),
+    0 20px 60px -20px rgb(0 0 0 / 0.75);
+}
+html:not(.dark) .liquid-glass {
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.72), rgb(255 255 255 / 0.55));
+  border-color: rgb(0 0 0 / 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.9),
+    0 16px 40px -24px rgb(11 16 48 / 0.35);
+}
+/* Whole UI in liquid glass: every surface over the sky is frosted, sheened and edge-lit.
+   :where() keeps these at low specificity so hover:/focus: utilities still win. */
+html.dark
+:where(
+  .tile,
+  .bg-card,
+  [class*="bg-card/"],
+  .bg-surface-2,
+  .seg,
+  .tag,
+  .glass,
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"],
+  .sticky.bg-surface,
+  input:not(.bg-transparent):not(label input):not(div > input),
+  select,
+  textarea
+) {
+  background-image: linear-gradient(135deg, rgb(255 255 255 / 0.09), rgb(255 255 255 / 0.02) 45%, rgb(255 255 255 / 0.05));
+  background-color: rgb(14 16 40 / 0.35);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  border-color: rgb(255 255 255 / 0.13);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.22),
+    inset 0 -1px 0 0 rgb(255 255 255 / 0.04),
+    0 14px 44px -22px rgb(0 0 0 / 0.85);
+}
+html:not(.dark)
+  :where(
+    .tile,
+    .bg-card,
+    [class*="bg-card/"],
+    .bg-surface-2,
+    .seg,
+    .tag,
+    .glass,
+    [role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    .sticky.bg-surface,
+    input:not(.bg-transparent):not(label input):not(div > input),
+    select,
+    textarea
+  ) {
+  background-image: linear-gradient(135deg, rgb(255 255 255 / 0.5), rgb(255 255 255 / 0.15) 45%, rgb(255 255 255 / 0.3));
+  background-color: rgb(255 255 255 / 0.55);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+  border-color: rgb(0 0 0 / 0.08);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.85),
+    0 12px 32px -20px rgb(11 16 48 / 0.3);
+}
+/* Only top-level surfaces blur: glass nested in glass is tinted but never re-filters the backdrop */
+html
+  :is(.tile, .bg-card, [class*="bg-card/"], .glass, .liquid-glass, .reading-glass, [role="dialog"], [role="menu"], [role="listbox"])
+  :is(
+    .tile,
+    .bg-card,
+    [class*="bg-card/"],
+    .bg-surface-2,
+    .seg,
+    .tag,
+    .glass,
+    .liquid-glass,
+    [role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    .sticky.bg-surface,
+    input:not(.bg-transparent):not(label input):not(div > input),
+    select,
+    textarea
+  ) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Floating surfaces (menus, popovers, dialogs, listboxes) must stay readable over ANY backdrop,
+   e.g. the light diagram-editor canvas, so they use the near-opaque --popover token (set per palette in
+   paletteVars). Blur is only a subtle enhancement on top. Specificity (0,2,1) beats the :where() glass rules. */
+html:is(.dark, :not(.dark)) :is(.menu-pop, .dialog-pop, .float-surface, [role="menu"], [role="listbox"], [role="dialog"]) {
+  background-color: color-mix(in srgb, var(--popover) 97%, transparent);
+  background-image: none;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+/* Tag chips sit over bright sky/Earth glow: denser fill keeps their text legible */
+html.dark .tag.tag {
+  background-color: rgb(14 16 40 / 0.72);
+}
+html:not(.dark) .tag.tag {
+  background-color: rgb(255 255 255 / 0.85);
+}
+html.dark .tag.tag:hover {
+  background-color: rgb(154 166 255 / 0.22);
+  border-color: rgb(190 200 255 / 0.6);
+}
+html:not(.dark) .tag.tag:hover {
+  background-color: rgb(75 85 214 / 0.12);
+  border-color: rgb(75 85 214 / 0.45);
+}
+/* The glass rules are unlayered, so they outrank Tailwind's layered hover:bg-* utilities.
+   Re-apply each hover background used in the app, and drop the sheen under it. */
+html [class*="hover:bg-"]:hover {
+  background-image: none;
+}
+html [class~="hover:bg-surface-2"]:hover {
+  background-color: var(--surface-2);
+}
+html [class~="hover:bg-inverse"]:hover {
+  background-color: var(--inverse);
+}
+html [class~="hover:bg-accent-hover"]:hover {
+  background-color: var(--accent-hover);
+}
+html [class~="hover:bg-danger"]:hover {
+  background-color: var(--danger);
+}
+html [class~="hover:bg-fg/10"]:hover {
+  background-color: color-mix(in srgb, var(--fg) 10%, transparent);
+}
+html [class~="hover:bg-line"]:hover {
+  background-color: var(--line);
+}
+html [class~="hover:bg-muted"]:hover {
+  background-color: var(--muted);
+}
+html [class~="hover:bg-transparent"]:hover {
+  background-color: transparent;
+}
+html .tag.tag[aria-current="page"] {
+  background-image: none;
+  background-color: var(--inverse);
+  border-color: var(--inverse);
+}
+html.dark :is(select) option {
+  background: #0b0d1f;
+}
+html:not(.dark) :is(select) option {
+  background: #ffffff;
+}
+html :is(.tile, [role="dialog"], [role="menu"]) {
+  border-radius: max(var(--radius-md), 16px);
+}
+html.dark .tile-head {
+  border-color: rgb(255 255 255 / 0.1);
+}
+html:not(.dark) .tile-head {
+  border-color: rgb(0 0 0 / 0.08);
+  background: rgb(255 255 255 / 0.4);
+}
+html.dark :is(.divide-line) > :not(:last-child) {
+  border-color: rgb(255 255 255 / 0.08);
+}
+html:not(.dark) :is(.divide-line) > :not(:last-child) {
+  border-color: rgb(0 0 0 / 0.08);
+}
+html.dark .tile-hover:hover,
+html.dark .tile-hover:focus-within {
+  transform: translateY(-2px);
+  border-color: rgb(190 200 255 / 0.45);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.3),
+    0 0 0 1px rgb(154 166 255 / 0.2),
+    0 22px 60px -20px rgb(154 166 255 / 0.45);
+}
+html:not(.dark) .tile-hover:hover,
+html:not(.dark) .tile-hover:focus-within {
+  transform: translateY(-2px);
+  border-color: rgb(75 85 214 / 0.35);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.9),
+    0 0 0 1px rgb(75 85 214 / 0.12),
+    0 22px 50px -24px rgb(11 16 48 / 0.4);
+}
+/* Keyboard focus on cards and links inside them is always visible */
+html :is(.tile-hover, .tile a, .tile button, a.tile):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+/* solid accent/inverse controls stay solid pills (no blur: they sit inside glass) */
+html.dark :is(.bg-inverse, .bg-accent) {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.3),
+    0 8px 24px -10px rgb(0 0 0 / 0.7);
+}
+html:not(.dark) :is(.bg-inverse, .bg-accent) {
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.25),
+    0 8px 20px -12px rgb(11 16 48 / 0.45);
+}
+
+/* Story page: the text sits on one frosted panel over the sky, dense enough to read comfortably */
+.reading-glass {
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+  border-radius: var(--radius-xl);
+  -webkit-backdrop-filter: blur(2px) saturate(160%);
+  backdrop-filter: blur(2px) saturate(160%);
+}
+@media (min-width: 768px) {
+  .reading-glass {
+    padding-inline: 3rem;
+  }
+}
+html.dark .reading-glass {
+  border: 1px solid rgb(255 255 255 / 0.09);
+  background: rgb(8 10 26 / 0.14);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.07),
+    0 30px 80px -30px rgb(0 0 0 / 0.9);
+}
+html:not(.dark) .reading-glass {
+  border: 1px solid rgb(0 0 0 / 0.08);
+  background: rgb(255 255 255 / 0.86);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.9),
+    0 30px 70px -36px rgb(11 16 48 / 0.35);
+}
+.reading-glass .prose-article {
+  line-height: 1.75;
+}
+html.dark .reading-glass .prose-article {
+  color: #e9ebfb;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.85),
+    0 0 12px rgb(0 0 0 / 0.6);
+}
+html.dark .reading-glass :is(.tile, .bg-card) {
+  background: rgb(255 255 255 / 0.03);
+}
+html:not(.dark) .reading-glass :is(.tile, .bg-card) {
+  background: rgb(255 255 255 / 0.6);
+}
+
+/* The editor's title and summary are text on the panel, not boxed fields */
+.reading-glass textarea.bg-transparent {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+/* Wide article tables scroll inside the column instead of the page */
+.prose-article table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* The sticky action bar floats over the story itself, so it keeps its own blur and a dense fill */
+html .sticky[role="toolbar"][data-chrome] {
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+html.dark .sticky[role="toolbar"][data-chrome] {
+  background: rgb(14 16 40 / 0.94);
+}
+html:not(.dark) .sticky[role="toolbar"][data-chrome] {
+  background: rgb(255 255 255 / 0.94);
+}
+/* the gradient drop cap is background-clipped text: a shadow would paint over it */
+html.dark .reading-glass .prose-article ::first-letter,
+html.dark .reading-glass .prose-article pre,
+html.dark .reading-glass .prose-article code {
+  text-shadow: none;
+}
+
+/* ---- story editor: the visual (rich text) body. Typography comes from .prose-article; this is only the editing chrome. ---- */
+@layer components {
+  .rich-wrap {
+    position: relative;
+    min-width: 0;
+  }
+  .rich-toolbar-wrap {
+    position: sticky;
+    top: 3rem; /* under the 48px header */
+    z-index: 30;
+    margin-top: 1.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    max-width: 100%;
+  }
+  @media (max-width: 639.98px) {
+    .rich-toolbar-wrap {
+      top: 5.5rem; /* under the two-row phone header */
+    }
+  }
+  .rich-toolbar {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .rich-tb {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-xs);
+    color: var(--fg);
+  }
+  .rich-tb:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
+  .rich-tb[aria-pressed="true"] {
+    background: var(--inverse);
+    color: var(--on-inverse);
+  }
+  .rich-tb:disabled {
+    opacity: 0.35;
+  }
+  .rich-sep {
+    flex: none;
+    width: 1px;
+    height: 1.25rem;
+    margin: 0 4px;
+    background: var(--line-strong);
+  }
+  .rich-lang {
+    flex: none;
+    height: 2.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    background: var(--card);
+    padding: 0 0.5rem;
+    font: 12px var(--font-mono);
+  }
+  .rich-linkbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    border-top: 1px solid var(--line);
+    padding: 4px;
+  }
+  .rich-linkbtn {
+    height: 2.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    padding: 0 0.75rem;
+    font-size: 13px;
+  }
+  .rich-linkbtn:hover {
+    background: var(--surface-2);
+  }
+  .rich-bubble {
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    box-shadow: 3px 3px 0 0 var(--fg);
+    z-index: 40;
+  }
+  .rich-content {
+    margin-top: 1.5rem;
+    min-width: 0;
+  }
+  .rich-body {
+    min-height: 60vh;
+    outline: none;
+    overflow-wrap: anywhere;
+  }
+  /* the published page's drop cap would hop between paragraphs while typing */
+  .prose-article.rich-body > p:first-of-type::first-letter {
+    float: none;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    padding: 0;
+    background: none;
+    color: inherit;
+  }
+  .rich-body :where(p, h2, h3, li, blockquote):first-child {
+    margin-top: 0;
+  }
+  .rich-body p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+    color: color-mix(in srgb, var(--muted) 60%, transparent);
+  }
+  .rich-body :where(ul, ol) {
+    padding-left: 1.5em;
+  }
+  .rich-body :where(ul) {
+    list-style: disc;
+  }
+  .rich-body :where(ol) {
+    list-style: decimal;
+  }
+  .rich-body :where(li p) {
+    margin-top: 0;
+  }
+  .rich-body :where(pre) {
+    background: var(--surface-2);
+  }
+  .rich-body :where(pre code) {
+    background: none;
+    padding: 0;
+  }
+  .rich-body img.ProseMirror-selectednode,
+  .rich-body .ProseMirror-selectednode {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .rich-body :where(img) {
+    max-width: 100%;
+  }
+  .rich-body .rich-upload {
+    display: inline-block;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-xs);
+    padding: 0 0.5rem;
+    font: 12px var(--font-mono);
+    color: var(--muted);
+  }
+  .rich-card {
+    margin: 2.5rem 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--card);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .rich-card[data-selected] {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .rich-card-head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 0.75rem;
+    font: 12px var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .rich-card:has(> .rich-card-head:only-child) .rich-card-head {
+    border-bottom: 0;
+  }
+  .rich-card-head label {
+    text-transform: none;
+    letter-spacing: 0;
+  }
+  .rich-card-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--radius-xs);
+  }
+  .rich-card-btn:hover {
+    background: var(--surface-2);
+  }
+  .rich-live-code {
+    display: block;
+    width: 100%;
+    resize: vertical;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
+    padding: 0.75rem;
+    font: 13px / 1.5 var(--font-mono);
+    color: var(--fg);
+    outline: none;
+    tab-size: 2;
+    white-space: pre;
+    overflow: auto;
+  }
+  .rich-live-code:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+  .rich-slash {
+    position: fixed;
+    z-index: 60;
+    width: 15rem;
+    max-height: 18rem;
+    overflow-y: auto;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    box-shadow: 3px 3px 0 0 var(--fg);
+    padding: 4px;
+  }
+  .rich-slash-item {
+    border-radius: var(--radius-xs);
+    padding: 0.5rem 0.75rem;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .rich-slash-item.is-active,
+  .rich-slash-item:hover {
+    background: var(--inverse);
+    color: var(--on-inverse);
+  }
+  [data-focus-mode] .focus-hide {
+    display: none !important;
+  }
+  [data-focus-mode] .focus-dim {
+    opacity: 0;
+    transition: opacity 150ms;
+  }
+  [data-focus-mode] .focus-dim:hover,
+  [data-focus-mode] .focus-dim:focus-within {
+    opacity: 1;
+  }
+}

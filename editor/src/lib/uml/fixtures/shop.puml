@@ -1,0 +1,32 @@
+@startuml
+package shop {
+  abstract class Shape<T> {
+    #name : String
+    {static} -count : int
+    +{abstract} area() : double
+    +describe() : String
+  }
+  interface Repository<T> {
+    +find(id : String) : T
+    +save(item : T)
+  }
+  enum Color {
+    RED
+    GREEN
+  }
+  class Circle extends Shape {
+    -radius : double
+    +area() : double
+  }
+}
+class OrderRepo implements Repository
+class Order {
+  +items : List<Item>
+  +total() : Money
+}
+Order "1" *-- "1..*" Item : contains
+Customer "1" --> "0..*" Order : places
+Order o-- Payment
+Order ..> Color
+Item <|-- DigitalItem
+@enduml

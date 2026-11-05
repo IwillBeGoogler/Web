@@ -1,0 +1,33 @@
+classDiagram
+  direction TB
+  class Shape {
+    <<abstract>>
+    +String name
+    -int id$
+    +area() double*
+    +describe() String
+  }
+  class Repository~T~ {
+    <<interface>>
+    +find(id: string) T
+    +save(item: T) void
+  }
+  class Color {
+    <<enumeration>>
+    RED
+    GREEN
+  }
+  class Circle
+  Circle : -double radius
+  Circle : +area() double
+  class Order {
+    +List~Item~ items
+    +total() Money
+  }
+  Shape <|-- Circle
+  Repository <|.. OrderRepo
+  Order "1" *-- "1..*" Item : contains
+  Customer "1" --> "0..*" Order : places
+  Order o-- Payment
+  Order ..> Color
+  Customer -- Address

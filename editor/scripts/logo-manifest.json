@@ -1,0 +1,614 @@
+[
+ {
+  "id": "db2",
+  "name": "ls-ibmdb2",
+  "kind": "landscape",
+  "ref": "ibmdb2.svg"
+ },
+ {
+  "id": "dragonfly",
+  "name": "ls-dragonflydb",
+  "kind": "landscape",
+  "ref": "dragonflydb.svg"
+ },
+ {
+  "id": "hazelcast",
+  "name": "ls-hazelcast",
+  "kind": "landscape",
+  "ref": "hazelcast.svg"
+ },
+ {
+  "id": "opentsdb",
+  "name": "ls-opentsdb",
+  "kind": "landscape",
+  "ref": "opentsdb.svg"
+ },
+ {
+  "id": "nebulagraph",
+  "name": "ls-nebulagraph",
+  "kind": "landscape",
+  "ref": "nebulagraph.svg"
+ },
+ {
+  "id": "pinot",
+  "name": "ls-pinot",
+  "kind": "landscape",
+  "ref": "pinot.svg"
+ },
+ {
+  "id": "starrocks",
+  "name": "ls-starrocks",
+  "kind": "landscape",
+  "ref": "starrocks.svg"
+ },
+ {
+  "id": "vertica",
+  "name": "ls-vertica-ot",
+  "kind": "landscape",
+  "ref": "Vertica-OT.svg"
+ },
+ {
+  "id": "beam",
+  "name": "ls-beam",
+  "kind": "landscape",
+  "ref": "beam.svg"
+ },
+ {
+  "id": "llamaindex",
+  "name": "ls-llamaindex",
+  "kind": "landscape",
+  "ref": "llamaindex.svg"
+ },
+ {
+  "id": "metallb",
+  "name": "ls-metallb",
+  "kind": "landscape",
+  "ref": "metallb.svg"
+ },
+ {
+  "id": "cert-manager",
+  "name": "ls-jetstack-cert-manager",
+  "kind": "landscape",
+  "ref": "jetstack-cert-manager.svg"
+ },
+ {
+  "id": "zitadel",
+  "name": "ls-zitadel",
+  "kind": "landscape",
+  "ref": "zitadel.svg"
+ },
+ {
+  "id": "opa",
+  "name": "ls-opa-icon-color",
+  "kind": "landscape",
+  "ref": "opa-icon-color.svg"
+ },
+ {
+  "id": "kyverno",
+  "name": "ls-kyverno",
+  "kind": "landscape",
+  "ref": "kyverno.svg"
+ },
+ {
+  "id": "checkov",
+  "name": "ls-checkov",
+  "kind": "landscape",
+  "ref": "checkov.svg"
+ },
+ {
+  "id": "tilt",
+  "name": "ls-tilt",
+  "kind": "landscape",
+  "ref": "tilt.svg"
+ },
+ {
+  "id": "minikube",
+  "name": "ls-minikube",
+  "kind": "landscape",
+  "ref": "minikube.svg"
+ },
+ {
+  "id": "zipkin",
+  "name": "ls-zipkin",
+  "kind": "landscape",
+  "ref": "zipkin.svg"
+ },
+ {
+  "id": "cortex",
+  "name": "ls-cortex",
+  "kind": "landscape",
+  "ref": "cortex.svg"
+ },
+ {
+  "id": "nagios",
+  "name": "ls-nagios",
+  "kind": "landscape",
+  "ref": "nagios.svg"
+ },
+ {
+  "id": "logzio",
+  "name": "ls-logz-io",
+  "kind": "landscape",
+  "ref": "logz-io.svg"
+ },
+ {
+  "id": "quickwit",
+  "name": "ls-quickwit.png",
+  "kind": "landscape",
+  "ref": "quickwit.png"
+ },
+ {
+  "id": "openobserve",
+  "name": "ls-openobserve",
+  "kind": "landscape",
+  "ref": "openobserve.svg"
+ },
+ {
+  "id": "skywalking",
+  "name": "ls-sky-walking",
+  "kind": "landscape",
+  "ref": "sky-walking.svg"
+ },
+ {
+  "id": "pinpoint",
+  "name": "ls-pinpoint",
+  "kind": "landscape",
+  "ref": "pinpoint.svg"
+ },
+ {
+  "id": "honeycomb",
+  "name": "ls-honeycomb",
+  "kind": "landscape",
+  "ref": "honeycomb.svg"
+ },
+ {
+  "id": "instana",
+  "name": "ls-instana",
+  "kind": "landscape",
+  "ref": "instana.svg"
+ },
+ {
+  "id": "perses",
+  "name": "ls-perses",
+  "kind": "landscape",
+  "ref": "perses.svg"
+ },
+ {
+  "id": "rootly",
+  "name": "ls-rootly",
+  "kind": "landscape",
+  "ref": "rootly.svg"
+ },
+ {
+  "id": "checkly",
+  "name": "ls-checkly",
+  "kind": "landscape",
+  "ref": "checkly.svg"
+ },
+ {
+  "id": "pixie",
+  "name": "ls-pixie",
+  "kind": "landscape",
+  "ref": "pixie.svg"
+ },
+ {
+  "id": "hubble",
+  "name": "ls-hubble-rgb-",
+  "kind": "landscape",
+  "ref": "hubble(rgb).svg"
+ },
+ {
+  "id": "coroot",
+  "name": "ls-coroot",
+  "kind": "landscape",
+  "ref": "coroot.svg"
+ },
+ {
+  "id": "kubecost",
+  "name": "ls-kubecost",
+  "kind": "landscape",
+  "ref": "kubecost.svg"
+ },
+ {
+  "id": "robusta",
+  "name": "ls-robusta",
+  "kind": "landscape",
+  "ref": "robusta.svg"
+ },
+ {
+  "id": "redpanda",
+  "name": "ls-redpanda",
+  "kind": "landscape",
+  "ref": "redpanda.svg"
+ },
+ {
+  "id": "zookeeper",
+  "name": "ls-apache-zookeeper",
+  "kind": "landscape",
+  "ref": "apache-zookeeper.svg"
+ },
+ {
+  "id": "thrift",
+  "name": "ls-apache-thrift",
+  "kind": "landscape",
+  "ref": "apache-thrift.svg"
+ },
+ {
+  "id": "apisix",
+  "name": "ls-apisix",
+  "kind": "landscape",
+  "ref": "apisix.svg"
+ },
+ {
+  "id": "dubbo",
+  "name": "ls-dubbo",
+  "kind": "landscape",
+  "ref": "dubbo.svg"
+ },
+ {
+  "id": "shardingsphere",
+  "name": "ls-shardingsphere",
+  "kind": "landscape",
+  "ref": "shardingsphere.svg"
+ },
+ {
+  "id": "zeppelin",
+  "name": "ls-apache-zeppelin",
+  "kind": "landscape",
+  "ref": "apache-zeppelin.svg"
+ },
+ {
+  "id": "openwhisk",
+  "name": "ls-apache-openwhisk",
+  "kind": "landscape",
+  "ref": "apache-openwhisk.svg"
+ },
+ {
+  "id": "seatunnel",
+  "name": "ls-seatunnel",
+  "kind": "landscape",
+  "ref": "seatunnel.svg"
+ },
+ {
+  "id": "varnish",
+  "name": "ls-varnish-software",
+  "kind": "landscape",
+  "ref": "varnish-software.svg"
+ },
+ {
+  "id": "tyk",
+  "name": "ls-tyk",
+  "kind": "landscape",
+  "ref": "tyk.svg"
+ },
+ {
+  "id": "krakend",
+  "name": "ls-krakend",
+  "kind": "landscape",
+  "ref": "krakend.svg"
+ },
+ {
+  "id": "gravitee",
+  "name": "ls-gravitee",
+  "kind": "landscape",
+  "ref": "gravitee.svg"
+ },
+ {
+  "id": "unleash",
+  "name": "ls-unleash",
+  "kind": "landscape",
+  "ref": "unleash.svg"
+ },
+ {
+  "id": "flagsmith",
+  "name": "ls-flagsmith",
+  "kind": "landscape",
+  "ref": "flagsmith.svg"
+ },
+ {
+  "id": "eureka",
+  "name": "ls-netflix-oss-eureka",
+  "kind": "landscape",
+  "ref": "netflix-oss-eureka.svg"
+ },
+ {
+  "id": "velero",
+  "name": "ls-project-velero",
+  "kind": "landscape",
+  "ref": "project-velero.svg"
+ },
+ {
+  "id": "portworx",
+  "name": "ls-portworx",
+  "kind": "landscape",
+  "ref": "portworx.svg"
+ },
+ {
+  "id": "cockroachdb",
+  "name": "ls-cockroach-labs",
+  "kind": "landscape",
+  "ref": "cockroach-labs.svg"
+ },
+ {
+  "id": "activemq",
+  "name": "asf-activemq",
+  "kind": "asf",
+  "ref": "activemq"
+ },
+ {
+  "id": "artemis",
+  "name": "asf-activemq",
+  "kind": "asf",
+  "ref": "activemq"
+ },
+ {
+  "id": "samza",
+  "name": "asf-samza",
+  "kind": "asf",
+  "ref": "samza"
+ },
+ {
+  "id": "iceberg",
+  "name": "asf-iceberg",
+  "kind": "asf",
+  "ref": "iceberg"
+ },
+ {
+  "id": "hudi",
+  "name": "asf-hudi",
+  "kind": "asf",
+  "ref": "hudi"
+ },
+ {
+  "id": "paimon",
+  "name": "asf-paimon",
+  "kind": "asf",
+  "ref": "paimon"
+ },
+ {
+  "id": "orc",
+  "name": "asf-orc",
+  "kind": "asf",
+  "ref": "orc"
+ },
+ {
+  "id": "drill",
+  "name": "asf-drill",
+  "kind": "asf",
+  "ref": "drill"
+ },
+ {
+  "id": "phoenix-hbase",
+  "name": "asf-phoenix",
+  "kind": "asf",
+  "ref": "phoenix"
+ },
+ {
+  "id": "kudu",
+  "name": "asf-kudu",
+  "kind": "asf",
+  "ref": "kudu"
+ },
+ {
+  "id": "nutch",
+  "name": "asf-nutch",
+  "kind": "asf",
+  "ref": "nutch"
+ },
+ {
+  "id": "tika",
+  "name": "asf-tika",
+  "kind": "asf",
+  "ref": "tika"
+ },
+ {
+  "id": "httpd",
+  "name": "asf-httpd",
+  "kind": "asf",
+  "ref": "httpd"
+ },
+ {
+  "id": "livy",
+  "name": "asf-livy",
+  "kind": "asf",
+  "ref": "livy"
+ },
+ {
+  "id": "oozie",
+  "name": "asf-oozie",
+  "kind": "asf",
+  "ref": "oozie"
+ },
+ {
+  "id": "flume",
+  "name": "asf-flume",
+  "kind": "asf",
+  "ref": "flume"
+ },
+ {
+  "id": "ranger",
+  "name": "asf-ranger",
+  "kind": "asf",
+  "ref": "ranger"
+ },
+ {
+  "id": "knox",
+  "name": "asf-knox",
+  "kind": "asf",
+  "ref": "knox"
+ },
+ {
+  "id": "shiro",
+  "name": "asf-shiro",
+  "kind": "asf",
+  "ref": "shiro"
+ },
+ {
+  "id": "inlong",
+  "name": "asf-inlong",
+  "kind": "asf",
+  "ref": "inlong"
+ },
+ {
+  "id": "hop",
+  "name": "asf-hop",
+  "kind": "asf",
+  "ref": "hop"
+ },
+ {
+  "id": "kvrocks",
+  "name": "asf-kvrocks",
+  "kind": "asf",
+  "ref": "kvrocks"
+ },
+ {
+  "id": "yarn-hadoop",
+  "name": "asf-hadoop",
+  "kind": "asf",
+  "ref": "hadoop"
+ },
+ {
+  "id": "mapreduce",
+  "name": "asf-hadoop",
+  "kind": "asf",
+  "ref": "hadoop"
+ },
+ {
+  "id": "camel",
+  "name": "asf-camel",
+  "kind": "asf",
+  "ref": "camel"
+ },
+ {
+  "id": "atlas",
+  "name": "asf-atlas",
+  "kind": "asf",
+  "ref": "atlas"
+ },
+ {
+  "id": "buildah",
+  "name": "gh-buildah",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/containers/buildah/HEAD/logos/buildah-logo-source.svg"
+ },
+ {
+  "id": "janusgraph",
+  "name": "gh-janusgraph",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/JanusGraph/janusgraph/HEAD/docs/janusgraph-logomark.svg"
+ },
+ {
+  "id": "gatus",
+  "name": "gh-gatus",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/TwiN/gatus/HEAD/.github/assets/logo.svg"
+ },
+ {
+  "id": "parca",
+  "name": "gh-parca",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/parca-dev/parca/HEAD/ui/packages/app/web/public/logo.svg"
+ },
+ {
+  "id": "dagster",
+  "name": "gh-dagster",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/dagster-io/dagster/HEAD/docs/static/img/dagster-logo.svg"
+ },
+ {
+  "id": "uptrace",
+  "name": "gh-uptrace",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/uptrace/uptrace/HEAD/vue/public/uptrace/logo-small.svg"
+ },
+ {
+  "id": "m3db",
+  "name": "gh-m3db",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/m3db/m3/HEAD/site/static/logo.svg"
+ },
+ {
+  "id": "conductor",
+  "name": "gh-conductor",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/conductor-oss/conductor/HEAD/docs/img/logo.svg"
+ },
+ {
+  "id": "munin",
+  "name": "gh-munin",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/munin-monitoring/munin/HEAD/logo.svg"
+ },
+ {
+  "id": "debezium",
+  "name": "gh-debezium",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/debezium/debezium.github.io/develop/assets/images/color_black_debezium_type_600px.svg"
+ },
+ {
+  "id": "telegraf",
+  "name": "gh-telegraf",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/telegraf.svg"
+ },
+ {
+  "id": "uptimerobot",
+  "name": "gh-uptimerobot",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/uptimerobot.svg"
+ },
+ {
+  "id": "glitchtip",
+  "name": "gh-glitchtip",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/glitchtip.svg"
+ },
+ {
+  "id": "crowdstrike",
+  "name": "gh-crowdstrike",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/crowdstrike-light.svg"
+ },
+ {
+  "id": "questdb",
+  "name": "gh-questdb",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/questdb.svg"
+ },
+ {
+  "id": "prtg",
+  "name": "gh-prtg",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/prtg.svg"
+ },
+ {
+  "id": "confluent",
+  "name": "gh-confluent-dark",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/svg/confluent-dark.svg"
+ },
+ {
+  "id": "calico",
+  "name": "gh-calico-dark",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/selfhst/icons/main/svg/calico-dark.svg"
+ },
+ {
+  "id": "emqx",
+  "name": "ls-emqx",
+  "kind": "landscape",
+  "ref": "emqx.svg"
+ },
+ {
+  "id": "glusterfs",
+  "name": "ls-gluster",
+  "kind": "landscape",
+  "ref": "gluster.svg"
+ },
+ {
+  "id": "keepalived",
+  "name": "gh-keepalived",
+  "kind": "url",
+  "ref": "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/png/keepalived.png"
+ }
+]

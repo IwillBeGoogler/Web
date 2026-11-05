@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="iBlog — human stories &amp; ideas. Read, write and share." />
+    <meta name="color-scheme" content="light dark" />
+    <title>iBlog</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/api/feed.xml" />
+    <meta name="theme-color" content="#04050d" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#04050d" media="(prefers-color-scheme: dark)" />
+    <meta property="og:site_name" content="iBlog" />
+    <meta property="og:type" content="website" />
+    <script src="/theme.js"></script>
+    <style>
+      /* Pre-JS splash: shown until the app shell and fonts are ready (removed in src/main.tsx). */
+      #splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; align-content: center; gap: 22px;
+        background: radial-gradient(80% 60% at 50% 110%, #2a2f8a 0%, transparent 60%), #01020a; color: #eceeff;
+        font: 800 30px/1 "Inter Tight", system-ui, sans-serif; letter-spacing: -0.04em; transition: opacity 500ms ease, visibility 500ms; }
+      html[data-palette]:not(.dark) #splash { background: radial-gradient(80% 60% at 50% 110%, #c7cfff 0%, transparent 60%), #eef1ff; color: #0b1030; }
+      #splash.out { opacity: 0; visibility: hidden; }
+      .splash-mark { display: flex; align-items: center; gap: 10px; }
+      .splash-i { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; font: 700 22px "Geist Mono", ui-monospace, monospace;
+        background: rgb(255 255 255 / 0.1); border: 1px solid rgb(255 255 255 / 0.25); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.3); }
+      html[data-palette]:not(.dark) .splash-i { background: rgb(255 255 255 / 0.7); border-color: rgb(0 0 0 / 0.08); }
+      .splash-orbit { position: relative; width: 44px; height: 44px; border-radius: 50%; border: 1px solid currentColor; opacity: 0.35; animation: splash-spin 1.4s linear infinite; }
+      .splash-orbit span { position: absolute; top: -4px; left: 50%; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #9aa6ff; box-shadow: 0 0 12px #9aa6ff; }
+      .splash-stars { position: absolute; inset: 0; pointer-events: none; opacity: 0.8; animation: splash-twinkle 2.4s ease-in-out infinite alternate;
+        background-image: radial-gradient(1px 1px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 27% 72%, #fff, transparent), radial-gradient(1.5px 1.5px at 44% 33%, #fff, transparent),
+          radial-gradient(1px 1px at 63% 12%, #fff, transparent), radial-gradient(1px 1px at 78% 58%, #fff, transparent), radial-gradient(1.5px 1.5px at 88% 26%, #fff, transparent),
+          radial-gradient(1px 1px at 8% 88%, #fff, transparent), radial-gradient(1px 1px at 52% 84%, #fff, transparent), radial-gradient(1px 1px at 93% 82%, #fff, transparent); }
+      html[data-palette]:not(.dark) .splash-stars { display: none; }
+      #splash-gl { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+      .splash-mark { position: relative; z-index: 1; }
+      #splash.gl .splash-orbit { visibility: hidden; }
+      #splash.gl .splash-stars { display: none; }
+      /* Inner pages skip the splash; hold the app a moment for webfonts so text doesn't flash in a fallback face. */
+      html.fonts-wait #root { visibility: hidden; }
+      @keyframes splash-spin { to { transform: rotate(360deg); } }
+      @keyframes splash-twinkle { from { opacity: 0.35; } to { opacity: 0.9; } }
+      @media (prefers-reduced-motion: reduce) { .splash-orbit, .splash-stars { animation: none; } }
+    </style>
+  </head>
+  <body>
+    <div id="splash" aria-hidden="true">
+      <div class="splash-stars"></div>
+      <canvas id="splash-gl"></canvas>
+      <div class="splash-mark"><span class="splash-i">i</span>Blog</div>
+      <div class="splash-orbit"><span></span></div>
+    </div>
+    <script src="/splash.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

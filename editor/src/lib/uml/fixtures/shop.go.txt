@@ -1,0 +1,85 @@
+// Package shop models a tiny store.
+package shop
+
+import (
+	"fmt"
+	"io"
+)
+
+// Money is an amount in cents.
+type Money int64
+
+type Color int
+
+const (
+	Red Color = iota
+	Green
+	Blue
+)
+
+type Entity struct {
+	ID        string `json:"id"`
+	createdAt int64
+}
+
+type Customer struct {
+	Entity
+	Name    string
+	Email   string `json:"email"`
+	Orders  []*Order
+	Address *Address
+	prefs   map[string]Preference
+}
+
+type Address struct {
+	Street, City string
+	Zip          string
+}
+
+type Preference struct{ Key string }
+
+type Order struct {
+	*Entity
+	Customer *Customer
+	Lines    []OrderLine
+	total    Money
+	Status   Color
+	Notes    struct {
+		A string
+	}
+}
+
+type OrderLine struct {
+	SKU string
+	Qty int
+}
+
+type Repository[T any] interface {
+	Find(id string) (T, error)
+	Save(item T) error
+	io.Closer
+}
+
+type Pricer interface {
+	Price(lines ...OrderLine) Money
+}
+
+type Stack[T any] struct {
+	items []T
+}
+
+func (c *Customer) AddOrder(o *Order) {
+	c.Orders = append(c.Orders, o)
+}
+
+func (c Customer) FullName() string { return c.Name }
+
+func (o *Order) Total(tax, discount float64) (Money, error) {
+	return o.total, nil
+}
+
+func (o *Order) validate() bool { return true }
+
+func (s *Stack[T]) Push(v T) { s.items = append(s.items, v) }
+
+func helper() {}

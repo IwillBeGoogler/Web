@@ -1,0 +1,31 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "image",
+          "attrs": {
+            "src": "https://example.com/a_(1).png",
+            "alt": "",
+            "title": null
+          }
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "image",
+          "attrs": {
+            "src": "https://example.com/a.png",
+            "alt": "",
+            "title": null
+          }
+        }
+      ]
+    }
+  ]
+}

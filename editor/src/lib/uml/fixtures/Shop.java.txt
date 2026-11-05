@@ -1,0 +1,67 @@
+package com.shop.model;
+
+import java.util.List;
+import java.util.Map;
+
+/** A shape. */
+public abstract class Shape implements Drawable, Comparable<Shape> {
+    private static int count = 0;
+    protected final String name;
+    int packageLevel;
+    public List<Item> items = new ArrayList<>();
+    private Map<String, Tag> tags;
+    @Inject
+    private Owner owner;
+
+    public Shape(String name, int id) {
+        this.name = name;
+    }
+
+    public abstract double area();
+
+    public static Shape create(String kind, Map<String, List<Integer>> options) throws Exception {
+        return null;
+    }
+
+    protected <T extends Number> T convert(final T value, String... rest) {
+        return value;
+    }
+
+    void helper() { }
+}
+
+interface Drawable extends Serializable, Cloneable {
+    int MAX = 10;
+    void draw();
+    default String label() { return "x"; }
+}
+
+public interface Repository<T, ID> {
+    T find(ID id);
+    List<T> findAll();
+    void save(T item);
+}
+
+public class Circle extends Shape {
+    private double radius;
+    @Override
+    public double area() { return Math.PI * radius * radius; }
+    public static class Builder { private double r; public Builder radius(double r) { this.r = r; return this; } }
+}
+
+public enum Color {
+    RED("r"), GREEN("g");
+    private final String code;
+    Color(String code) { this.code = code; }
+    public String code() { return code; }
+}
+
+public class Order extends Base<Item> {
+    private List<Item> lines;
+    private Customer customer;
+}
+class Item {}
+class Customer {}
+class Tag {}
+class Owner {}
+class Base<T> {}

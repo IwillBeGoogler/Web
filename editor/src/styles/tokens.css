@@ -1,0 +1,89 @@
+/* Design tokens. One accent (indigo), neutral gray scale, semantic colours, 4px spacing grid. */
+:root {
+  /* neutral scale */
+  --gray-0: #ffffff; --gray-50: #f7f8fa; --gray-100: #eff1f5; --gray-200: #e3e6ec; --gray-300: #cdd2db; --gray-400: #a3abb9;
+  --gray-500: #6b7385; --gray-600: #4e5565; --gray-700: #363c49; --gray-800: #232833; --gray-900: #14171f; --gray-950: #0b0d12;
+
+  /* accent + semantic */
+  --accent: #5b5bf7; --accent-hover: #4a4ae8; --accent-press: #3d3dd4; --accent-subtle: rgba(91, 91, 247, 0.12); --accent-ring: rgba(91, 91, 247, 0.45); --on-accent: #ffffff;
+  --success: #16a34a; --success-subtle: rgba(22, 163, 74, 0.12);
+  --warn: #d97706; --warn-subtle: rgba(217, 119, 6, 0.14);
+  --danger: #dc3a40; --danger-subtle: rgba(220, 58, 64, 0.1);
+
+  /* surfaces */
+  --bg: var(--gray-50);               /* app background behind the canvas */
+  --panel: rgba(255, 255, 255, 0.82); /* floating glass panels */
+  --elevated: #ffffff;                /* menus, popovers, cards */
+  --overlay: rgba(12, 15, 24, 0.42);  /* modal backdrop */
+  --input: #ffffff;
+  --hover: rgba(20, 23, 31, 0.06);
+  --active: rgba(20, 23, 31, 0.1);
+
+  /* text */
+  --text: var(--gray-900); --text-2: var(--gray-600); --muted: var(--gray-500); --faint: var(--gray-400);
+
+  /* borders */
+  --border: rgba(20, 23, 31, 0.08); --border-strong: rgba(20, 23, 31, 0.16);
+
+  /* radius scale */
+  --r-sm: 6px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px; --r-pill: 999px;
+
+  /* spacing (4px grid) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px;
+
+  /* shadow scale: soft + layered */
+  --shadow-sm: 0 1px 2px rgba(16, 20, 32, 0.06), 0 1px 1px rgba(16, 20, 32, 0.04);
+  --shadow-md: 0 2px 4px rgba(16, 20, 32, 0.05), 0 6px 14px rgba(16, 20, 32, 0.08);
+  --shadow-lg: 0 4px 8px rgba(16, 20, 32, 0.05), 0 12px 28px rgba(16, 20, 32, 0.12);
+  --shadow-xl: 0 8px 16px rgba(16, 20, 32, 0.06), 0 24px 56px rgba(16, 20, 32, 0.18);
+
+  /* type */
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --fs-xs: 11px; --fs-sm: 12px; --fs-md: 13px; --fs-lg: 15px; --fs-xl: 20px; --fs-2xl: 28px;
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+
+  /* motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --t-fast: 120ms; --t-base: 180ms; --t-slow: 240ms;
+
+  /* layout */
+  --topbar-h: 48px;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --gray-0: #0b0d12; --gray-50: #0f1218; --gray-100: #151922; --gray-200: #1d222d; --gray-300: #2a3140; --gray-400: #4a5366;
+  --gray-500: #8791a5; --gray-600: #a6aebf; --gray-700: #c4cad6; --gray-800: #dde1ea; --gray-900: #eceff5; --gray-950: #f6f8fb;
+
+  --accent: #7c7cff; --accent-hover: #9090ff; --accent-press: #a3a3ff; --accent-subtle: rgba(124, 124, 255, 0.16); --accent-ring: rgba(124, 124, 255, 0.55); --on-accent: #0b0d12;
+  --success: #3ccf75; --success-subtle: rgba(60, 207, 117, 0.14);
+  --warn: #f0a23a; --warn-subtle: rgba(240, 162, 58, 0.16);
+  --danger: #ff6b70; --danger-subtle: rgba(255, 107, 112, 0.14);
+
+  --bg: #0c0e13;
+  --panel: rgba(18, 21, 29, 0.94);
+  --elevated: #1a1f2a;
+  --overlay: rgba(0, 0, 0, 0.58);
+  --input: #10131a;
+  --hover: rgba(255, 255, 255, 0.07);
+  --active: rgba(255, 255, 255, 0.12);
+
+  --text: #eceff5; --text-2: #b6bdcb; --muted: #8791a5; --faint: #5d6679;
+  --border: rgba(255, 255, 255, 0.08); --border-strong: rgba(255, 255, 255, 0.16);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.35), 0 6px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.4), 0 12px 28px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 8px 16px rgba(0, 0, 0, 0.45), 0 24px 56px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+/* smooth theme crossfade (class is added briefly while toggling) */
+:root.theme-fade *, :root.theme-fade *::before, :root.theme-fade *::after {
+  transition: background-color 240ms ease, border-color 240ms ease, color 240ms ease, fill 240ms ease, stroke 240ms ease, box-shadow 240ms ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}

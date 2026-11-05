@@ -1,0 +1,29 @@
+{
+  "tables": [
+    {
+      "schema": "public",
+      "name": "users",
+      "columns": [
+        { "name": "id", "type": "integer", "native": "integer", "nullable": false, "has_default": true, "generated": false, "unique": false },
+        { "name": "email", "type": "varchar", "native": "character varying(255)", "nullable": false, "has_default": false, "generated": false, "unique": true, "max_len": 255 },
+        { "name": "role", "type": "user_role", "native": "user_role", "nullable": false, "has_default": true, "generated": false, "unique": false, "enum_type": "user_role" }
+      ],
+      "primary_key": ["id"],
+      "existing_rows": 12
+    },
+    {
+      "schema": "public",
+      "name": "posts",
+      "columns": [
+        { "name": "id", "type": "integer", "native": "integer", "nullable": false, "has_default": true, "generated": false, "unique": false },
+        { "name": "author_id", "type": "integer", "native": "integer", "nullable": false, "has_default": false, "generated": false, "unique": false, "fk": { "table": "users", "column": "id" } },
+        { "name": "title", "type": "text", "native": "text", "nullable": false, "has_default": false, "generated": false, "unique": false },
+        { "name": "editor_id", "type": "integer", "native": "integer", "nullable": true, "has_default": false, "generated": false, "unique": false, "fk": { "table": "users", "column": "id" } }
+      ],
+      "primary_key": ["id"],
+      "existing_rows": 0,
+      "checks": [{ "name": "title_len", "expr": "char_length(title) > 2", "columns": ["title"] }]
+    }
+  ],
+  "enums": { "user_role": ["admin", "member", "guest"] }
+}

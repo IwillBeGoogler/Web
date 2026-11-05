@@ -1,0 +1,17 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Interactive content</title>
+<!-- Host for author-written HTML (see src/contexts/reading/ui/HtmlBlock.tsx). The page that embeds this frame posts the
+     markup once; it is written into this document, which runs under the frame CSP (nginx/Caddy) with an opaque origin. -->
+<script>
+  (function () {
+    var done = false;
+    addEventListener("message", function (e) {
+      if (done || e.source !== parent || typeof e.data !== "string") return;
+      done = true;
+      document.open();
+      document.write(e.data);
+      document.close();
+    });
+  })();
+</script>

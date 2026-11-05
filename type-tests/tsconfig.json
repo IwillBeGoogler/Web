@@ -1,0 +1,6 @@
+{
+  // Compiled with the editor's own compiler settings (it checks the editor source in ../editor), hence extends. Only the two files below.
+  "extends": "../editor/tsconfig.json",
+  "compilerOptions": { "noEmit": true, "types": [] },
+  "include": ["./diagram-editor.typetest.ts", "../src/contexts/diagrams/diagram-editor.d.ts"]
+}

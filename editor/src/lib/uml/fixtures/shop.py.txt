@@ -1,0 +1,81 @@
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from enum import Enum
+from typing import Generic, TypeVar, Protocol, List, Optional
+
+T = TypeVar("T")
+
+
+class Drawable(Protocol):
+    def draw(self) -> None: ...
+
+
+class Repository(ABC, Generic[T]):
+    """A repository.
+
+    class Fake(Base):  # inside a docstring
+    """
+
+    @abstractmethod
+    def find(self, id: str) -> Optional[T]:
+        ...
+
+    def save(self, item: T) -> None: ...
+
+
+class Shape(ABC):
+    count: int = 0
+    _cache: dict = {}  # class Hidden(X):
+
+    def __init__(self, name: str, id: int = 0):
+        self.name = name
+        self.__secret: str = "x"
+        self.items: List[Item] = []
+        self.owner: Optional[Owner] = None
+
+    @abstractmethod
+    def area(self) -> float:
+        pass
+
+    @staticmethod
+    def create(kind: str) -> "Shape":
+        ...
+
+    @classmethod
+    def make(cls, a: int): ...
+
+    @property
+    def title(self) -> str: ...
+
+    def _helper(self): ...
+
+    def __private(self, *args, **kw): ...
+
+
+class Circle(Shape, Drawable):
+    radius: float = 1.0
+
+    def area(self) -> float: ...
+
+
+class Color(Enum):
+    RED = 1
+    GREEN = 2
+
+
+@dataclass
+class Item:
+    sku: str
+    price: float = 0.0
+
+
+class Customer: ...
+
+
+class Owner: ...
+
+
+class Order(Base):
+    customer: "Customer"
+    lines: list[Item]
+    backup: Customer | None = None

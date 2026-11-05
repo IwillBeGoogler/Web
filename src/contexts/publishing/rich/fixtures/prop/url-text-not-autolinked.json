@@ -1,0 +1,14 @@
+{
+  "type": "doc",
+  "content": [
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "http://x.com/a_b_(c) www.x.com a@b.co"
+        }
+      ]
+    }
+  ]
+}

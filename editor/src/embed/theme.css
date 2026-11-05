@@ -1,0 +1,221 @@
+/*
+ * Host theme for the embedded editor.
+ *
+ * The editor's own tokens (tokens.css) are re-pointed at the host's CSS variables (Web: src/styles.css) so the editor
+ * looks like the surrounding site and follows its light/dark palette with no JS colour copying. Dark/light is the host's:
+ * `data-theme` on the root only drives the editor's canvas code (which reads it), the colours below follow the host's
+ * variables either way.
+ *
+ * Specificity: `.sdd-root.sdd-embed[data-theme]` (0,3,0) beats tokens.css' `.sdd-root[data-theme='dark']` (0,2,0).
+ * Names the host also defines (--accent, --on-accent, --danger, --overlay, --muted, --font-mono) are `inherit`ed so the
+ * editor uses the host's value (a var() to itself would be a cycle).
+ */
+.sdd-root.sdd-embed,
+.sdd-root.sdd-embed[data-theme] {
+  /* shared names: take the host's value */
+  --accent: inherit;
+  --accent-hover: inherit;
+  --on-accent: inherit;
+  --danger: inherit;
+  --overlay: inherit;
+  --muted: inherit;
+  --font-mono: inherit;
+
+  --accent-press: var(--accent-hover);
+  --accent-subtle: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-ring: color-mix(in srgb, var(--accent) 45%, transparent);
+  --danger-subtle: color-mix(in srgb, var(--danger) 12%, transparent);
+
+  /* surfaces + text */
+  --bg: var(--surface);
+  /* frosted over the sky like the host's cards; floating menus stay solid (--elevated, below) */
+  --panel: color-mix(in srgb, var(--surface-2) 62%, transparent);
+  --elevated: var(--surface-2);
+  --input: var(--surface);
+  --hover: color-mix(in srgb, var(--fg) 6%, transparent);
+  --active: color-mix(in srgb, var(--fg) 11%, transparent);
+  --text: var(--fg);
+  --text-2: color-mix(in srgb, var(--fg) 72%, var(--surface));
+  --faint: color-mix(in srgb, var(--muted) 62%, var(--surface));
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+
+  /* neutral scale -> host surfaces/ink (0 = lightest surface .. 950 = ink) */
+  --gray-0: var(--surface);
+  --gray-50: var(--surface);
+  --gray-100: var(--surface-2);
+  --gray-200: var(--line);
+  --gray-300: var(--line-strong);
+  --gray-400: color-mix(in srgb, var(--muted) 60%, var(--surface));
+  --gray-500: var(--muted);
+  --gray-600: var(--muted);
+  --gray-700: color-mix(in srgb, var(--fg) 80%, var(--surface));
+  --gray-800: var(--fg);
+  --gray-900: var(--fg);
+  --gray-950: var(--fg);
+
+  /* type, radius, shadow, motion */
+  --font: var(--font-sans);
+  --r-sm: var(--radius-xs);
+  --r-md: var(--radius-sm);
+  --r-lg: var(--radius-md);
+  /* the host's Console language: nothing rounder than 10px, depth from hard offsets, not blur (as the host's menus and dialogs) */
+  --r-xl: var(--radius-md);
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--fg) 12%, transparent);
+  --shadow-md: 0 2px 4px color-mix(in srgb, var(--fg) 8%, transparent), 0 6px 14px color-mix(in srgb, var(--fg) 12%, transparent);
+  --shadow-lg: 3px 3px 0 0 var(--line-strong);
+  --shadow-xl: 4px 4px 0 0 var(--line-strong);
+  --ease: var(--ease-out);
+}
+
+/*
+ * UML diagram palette (styles/uml2.css reads --uml-light-* / --uml-dark-*). Web's light and dark values (Web/src/styles.css)
+ * are written out for BOTH schemes, on purpose: which one a node uses follows the canvas paper (`.canvas-dark`), and image /
+ * SVG exports are captured on light paper while a dark page keeps its dark host variables. Following the live host variables
+ * here would paint dark-theme ink onto the white export. Keep in step with the host palette. Notes keep the editor's yellow
+ * (the host has no equivalent). Accent colours of nodes are the user's data and are not mapped.
+ */
+.sdd-root.sdd-embed {
+  --uml-light-bg: #ffffff; /* host --card */
+  --uml-light-text: #0f2414; /* --fg */
+  --uml-light-muted: #3f5f46; /* --muted */
+  --uml-light-line: #1f3a27; /* ink of strokes: --fg softened */
+  --uml-light-soft: #5f8a68; /* --line-strong, darkened to 3:1 */
+  --uml-light-frag: #3f5f46;
+  --uml-light-tab: #e1f2e4; /* --surface-2 */
+  --uml-dark-bg: #0a0c1c; /* --card (dark) */
+  --uml-dark-text: #eceeff; /* --fg */
+  --uml-dark-muted: #a6abd6; /* --muted */
+  --uml-dark-line: #d3d7fb;
+  --uml-dark-soft: #6c75b8; /* --line-strong, lifted to 3:1 on the card */
+  --uml-dark-frag: #a6abd6;
+  --uml-dark-tab: #11142b; /* --surface-2 */
+}
+
+.sdd-root.sdd-embed {
+  position: relative;
+  overflow: hidden;
+  /* the host's reading-size preferences must not rescale the editor chrome */
+  font-size: var(--fs-md);
+  line-height: normal;
+}
+
+/*
+ * The host resets elements (Tailwind preflight, in a cascade layer) in ways the editor never assumed: give the editor
+ * the browser defaults back, exactly as when it runs standalone. Zero specificity (`:where`) so every editor rule still wins;
+ * unlayered, so it beats the host's layered reset.
+ */
+:where(.sdd-root.sdd-embed) :where(h1, h2, h3, h4, h5, h6, p, ul, ol, dl, dd, pre, blockquote, hr, fieldset, legend, table) {
+  all: revert;
+}
+:where(.sdd-root.sdd-embed) :where(img, video, canvas, svg) {
+  display: inline;
+  vertical-align: baseline;
+}
+/* ... and the host's "frosted glass" skin for form controls must not leak into editor controls */
+.sdd-root.sdd-embed input,
+.sdd-root.sdd-embed select,
+.sdd-root.sdd-embed textarea {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/*
+ * People in the file (live co-editing): the host's avatar style, not coloured discs. Square-ish corners, inset hairline ring,
+ * mono initials and the tiny corner mark. The inline per-user colour (which tints their cursor on the canvas) is dropped here.
+ */
+.sdd-root.sdd-embed .presence .avatar,
+.sdd-root.sdd-embed .collab-row .avatar {
+  background: var(--surface-2) !important;
+  color: var(--fg);
+  border: 0;
+  border-radius: var(--radius-xs);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  position: relative;
+  overflow: hidden;
+}
+.sdd-root.sdd-embed .presence .avatar:not(.avatar-more)::after,
+.sdd-root.sdd-embed .collab-row .avatar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 3px;
+  height: 3px;
+  background: var(--fg);
+}
+.sdd-root.sdd-embed .avatar.speaking { box-shadow: inset 0 0 0 1px var(--line-strong), 0 0 0 2px var(--fg); }
+.sdd-root.sdd-embed .avatar.following { box-shadow: inset 0 0 0 1px var(--line-strong), 0 0 0 2px var(--accent); }
+
+/* the host's sky shows through: the app is clear and the default paper a tint, dense enough to hold the ink's contrast */
+.sdd-root.sdd-embed,
+.sdd-root.sdd-embed .app {
+  background: transparent;
+}
+/* a calm glow, not stars: points of light read as grid dots and compete with the diagram */
+.sdd-root.sdd-embed .canvas-sky {
+  background:
+    radial-gradient(900px 600px at 80% 0%, rgb(122 104 255 / 0.16), transparent),
+    radial-gradient(800px 600px at 10% 100%, rgb(60 150 255 / 0.12), transparent),
+    rgb(246 248 255) !important;
+}
+.sdd-root.sdd-embed .canvas-sky.canvas-dark {
+  background:
+    radial-gradient(900px 600px at 80% 0%, rgb(122 104 255 / 0.2), transparent),
+    radial-gradient(800px 600px at 10% 100%, rgb(50 110 230 / 0.14), transparent),
+    rgb(10 12 30) !important;
+}
+.sdd-root.sdd-embed .canvas-sky .react-flow__background {
+  opacity: 0.45;
+}
+.sdd-root.sdd-embed .canvas-sky .er-table {
+  background: color-mix(in srgb, var(--er-bg) 84%, transparent);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.sdd-root.sdd-embed .canvas-sky .uml-class {
+  background: color-mix(in srgb, var(--u-bg) 84%, transparent);
+}
+.sdd-root.sdd-embed .canvas-sky :is(.seq, .st, .uc, .cp, .act, .dp, .ob, .tm) {
+  --uml-bg: color-mix(in srgb, var(--uml-light-bg) 84%, transparent);
+}
+.sdd-root.sdd-embed .canvas-sky.canvas-dark :is(.seq, .st, .uc, .cp, .act, .dp, .ob, .tm) {
+  --uml-bg: color-mix(in srgb, var(--uml-dark-bg) 84%, transparent);
+}
+
+/* the toolbars stay on the canvas all the time: an offset edge there would frame the whole window */
+.sdd-root.sdd-embed .glass {
+  box-shadow: none;
+}
+/* floating surfaces get the host's control border (>= 3:1), so the hard shadow has an edge to sit on */
+.sdd-root.sdd-embed :is(.popover, .menu-pop, .ctx-list, .modal, .toast, .files-pop, .collab-pop, .audio-pop, .mention-list) {
+  border-color: var(--line-strong);
+}
+/* tooltips: the host's inverse chip instead of a fixed near-black that vanished on the dark palette */
+.sdd-root.sdd-embed .tip {
+  background: var(--inverse);
+  color: var(--on-inverse);
+  border-radius: var(--radius-xs);
+  box-shadow: none;
+}
+.sdd-root.sdd-embed .tip::after {
+  background: var(--inverse);
+}
+.sdd-root.sdd-embed :is(.tip-path, .tip-aka) {
+  color: color-mix(in srgb, var(--on-inverse) 70%, var(--inverse));
+}
+
+/* menus over the canvas and inspector must be solid: the host's glass rule for [role="menu"] lets the panels behind show through */
+.sdd-root .ctx-list,
+.sdd-root .ctx-list[role='menu'],
+.sdd-root .popover,
+.sdd-root .menu-pop {
+  background: var(--popover, var(--surface-2)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1;
+}

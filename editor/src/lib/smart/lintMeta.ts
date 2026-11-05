@@ -1,0 +1,20 @@
+/** rule metadata for the UI without loading the linter itself (kept in step with @core/lint by a test) */
+export const LINT_RULES_META: { id: string; category: 'architecture' | 'erd' | 'uml'; title: string; severity: 'error' | 'warning' | 'info' }[] = [
+  { id: 'arch/spof', category: 'architecture', title: 'Single point of failure', severity: 'warning' },
+  { id: 'arch/db-no-replica', category: 'architecture', title: 'Database without a replica', severity: 'warning' },
+  { id: 'arch/db-no-backup', category: 'architecture', title: 'Database without a backup', severity: 'info' },
+  { id: 'arch/public-no-waf', category: 'architecture', title: 'Public service without WAF or load balancer', severity: 'warning' },
+  { id: 'arch/sync-cycle', category: 'architecture', title: 'Cycle of synchronous calls', severity: 'warning' },
+  { id: 'arch/no-monitoring', category: 'architecture', title: 'No monitoring connection', severity: 'info' },
+  { id: 'arch/cluster-profile', category: 'architecture', title: 'Cluster profile warning', severity: 'warning' },
+  { id: 'erd/fk-index', category: 'erd', title: 'Foreign key without an index', severity: 'warning' },
+  { id: 'erd/no-pk', category: 'erd', title: 'Table without a primary key', severity: 'error' },
+  { id: 'erd/fk-type', category: 'erd', title: 'Foreign key type differs from the referenced key', severity: 'error' },
+  { id: 'erd/nullable-fk', category: 'erd', title: 'Nullable foreign key on a required relation', severity: 'warning' },
+  { id: 'erd/naming', category: 'erd', title: 'Naming convention', severity: 'info' },
+  { id: 'uml/inheritance-cycle', category: 'uml', title: 'Inheritance cycle', severity: 'error' },
+  { id: 'uml/interface-no-impl', category: 'uml', title: 'Interface without implementation', severity: 'info' },
+  { id: 'uml/unused-class', category: 'uml', title: 'Unused class', severity: 'info' },
+  { id: 'uml/seq-missing-method', category: 'uml', title: 'Sequence message calls a missing method', severity: 'warning' },
+  { id: 'uml/object-unknown-slot', category: 'uml', title: 'Object slot not in its class', severity: 'warning' },
+];

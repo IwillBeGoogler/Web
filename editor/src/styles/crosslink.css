@@ -1,0 +1,8 @@
+.xlink-badge { position: absolute; top: -11px; right: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 3px; max-width: 70%; padding: 1px 7px; border: 1px solid var(--accent, #2f6fdb); border-radius: var(--r-pill, 999px); background: var(--elevated, #fff); color: var(--accent, #2f6fdb); font-size: 10px; font-weight: 650; line-height: 14px; cursor: pointer; }
+.xlink-badge span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xlink-badge.broken { border-color: var(--danger, #e5484d); color: var(--danger, #e5484d); border-style: dashed; }
+.xlink-section { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.xlink-broken { display: flex; gap: 4px; align-items: center; margin: 0; font-size: var(--fs-xs); color: var(--danger, #e5484d); }
+.xlink-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.xlink-list button { width: 100%; text-align: left; font-size: var(--fs-xs); }
+.xlink-type { text-transform: uppercase; font-size: 9px; letter-spacing: .04em; opacity: .7; }

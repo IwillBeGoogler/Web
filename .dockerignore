@@ -1,0 +1,12 @@
+# Build context is Web/ (docker build Web/). BuildKit prefers Dockerfile.dockerignore; keep the two identical.
+node_modules
+**/node_modules
+dist
+.git
+.DS_Store
+legacy-js
+test-results
+playwright-report
+editor/docs
+.env
+**/.env

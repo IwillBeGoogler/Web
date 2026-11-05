@@ -1,0 +1,61 @@
+export interface Drawable {
+  draw(): void;
+}
+
+export interface Repository<T extends { id: number }> extends Drawable {
+  readonly name: string;
+  find(id: string): Promise<T | undefined>;
+  save(item: T): Promise<void>;
+}
+
+export abstract class Shape implements Drawable {
+  private static count = 0;
+  protected readonly id: number;
+  public label?: string;
+  #secret: string = 'x';
+  constructor(private readonly repo: Repository<Item>, id: number) {
+    this.id = id;
+  }
+  abstract area(): number;
+  static create(kind: string): Shape {
+    throw new Error(kind);
+  }
+  get title(): string {
+    return '';
+  }
+  protected describe(prefix = '', ...rest: string[]): string {
+    return prefix;
+  }
+  draw(): void {}
+}
+
+export class Circle extends Shape {
+  radius: number = 1;
+  area(): number {
+    return Math.PI * this.radius ** 2;
+  }
+}
+
+export enum Color {
+  Red,
+  Green = 'green',
+}
+
+class Item {}
+class Customer {}
+class Owner {}
+class Tag {}
+
+class Order {
+  items: Item[] = [];
+  customer: Customer;
+  owner?: Owner;
+  tags: Map<string, Tag> = new Map();
+  total(): number {
+    return 0;
+  }
+}
+
+namespace Billing {
+  export class Invoice extends Order {}
+}

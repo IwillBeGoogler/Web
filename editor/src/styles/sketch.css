@@ -1,0 +1,11 @@
+/* Sketch look (settings.canvas.sketch, lib/sketch.ts): wobbly lines via one SVG filter on the node layer and the edge layer, handwritten font on node and edge text. */
+.canvas.canvas-sketch :is(.react-flow__nodes, .react-flow__edges) { filter: url(#sdd-sketch-filter); }
+/* panning, zooming and dragging re-rasterise a filtered layer every frame: the filter is off while the viewport or a node moves */
+.canvas.canvas-sketch[data-moving] :is(.react-flow__nodes, .react-flow__edges),
+.canvas.canvas-sketch.sketch-nofilter :is(.react-flow__nodes, .react-flow__edges) { filter: none; }
+.canvas.canvas-sketch :is(.react-flow__node, .react-flow__edgelabel-renderer),
+.canvas.canvas-sketch :is(.react-flow__node, .react-flow__edgelabel-renderer) :is(*) { font-family: 'Caveat', 'Comic Sans MS', 'Segoe Print', cursive; font-size-adjust: 0.46; }
+.canvas.canvas-sketch :is(.react-flow__node, .react-flow__edgelabel-renderer) :is(.node-label, .group-title, .edge-label, .node-subtitle, .card-title) { letter-spacing: .01em; }
+/* Caveat has a small x-height: 11-12px edge labels ("yes", "retry later") are unreadable in it. Bigger size (the font-size-adjust above keeps the x-height steady) plus a halo in the canvas colour so the text stays legible over a crossing line on dark and light canvases. */
+.canvas.canvas-sketch .edge-label { font-size: 18px; line-height: 1.15; max-width: 220px; letter-spacing: .02em; text-shadow: 0 0 2px var(--canvas-bg, #fff), 0 0 5px var(--canvas-bg, #fff), 0 0 9px var(--canvas-bg, #fff); }
+.canvas.canvas-sketch .edge-label-input { font-size: 18px; text-shadow: none; }

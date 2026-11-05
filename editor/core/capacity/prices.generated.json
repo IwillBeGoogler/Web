@@ -1,0 +1,269 @@
+{
+  "generatedAt": "2026-10-27T08:39:02.261Z",
+  "rows": {
+    "aws:ec2:t3.micro": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 t3.micro",
+      "unit": "instance-month",
+      "usd": 7.592,
+      "rate": 0.0104,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ec2:t3.small": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 t3.small",
+      "unit": "instance-month",
+      "usd": 15.184,
+      "rate": 0.0208,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ec2:t3.medium": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 t3.medium",
+      "unit": "instance-month",
+      "usd": 30.368,
+      "rate": 0.0416,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ec2:t3.large": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 t3.large",
+      "unit": "instance-month",
+      "usd": 60.736,
+      "rate": 0.0832,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ec2:m5.large": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 m5.large",
+      "unit": "instance-month",
+      "usd": 70.08,
+      "rate": 0.096,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ec2:m5.xlarge": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 m5.xlarge",
+      "unit": "instance-month",
+      "usd": 140.16,
+      "rate": 0.192,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ec2:c5.large": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 c5.large",
+      "unit": "instance-month",
+      "usd": 62.05,
+      "rate": 0.085,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ec2:r5.large": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EC2 r5.large",
+      "unit": "instance-month",
+      "usd": 91.98,
+      "rate": 0.126,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:rds:db.t3.medium": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "RDS PostgreSQL db.t3.medium (single-AZ)",
+      "unit": "instance-month",
+      "usd": 52.56,
+      "rate": 0.072,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonRDS/20261026214716/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:rds:db.m5.large": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "RDS PostgreSQL db.m5.large (single-AZ)",
+      "unit": "instance-month",
+      "usd": 129.94,
+      "rate": 0.178,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonRDS/20261026214716/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:rds:db.r5.large": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "RDS PostgreSQL db.r5.large (single-AZ)",
+      "unit": "instance-month",
+      "usd": 182.5,
+      "rate": 0.25,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonRDS/20261026214716/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:elasticache:cache.t3.medium": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "ElastiCache Redis cache.t3.medium",
+      "unit": "instance-month",
+      "usd": 49.64,
+      "rate": 0.068,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonElastiCache/20261014221139/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:elasticache:cache.m5.large": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "ElastiCache Redis cache.m5.large",
+      "unit": "instance-month",
+      "usd": 113.88,
+      "rate": 0.156,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonElastiCache/20261014221139/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:alb": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "Application Load Balancer (hourly part, without LCU)",
+      "unit": "instance-month",
+      "usd": 16.425,
+      "rate": 0.0225,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSELB/20260911124544/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:nat-gateway": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "NAT gateway (hourly part)",
+      "unit": "instance-month",
+      "usd": 32.85,
+      "rate": 0.045,
+      "rateUnit": "Hrs",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:s3:standard": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "S3 Standard storage",
+      "unit": "per-gb-month",
+      "usd": 0.023,
+      "rate": 0.023,
+      "rateUnit": "GB-Mo",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/20261015173540/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:ebs:gp3": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "EBS gp3 volume",
+      "unit": "per-gb-month",
+      "usd": 0.08,
+      "rate": 0.08,
+      "rateUnit": "GB-Mo",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/20261023221355/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:sqs:standard": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "SQS Standard requests",
+      "unit": "per-million-requests",
+      "usd": 0.4,
+      "rate": 4e-7,
+      "rateUnit": "Requests",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSQueueService/20260911124607/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:lambda:requests": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "Lambda requests (without duration)",
+      "unit": "per-million-requests",
+      "usd": 0.2,
+      "rate": 2e-7,
+      "rateUnit": "Requests",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSLambda/20261022183959/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:dynamodb:on-demand-write": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "DynamoDB on-demand writes",
+      "unit": "per-million-requests",
+      "usd": 0.625,
+      "rate": 6.25e-7,
+      "rateUnit": "WriteRequestUnits",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonDynamoDB/20260911124422/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "aws:data-transfer:out": {
+      "provider": "aws",
+      "region": "us-east-1",
+      "label": "Data transfer out to the internet (first paid tier)",
+      "unit": "per-gb-transfer",
+      "usd": 0.09,
+      "rate": 0.09,
+      "rateUnit": "GB",
+      "sourceUrl": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSDataTransfer/20260916132208/us-east-1/index.csv",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "azure:vm:b2s": {
+      "provider": "azure",
+      "region": "eastus",
+      "label": "Virtual machine B2s",
+      "unit": "instance-month",
+      "usd": 30.368,
+      "rate": 0.0416,
+      "rateUnit": "1 Hour",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices?$filter=armRegionName%20eq%20'eastus'%20and%20priceType%20eq%20'Consumption'%20and%20serviceName%20eq%20'Virtual%20Machines'%20and%20armSkuName%20eq%20'Standard_B2s'",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "azure:vm:d2s-v5": {
+      "provider": "azure",
+      "region": "eastus",
+      "label": "Virtual machine D2s v5",
+      "unit": "instance-month",
+      "usd": 70.08,
+      "rate": 0.096,
+      "rateUnit": "1 Hour",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices?$filter=armRegionName%20eq%20'eastus'%20and%20priceType%20eq%20'Consumption'%20and%20serviceName%20eq%20'Virtual%20Machines'%20and%20armSkuName%20eq%20'Standard_D2s_v5'",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    },
+    "azure:blob:hot": {
+      "provider": "azure",
+      "region": "eastus",
+      "label": "Blob Storage hot (LRS)",
+      "unit": "per-gb-month",
+      "usd": 0.0208,
+      "rate": 0.0208,
+      "rateUnit": "1 GB/Month",
+      "sourceUrl": "https://prices.azure.com/api/retail/prices?$filter=armRegionName%20eq%20'eastus'%20and%20priceType%20eq%20'Consumption'%20and%20serviceName%20eq%20'Storage'%20and%20productName%20eq%20'General%20Block%20Blob%20v2'%20and%20meterName%20eq%20'Hot%20LRS%20Data%20Stored'",
+      "fetchedAt": "2026-10-27T08:32:59.002Z"
+    }
+  }
+}
