@@ -757,7 +757,10 @@ export function EditorPage({ id: routeId }: { id?: number }) {
         </p>
         <main id="main" className="reading-glass mx-auto w-full max-w-feed min-w-0 px-4 pt-10 pb-24">
           {banner ? (
-            <section aria-label={t("editor.restore.title")} className="tile sticky top-14 z-30 mb-6 max-sm:top-24 flex flex-wrap items-center gap-3 bg-card p-3">
+            <section
+              aria-label={t("editor.restore.title")}
+              className="tile sticky top-14 z-30 mb-6 max-sm:top-24 flex flex-wrap items-center gap-3 bg-card p-3"
+            >
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-bold">{t("editor.restore.title")}</p>
                 <p className="font-mono text-[11px] text-muted">{t("editor.restore.body")}</p>
