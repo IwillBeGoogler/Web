@@ -14,7 +14,7 @@ describe("Logo", () => {
     await renderRouted(<Logo />);
     const link = screen.getByRole("link", { name: "IWillBeGoogler home" });
     expect(link).toHaveAttribute("href", "/");
-    expect(link).toHaveTextContent("iBlog");
+    expect(link).toHaveTextContent("iWillBeGoogler");
   });
 
   it("replays home entrance on plain click", async () => {

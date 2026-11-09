@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { settingsSync } from "@/shared/settingsSync";
 import { articleFontPx, MEASURE_STEP, measureCh, normalizePrefs, paletteOf, paletteVars, type ReadingPrefs, typefaceOf } from "../domain/reading";
 
 const KEY = "iwillbegoogler.reading";
@@ -50,6 +51,7 @@ export const readingPrefs = {
     } catch {}
     applyPrefs(prefs);
     for (const l of listeners) l();
+    settingsSync.push("reading", prefs);
   },
   reset() {
     try {
@@ -64,5 +66,25 @@ export const readingPrefs = {
 };
 
 if (typeof window !== "undefined") applyPrefs(prefs);
+
+/** Signed-in readers keep their reading preferences on the server; the server copy replaces the local one. */
+settingsSync.register({
+  key: "reading",
+  get: () => {
+    try {
+      return localStorage.getItem(KEY) ? prefs : undefined;
+    } catch {
+      return undefined;
+    }
+  },
+  apply(v) {
+    prefs = normalizePrefs(v);
+    try {
+      localStorage.setItem(KEY, JSON.stringify(prefs));
+    } catch {}
+    applyPrefs(prefs);
+    for (const l of listeners) l();
+  },
+});
 
 export const useReadingPrefs = () => useSyncExternalStore(readingPrefs.subscribe, readingPrefs.get, readingPrefs.get);

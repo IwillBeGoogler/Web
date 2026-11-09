@@ -93,8 +93,6 @@ export const siteStatsSchema = z.object({
   top_posts: z
     .array(z.object({ id: z.number(), slug: z.string(), title: z.string(), author: z.string().default(""), views: z.number().default(0) }))
     .default([]),
-  top_diagrams: z
-    .array(z.object({ slug: z.string(), title: z.string(), author: z.string().default(""), views: z.number().default(0) }))
-    .default([]),
+  top_diagrams: z.array(z.object({ slug: z.string(), title: z.string(), author: z.string().default(""), views: z.number().default(0) })).default([]),
 });
 export type SiteStats = z.infer<typeof siteStatsSchema>;

@@ -163,9 +163,7 @@ describe("router", () => {
     await waitFor(() => expect(screen.getByTestId("unsub")).toHaveTextContent('"s":"x1","a":"y2","sig":"z3"'));
   });
 
-  // BUG (production): TanStack's default search parser JSON-parses "1" into the number 1, and `str` (z.string().catch(undefined))
-  // then drops it, so numeric ?s=&a= (subscriber/author ids) or numeric verify codes arrive as "". Remove `.fails` once fixed.
-  it.fails("keeps numeric unsubscribe params as strings", async () => {
+  it("keeps numeric unsubscribe params as strings", async () => {
     await go("/unsubscribe?s=1&a=2&sig=3");
     await waitFor(() => expect(screen.getByTestId("unsub")).toHaveTextContent('"s":"1","a":"2","sig":"3"'));
   });

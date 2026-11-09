@@ -9,7 +9,7 @@ export const BRAND = "IWillBeGoogler";
 /** Fired on logo click; the home page listens and replays its entrance. */
 export const HOME_REPLAY = "iwillbegoogler:home-replay";
 
-/** IWillBeGoogler wordmark: solid square mark + display "Blog". Monochrome, no gradient. `spin` changes on each logo click to replay the flip. */
+/** IWillBeGoogler wordmark: solid square mark + display "WillBeGoogler" (reads iWillBeGoogler). Monochrome, no gradient. `spin` changes on each logo click to replay the flip. */
 export function Wordmark({ className, spin = 0 }: { className?: string; spin?: number }) {
   const reduce = useReducedMotion();
   const play = spin > 0 && !reduce;
@@ -26,7 +26,7 @@ export function Wordmark({ className, spin = 0 }: { className?: string; spin?: n
         i
       </motion.span>
       <motion.span key={`w${spin}`} initial={play ? { opacity: 0, x: -8 } : false} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
-        Blog
+        WillBeGoogler
       </motion.span>
     </span>
   );

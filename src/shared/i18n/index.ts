@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { settingsSync } from "../settingsSync";
 import { en } from "./en";
 import { ru } from "./ru";
 import { uz } from "./uz";
@@ -60,6 +61,7 @@ export const i18n = {
     } catch {}
     applyLang(l);
     for (const fn of listeners) fn();
+    settingsSync.push("web.lang", l);
   },
   t: (key: MessageKey, vars?: Record<string, string | number>) => translate(lang, key, vars),
   subscribe(fn: () => void) {
@@ -67,6 +69,21 @@ export const i18n = {
     return () => listeners.delete(fn);
   },
 };
+
+settingsSync.register({
+  key: "web.lang",
+  get: () => {
+    try {
+      const v = localStorage.getItem(KEY);
+      return isLang(v) ? v : undefined;
+    } catch {
+      return undefined;
+    }
+  },
+  apply: (v) => {
+    if (isLang(v) && v !== lang) i18n.set(v);
+  },
+});
 
 export const useLang = () => useSyncExternalStore(i18n.subscribe, i18n.get, i18n.get);
 

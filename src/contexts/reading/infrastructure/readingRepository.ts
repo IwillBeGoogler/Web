@@ -1,7 +1,18 @@
 import { z } from "zod";
 import { http } from "@/shared/api";
 import { dataEnvelope, type Page, type PageRequest, pageEnvelope } from "@/shared/http";
-import { type Post, type Profile, postSchema, profileSchema, type SiteStats, siteStatsSchema, type Suggestion, suggestionSchema, type Tag, tagSchema } from "../domain/post";
+import {
+  type Post,
+  type Profile,
+  postSchema,
+  profileSchema,
+  type SiteStats,
+  type Suggestion,
+  siteStatsSchema,
+  suggestionSchema,
+  type Tag,
+  tagSchema,
+} from "../domain/post";
 
 const arr = <S extends z.ZodType>(s: S) =>
   dataEnvelope(

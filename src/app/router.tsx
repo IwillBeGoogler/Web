@@ -217,7 +217,7 @@ const P = {
 const meLazy = (name: "LibraryPage" | "StoriesPage" | "NotificationsPage" | "PublicationsPage") => lazy(() => import("./pages/MePages"), name);
 
 const s = <T extends z.ZodRawShape>(shape: T) => z.object(shape);
-const str = z.string().optional().catch(undefined);
+const str = z.union([z.string(), z.number()]).transform(String).optional().catch(undefined);
 
 const home = createRoute({
   getParentRoute: () => shell,
