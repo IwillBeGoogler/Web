@@ -1,5 +1,6 @@
 name: CD
 
+# main -> production: image tagged with the short sha, then the infra repo deploys it. dev runs CI only (ci.yml).
 on:
   push:
     branches: [main]
@@ -19,11 +20,12 @@ jobs:
   publish:
     needs: ci
     runs-on: ubuntu-latest
-    environment: production
+    environment: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
     permissions:
       contents: read
       id-token: write
     env:
+      ENV_NAME: ${{ github.ref_name == 'main' && 'production' || 'dev' }}
       IMAGE: docker.io/bakhod1r/iwillbegoogler-web
     steps:
       - uses: actions/checkout@v5
@@ -58,7 +60,7 @@ jobs:
           url: ${{ vars.VAULT_ADDR }}
           method: jwt
           jwtGithubAudience: iwillbegoogler-vault
-          role: iwillbegoogler-production-ci-images
+          role: iwillbegoogler-ci-images
           secrets: |
             kv/data/ci/dockerhub username | DOCKERHUB_USERNAME ;
             kv/data/ci/dockerhub token | DOCKERHUB_TOKEN ;
@@ -74,8 +76,12 @@ jobs:
 
       - name: Trigger infra deploy
         run: |
+          set -euo pipefail
+          payload=$(jq -cn --arg tag "$TAG" --arg env "$ENV_NAME" '{event_type: "deploy", client_payload: {service: "web", tag: $tag, environment: $env}}')
           curl -fsS -X POST \
             -H "Authorization: Bearer $DISPATCH_TOKEN" \
             -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/repos/bakhod1r/iwillbegoogler-infra/dispatches \
-            -d "{\"event_type\":\"deploy\",\"client_payload\":{\"service\":\"web\",\"tag\":\"$TAG\"}}"
+            -d "$payload"
+          echo "::notice::Dispatched web:$TAG to $ENV_NAME"
