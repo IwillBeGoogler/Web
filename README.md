@@ -21,7 +21,7 @@ Brand: **IWillBeGoogler**. Motion: `motion` (Framer Motion) primitives in `src/s
 
 ## CI/CD
 
-`.github/workflows/ci.yml`: lint, typecheck, test, build (bun pinned). `cd.yml` on push to `main`: runs CI, builds the image, Trivy scan (fails on fixable HIGH/CRITICAL), pushes `docker.io/bakhod1r/iwillbegoogler-web:<short sha>` (no `latest`), then dispatches `deploy` to `bakhod1r/iwillbegoogler-infra`. Docker Hub and dispatch credentials come from Vault via GitHub OIDC (role `iwillbegoogler-production-ci-images`); needs repo variable `VAULT_ADDR` and environment `production`.
+`.github/workflows/ci.yml`: lint, typecheck, test, build (bun pinned). `cd.yml` on push to `main`: runs CI, builds the image, Trivy scan (fails on fixable HIGH/CRITICAL), pushes `docker.io/bakhod1r/iwillbegoogler-web:<short sha>` (no `latest`), then dispatches `deploy` to `IwillBeGoogler/Infra`. Docker Hub and dispatch credentials come from Vault via GitHub OIDC (role `iwillbegoogler-production-ci-images`); needs repo variable `VAULT_ADDR` and environment `production`.
 
 ## Contributing
 
