@@ -23,4 +23,24 @@ describe("accountRepository", () => {
     server.use(http.post(api("/auth/logout"), () => HttpResponse.error()));
     await expect(accountRepository.logout()).resolves.toBeUndefined();
   });
+  const session = { token: "t", expires_at: "x", user };
+  it("login returns a session or an mfa challenge", async () => {
+    server.use(http.post(api("/auth/login"), () => HttpResponse.json({ data: session })));
+    expect((await accountRepository.login({ login: "a", password: "b" })).kind).toBe("session");
+    server.use(http.post(api("/auth/login"), () => HttpResponse.json({ data: { mfa_required: true, mfa_token: "m" } })));
+    expect(await accountRepository.login({ login: "a", password: "b" })).toEqual({ kind: "mfa", mfaToken: "m" });
+  });
+  it("loginMfa, me, updateProfile", async () => {
+    server.use(
+      http.post(api("/auth/login/2fa"), async ({ request }) => {
+        expect(await request.json()).toEqual({ mfa_token: "m", code: "1" });
+        return HttpResponse.json({ data: session });
+      }),
+      http.get(api("/me"), () => HttpResponse.json({ data: user })),
+      http.patch(api("/me"), () => HttpResponse.json({ data: user })),
+    );
+    expect((await accountRepository.loginMfa("m", "1")).token).toBe("t");
+    expect((await accountRepository.me()).username).toBe("ali");
+    expect((await accountRepository.updateProfile({ display_name: "A", bio: "", avatar_url: "" })).username).toBe("ali");
+  });
 });

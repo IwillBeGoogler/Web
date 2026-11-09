@@ -9,5 +9,13 @@ export default defineConfig({
   root: here("."),
   plugins: [react()],
   resolve: { alias: { "@core": here("./core") }, dedupe: ["react", "react-dom"] },
-  test: { environment: "jsdom", globals: true, setupFiles: ["./src/test/setup.ts"], css: false, include: ["src/**/*.{test,spec}.{ts,tsx}"] },
+  test: {
+    environment: "jsdom", globals: true, setupFiles: ["./src/test/setup.ts"], css: false, include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}", "core/**/*.ts"],
+      exclude: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/*.d.ts", "**/*.generated.*", "src/test/**", "src/main.tsx", "src/assets/**", "src/landing/threeScene.ts", "src/landing/HeroScene.tsx"],
+      reporter: ["text-summary", "json-summary", "text"],
+    },
+  },
 });

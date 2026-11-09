@@ -1,6 +1,6 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { tokens } from "@/shared/api";
 import { makePost, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
@@ -107,5 +107,22 @@ describe("landing", () => {
     expect(await screen.findByRole("radio", { name: "Picked for you" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { level: 1, name: /Human stories/ })).toBeNull();
     tokens.set(null);
+  });
+});
+
+describe("landing CTAs", () => {
+  it("every signup CTA opens the auth dialog", async () => {
+    base();
+    const { authDialog } = await import("@/contexts/identity/application/authDialog");
+    const spy = vi.spyOn(authDialog, "open");
+    const { LandingPage } = await import("./LandingPage");
+    await renderRouted(<LandingPage />);
+    for (const name of ["Start a draft", "Draw a diagram", "Create your account"]) {
+      for (const b of screen.getAllByRole("button", { name })) fireEvent.click(b);
+    }
+    expect(spy).toHaveBeenCalledWith("signup");
+    expect(spy.mock.calls.length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByRole("link", { name: "Browse newest" })).toBeInTheDocument();
+    spy.mockRestore();
   });
 });

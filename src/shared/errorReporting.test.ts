@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, NetworkError } from "@/shared/http";
 import { reportError, resetErrorReporting, scrub } from "./errorReporting";
 
@@ -84,5 +84,62 @@ describe("scrub", () => {
     expect(scrub("id 0123456789abcdef0123456789abcdef0123")).toBe("id [redacted]");
     expect(scrub("GET https://x.test/a?token=1#h failed")).toBe("GET https://x.test/a failed");
     expect(scrub("at f (https://x.test/a.js?v=3:10:5)")).toBe("at f (https://x.test/a.js:10:5)");
+  });
+});
+
+describe("describe() shapes and production default", () => {
+  beforeEach(() => resetErrorReporting());
+
+  it("handles strings, plain objects and other values", () => {
+    const f = fresh();
+    reportError("just a string", { send: f });
+    reportError({ name: "Custom", message: "obj message", stack: "at x (https://x.test/a.js:1:1)" }, { send: f });
+    reportError({ name: 5, message: "bad name", stack: 7 }, { send: f });
+    reportError({ message: 9 }, { send: f });
+    reportError(42, { send: f });
+    expect(bodies(f).map((b) => b.message)).toEqual(["just a string", "obj message", "bad name"]);
+  });
+
+  it("falls back to fetch in production", () => {
+    vi.stubEnv("PROD", true);
+    const fetchMock = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("fetch", fetchMock);
+    reportError(err("prod boom"));
+    expect(fetchMock).toHaveBeenCalledWith("/api/client-errors", expect.objectContaining({ method: "POST", credentials: "omit" }));
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("installErrorReporting", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it("is a no-op without a window", async () => {
+    vi.stubGlobal("window", undefined);
+    const add = vi.spyOn(globalThis, "addEventListener");
+    const m = await import("./errorReporting");
+    m.installErrorReporting();
+    expect(add).not.toHaveBeenCalled();
+  });
+
+  it("reports window errors and unhandled rejections, once installed", async () => {
+    vi.stubEnv("PROD", true);
+    const fetchMock = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("fetch", fetchMock);
+    const m = await import("./errorReporting");
+    m.resetErrorReporting();
+    m.installErrorReporting();
+    m.installErrorReporting(); // second call ignored
+    window.dispatchEvent(new ErrorEvent("error", { error: err("from error"), message: "ignored" }));
+    window.dispatchEvent(new ErrorEvent("error", { message: "from message only" }));
+    const rej = new Event("unhandledrejection");
+    Object.assign(rej, { reason: err("from rejection") });
+    window.dispatchEvent(rej);
+    const messages = fetchMock.mock.calls.map((c) => JSON.parse((c[1] as RequestInit).body as string).message);
+    expect(messages).toEqual(["from error", "from message only", "from rejection"]);
   });
 });

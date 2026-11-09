@@ -19,6 +19,10 @@ Production: nginx serves the SPA with CSP and security headers, gzip, immutable 
 
 Brand: **IWillBeGoogler**. Motion: `motion` (Framer Motion) primitives in `src/shared/motion` (Reveal, Stagger, Magnetic, Tilt, CountUp, RotatingWord, ReadingProgress), View Transitions between routes, CSS keyframes for dialogs/menus/shimmer; everything respects `prefers-reduced-motion` (e2e project `reduced-motion`).
 
+## CI/CD
+
+`.github/workflows/ci.yml`: lint, typecheck, test, build (bun pinned). `cd.yml` on push to `main`: runs CI, builds the image, Trivy scan (fails on fixable HIGH/CRITICAL), pushes `docker.io/bakhod1r/iwillbegoogler-web:<short sha>` (no `latest`), then dispatches `deploy` to `bakhod1r/iwillbegoogler-infra`. Docker Hub and dispatch credentials come from Vault via GitHub OIDC (role `iwillbegoogler-production-ci-images`); needs repo variable `VAULT_ADDR` and environment `production`.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Licensed under [MIT](LICENSE).

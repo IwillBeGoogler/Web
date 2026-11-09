@@ -42,4 +42,71 @@ describe("accountSecurityRepository", () => {
     expect(await repo.followedTags()).toEqual([]);
     await repo.unhide("tag", "qa");
   });
+
+  const ok = () => new HttpResponse(null, { status: 204 });
+  const u = { id: 1, username: "bob" };
+  const seen: string[] = [];
+  const rec = (label: string) => ({ request }: { request: Request }) => {
+    seen.push(`${request.method} ${label}`);
+    return ok();
+  };
+  it("auth plumbing posts", async () => {
+    seen.length = 0;
+    server.use(
+      http.post(api("/auth/forgot-password"), rec("forgot")),
+      http.post(api("/auth/reset-password"), rec("reset")),
+      http.post(api("/auth/verify-email"), rec("verify")),
+      http.post(api("/me/verify-email"), rec("resend")),
+      http.delete(api("/me"), rec("delete")),
+      http.post(api("/auth/logout-all"), rec("logoutAll")),
+      http.delete(api("/me/sessions/a%2Fb"), rec("revoke")),
+      http.post(api("/me/2fa/disable"), rec("mfaDisable")),
+      http.post(api("/me/hidden"), rec("hide")),
+    );
+    await repo.forgot("a@b.c");
+    await repo.reset("t", "pw");
+    await repo.verifyEmail("1");
+    await repo.resendVerification();
+    await repo.deleteAccount("pw");
+    await repo.logoutAll();
+    await repo.revokeDevice("a/b");
+    await repo.mfaDisable("pw", "1");
+    await repo.hide("tag", "qa");
+    expect(seen).toHaveLength(9);
+  });
+  it("devices, mfa status, backup codes", async () => {
+    server.use(
+      http.get(api("/me/sessions"), () => HttpResponse.json({ data: null })),
+      http.get(api("/me/2fa"), () => HttpResponse.json({ data: { enabled: true } })),
+      http.post(api("/me/2fa/backup-codes"), () => HttpResponse.json({ data: ["x"] })),
+    );
+    expect(await repo.devices()).toEqual([]);
+    expect((await repo.mfa()).backup_codes_left).toBe(0);
+    expect(await repo.mfaBackupCodes("1")).toEqual(["x"]);
+  });
+  it("followed tags with data, toggles, user lists", async () => {
+    seen.length = 0;
+    const list = () => HttpResponse.json({ data: [u], meta: {} });
+    server.use(
+      http.get(api("/me/tags"), () => HttpResponse.json({ data: ["a"] })),
+      http.all(api("/tags/a/follow"), rec("tag")),
+      http.all(api("/users/b%20c/block"), rec("block")),
+      http.all(api("/users/b%20c/mute"), rec("mute")),
+      http.all(api("/users/b%20c/subscribe"), rec("sub")),
+      http.get(api("/me/blocks"), list),
+      http.get(api("/me/mutes"), list),
+      http.get(api("/users/b%20c/followers"), list),
+      http.get(api("/users/b%20c/following"), list),
+    );
+    expect(await repo.followedTags()).toEqual(["a"]);
+    for (const fn of [repo.followTag.bind(null, "a"), repo.block.bind(null, "b c"), repo.mute.bind(null, "b c"), repo.subscribe.bind(null, "b c")]) {
+      await fn(true);
+      await fn(false);
+    }
+    expect(seen.filter((s) => s.startsWith("DELETE"))).toHaveLength(4);
+    expect((await repo.blocks({})).items).toHaveLength(1);
+    expect((await repo.mutes({})).items).toHaveLength(1);
+    expect((await repo.followers("b c", {})).items).toHaveLength(1);
+    expect((await repo.following("b c", {})).items).toHaveLength(1);
+  });
 });
