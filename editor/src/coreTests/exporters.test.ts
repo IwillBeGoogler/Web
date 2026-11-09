@@ -41,7 +41,7 @@ describe('mermaid er', () => {
     expect(out).toContain('users ||--o{ orders : "has"');
     expect(out).toContain('orders }o--|| users : "uid"');
     expect(out).toContain('orders ||--|| users : "rel"');
-    expect(out.match(/-- /g)!.length).toBe(3);
+    expect(out.match(/^\s*\w+ \S*--\S* \w+ : /gm)).toHaveLength(3);
   });
 });
 

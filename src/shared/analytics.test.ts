@@ -58,8 +58,8 @@ describe("track edge cases", () => {
     tokens.set({ token: "tk", expiresAt: "2030-01-01T00:00:00Z" });
     const f = vi.fn().mockRejectedValue(new Error("offline"));
     track({ name: "signup_open" }, f);
-    // NOTE: production interpolates the whole StoredToken object ("Bearer [object Object]"); only the header's presence is asserted.
-    expect(((f.mock.calls[0]?.[1] as RequestInit).headers as Record<string, string>).Authorization).toMatch(/^Bearer /);
+    const [, init] = f.mock.calls[0] as [string, RequestInit];
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tk");
     await Promise.resolve();
   });
 

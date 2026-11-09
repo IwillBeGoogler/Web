@@ -16,7 +16,17 @@ const part = (position: number, post_id: number, o: Record<string, unknown> = {}
   published_at: "2026-10-01T00:00:00Z",
   ...o,
 });
-const series = (o: Record<string, unknown> = {}) => ({ id: 1, slug: "ser", title: "My Series", description: "About it", user_id: 3, author: "admin", parts: 2, posts: [part(1, 10), part(2, 11)], ...o });
+const series = (o: Record<string, unknown> = {}) => ({
+  id: 1,
+  slug: "ser",
+  title: "My Series",
+  description: "About it",
+  user_id: 3,
+  author: "admin",
+  parts: 2,
+  posts: [part(1, 10), part(2, 11)],
+  ...o,
+});
 
 afterEach(() => {
   tokens.set(null);
@@ -76,7 +86,9 @@ describe("SeriesPage", () => {
 
 describe("UserSeries", () => {
   it("lists series with and without description", async () => {
-    server.use(http.get(api("/users/ali/series"), () => HttpResponse.json({ data: [series(), series({ id: 2, slug: "b", title: "Other", description: "" })] })));
+    server.use(
+      http.get(api("/users/ali/series"), () => HttpResponse.json({ data: [series(), series({ id: 2, slug: "b", title: "Other", description: "" })] })),
+    );
     await renderRouted(<UserSeries username="ali" />);
     expect(await screen.findByText("My Series")).toBeInTheDocument();
     expect(screen.getByText("Other")).toBeInTheDocument();

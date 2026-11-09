@@ -36,7 +36,9 @@ describe("ArticlePage extras", () => {
   it("shows retry on server error", async () => {
     let n = 0;
     server.use(
-      http.get(api("/slug/boom"), () => (++n === 1 ? new HttpResponse(null, { status: 500 }) : HttpResponse.json({ data: makePost({ slug: "boom", title: "Recovered" }) }))),
+      http.get(api("/slug/boom"), () =>
+        ++n === 1 ? new HttpResponse(null, { status: 500 }) : HttpResponse.json({ data: makePost({ slug: "boom", title: "Recovered" }) }),
+      ),
       http.get(api("/users/:u"), () => HttpResponse.json({ data: profile })),
       http.get(api("/posts/:id/related"), () => HttpResponse.json({ data: [] })),
     );
@@ -52,7 +54,20 @@ describe("ArticlePage extras", () => {
   });
 
   it("renders anonymous draft, plain body, cover, no tags/subtitle", async () => {
-    await mount(makePost({ slug: "anon", user_id: 0, author: "", status: "draft", body_html: "", body: "Plain text body", tags: [], subtitle: "", cover_url: "http://x/c.png", published_at: null }));
+    await mount(
+      makePost({
+        slug: "anon",
+        user_id: 0,
+        author: "",
+        status: "draft",
+        body_html: "",
+        body: "Plain text body",
+        tags: [],
+        subtitle: "",
+        cover_url: "http://x/c.png",
+        published_at: null,
+      }),
+    );
     expect(await screen.findByText("Plain text body")).toBeInTheDocument();
     expect(screen.getByText("Anonymous")).toBeInTheDocument();
     expect(screen.getByText("draft")).toBeInTheDocument();
@@ -66,7 +81,9 @@ describe("ArticlePage extras", () => {
     signIn();
     server.use(http.get(api("/me"), () => HttpResponse.json({ data: { ...me, id: 1, username: "ali" } })));
     const writeText = vi.fn(() => Promise.resolve());
-    const { user } = await mount(makePost({ slug: "own", user_id: 1, author: "ali", tags: ["go", "rust"] }), { related: [makePost({ id: 9, title: "Next story", slug: "next" })] });
+    const { user } = await mount(makePost({ slug: "own", user_id: 1, author: "ali", tags: ["go", "rust"] }), {
+      related: [makePost({ id: 9, title: "Next story", slug: "next" })],
+    });
     expect(await screen.findByRole("link", { name: "Edit" })).toHaveAttribute("href", "/p/9/edit".replace("9", "1"));
     expect(await screen.findByText(/1\.5K readers/)).toBeInTheDocument();
     expect(await screen.findByText("I write")).toBeInTheDocument();

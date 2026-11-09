@@ -10,7 +10,7 @@ vi.mock("@/contexts/diagrams/ui/ProjectTree", () => ({ ProjectTree: (p: { projec
 vi.mock("@/contexts/diagrams/ui/PublicViewer", () => ({ PublicViewer: (p: { slug: string }) => <div>viewer {p.slug}</div> }));
 vi.mock("@/contexts/diagrams/ui/Templates", () => ({ Templates: () => <div>templates</div> }));
 
-import { DiagramFilePage, DiagramProjectPage, DiagramsPage, DiagramSharePage, DiagramViewPage, TemplatesPage } from "./DiagramPages";
+import { DiagramFilePage, DiagramProjectPage, DiagramSharePage, DiagramsPage, DiagramViewPage, TemplatesPage } from "./DiagramPages";
 
 describe("DiagramPages", () => {
   it("renders each page", async () => {

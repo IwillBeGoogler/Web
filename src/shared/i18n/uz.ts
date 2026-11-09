@@ -96,7 +96,8 @@ export const uz: Record<keyof typeof en, string> = {
   "dg.publish": "Nashr qilish",
   "dg.publish.live": "Nashr qilingan",
   "dg.publish.title": "Bu diagrammani nashr qilish",
-  "dg.publish.lead": "Uning IWillBeGoogler’da o‘z sahifasi bo‘ladi. O‘quvchilar diagrammani hozirgi holatida ko‘radi; keyingi o‘zgarishlar ham u yerda ko‘rinadi.",
+  "dg.publish.lead":
+    "Uning IWillBeGoogler’da o‘z sahifasi bo‘ladi. O‘quvchilar diagrammani hozirgi holatida ko‘radi; keyingi o‘zgarishlar ham u yerda ko‘rinadi.",
   "dg.publish.visibility": "Kim ochishi mumkin",
   "dg.vis.unlisted": "Havola bo‘yicha",
   "dg.vis.unlistedHint": "Havolasi borlar. Ro‘yxatda ko‘rinmaydi, indekslanmaydi.",

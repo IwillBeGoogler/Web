@@ -42,9 +42,7 @@ describe("Responses (more)", () => {
 
   it("shows error and retries", async () => {
     let fail = true;
-    server.use(
-      http.get(api("/posts/1/comments"), () => (fail ? HttpResponse.json({ error: { message: "x" } }, { status: 500 }) : page([c(1)]))),
-    );
+    server.use(http.get(api("/posts/1/comments"), () => (fail ? HttpResponse.json({ error: { message: "x" } }, { status: 500 }) : page([c(1)]))));
     const { user } = await renderRouted(<Responses postId={1} count={1} open onOpenChange={() => {}} />);
     await user.click(await screen.findByRole("button", { name: "Try again" }, { timeout: 5000 }));
     fail = false;
@@ -57,7 +55,9 @@ describe("Responses (more)", () => {
     const likes = vi.fn(() => new HttpResponse(null, { status: 204 }));
     const posts: unknown[] = [];
     server.use(
-      http.get(api("/posts/1/comments"), () => page([c(1), c(2, { parent_id: 1, edited_at: "2026-10-03T00:00:00Z", liked: true, likes: 2 }), c(3, { parent_id: 2 })])),
+      http.get(api("/posts/1/comments"), () =>
+        page([c(1), c(2, { parent_id: 1, edited_at: "2026-10-03T00:00:00Z", liked: true, likes: 2 }), c(3, { parent_id: 2 })]),
+      ),
       http.post(api("/comments/1/like"), likes),
       http.delete(api("/comments/2/like"), likes),
       http.post(api("/reports"), () => new HttpResponse(null, { status: 204 })),
@@ -95,7 +95,10 @@ describe("Responses (more)", () => {
   it("composer shows an error toast on failure and skips empty submit", async () => {
     signIn();
     const failing = vi.fn(() => HttpResponse.json({ error: { message: "bad" } }, { status: 500 }));
-    server.use(http.get(api("/posts/1/comments"), () => page([])), http.post(api("/posts/1/comments"), failing));
+    server.use(
+      http.get(api("/posts/1/comments"), () => page([])),
+      http.post(api("/posts/1/comments"), failing),
+    );
     const { user } = await renderRouted(<Responses postId={1} count={0} open onOpenChange={() => {}} />);
     const box = await screen.findByLabelText("Write a note");
     await user.type(box, "   {Control>}{Enter}{/Control}");

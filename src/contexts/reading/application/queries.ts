@@ -31,6 +31,7 @@ export const feedPreviewQuery = (source: FeedSource, limit: number) =>
 export const postQuery = (slug: string) => queryOptions({ queryKey: readingKeys.post(slug), queryFn: ({ signal }) => readingRepository.bySlug(slug, signal) });
 export const postByIdQuery = (id: number) => queryOptions({ queryKey: ["post-id", id], queryFn: ({ signal }) => readingRepository.byId(id, signal) });
 export const trendingQuery = () => queryOptions({ queryKey: ["trending"], queryFn: ({ signal }) => readingRepository.trending(signal), staleTime: 5 * 60_000 });
+export const siteStatsQuery = () => queryOptions({ queryKey: ["site-stats"], queryFn: ({ signal }) => readingRepository.siteStats(signal), staleTime: 60_000 });
 export const relatedQuery = (id: number) => queryOptions({ queryKey: ["related", id], queryFn: ({ signal }) => readingRepository.related(id, signal) });
 export const tagsQuery = () =>
   queryOptions({

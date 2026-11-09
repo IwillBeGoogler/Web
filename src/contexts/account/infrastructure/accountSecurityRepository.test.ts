@@ -46,10 +46,12 @@ describe("accountSecurityRepository", () => {
   const ok = () => new HttpResponse(null, { status: 204 });
   const u = { id: 1, username: "bob" };
   const seen: string[] = [];
-  const rec = (label: string) => ({ request }: { request: Request }) => {
-    seen.push(`${request.method} ${label}`);
-    return ok();
-  };
+  const rec =
+    (label: string) =>
+    ({ request }: { request: Request }) => {
+      seen.push(`${request.method} ${label}`);
+      return ok();
+    };
   it("auth plumbing posts", async () => {
     seen.length = 0;
     server.use(

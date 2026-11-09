@@ -8,7 +8,17 @@ import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
 import { ListCard, ListForm, ListPage, MyLists, SaveToList } from "./Lists";
 
-const list = (o: Record<string, unknown> = {}) => ({ id: 1, slug: "fav", name: "Favourites", description: "Nice ones", private: false, owner: "admin", user_id: 3, posts: 2, ...o });
+const list = (o: Record<string, unknown> = {}) => ({
+  id: 1,
+  slug: "fav",
+  name: "Favourites",
+  description: "Nice ones",
+  private: false,
+  owner: "admin",
+  user_id: 3,
+  posts: 2,
+  ...o,
+});
 
 afterEach(() => {
   tokens.set(null);
@@ -174,7 +184,10 @@ describe("ListPage", () => {
   });
 
   it("visitor sees read-only list, no owner link or description", async () => {
-    server.use(http.get(api("/lists/fav"), () => HttpResponse.json({ data: list({ owner: "", description: "" }) })), posts());
+    server.use(
+      http.get(api("/lists/fav"), () => HttpResponse.json({ data: list({ owner: "", description: "" }) })),
+      posts(),
+    );
     await renderRouted(<ListPage slug="fav" />);
     expect(await screen.findByText("In list")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Edit list" })).toBeNull();
@@ -182,7 +195,10 @@ describe("ListPage", () => {
   });
 
   it("shows owner link and empty message", async () => {
-    server.use(http.get(api("/lists/fav"), () => HttpResponse.json({ data: list() })), http.get(api("/lists/fav/posts"), () => page([])));
+    server.use(
+      http.get(api("/lists/fav"), () => HttpResponse.json({ data: list() })),
+      http.get(api("/lists/fav/posts"), () => page([])),
+    );
     await renderRouted(<ListPage slug="fav" />);
     expect(await screen.findByText("No stories in this list yet.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "admin" })).toBeInTheDocument();

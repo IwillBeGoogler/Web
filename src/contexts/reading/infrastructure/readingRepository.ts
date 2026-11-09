@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { http } from "@/shared/api";
 import { dataEnvelope, type Page, type PageRequest, pageEnvelope } from "@/shared/http";
-import { type Post, type Profile, postSchema, profileSchema, type Suggestion, suggestionSchema, type Tag, tagSchema } from "../domain/post";
+import { type Post, type Profile, postSchema, profileSchema, type SiteStats, siteStatsSchema, type Suggestion, suggestionSchema, type Tag, tagSchema } from "../domain/post";
 
 const arr = <S extends z.ZodType>(s: S) =>
   dataEnvelope(
@@ -75,6 +75,9 @@ export const readingRepository = {
   },
   async suggestions(signal?: AbortSignal): Promise<Suggestion[]> {
     return (await http("/me/suggestions/users", { query: { limit: 3 }, schema: arr(suggestionSchema), signal })).data;
+  },
+  async siteStats(signal?: AbortSignal): Promise<SiteStats> {
+    return (await http("/stats/site", { schema: dataEnvelope(siteStatsSchema), signal })).data;
   },
   async view(id: number): Promise<void> {
     await http(`/posts/${id}/view`, { method: "POST" }).catch(() => undefined);

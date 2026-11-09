@@ -180,6 +180,7 @@ export const publicDiagramSchema = z.object({
   page_count: z.number().default(1),
   thumbnail_url: z.string().nullish(),
   claps: z.number().default(0),
+  views: z.number().default(0),
   published_at: z.string(),
   updated_at: z.string(),
   author: publicAuthorSchema,

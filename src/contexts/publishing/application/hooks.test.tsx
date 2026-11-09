@@ -5,10 +5,11 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { testQueryClient } from "@/test/render";
 import { api, server } from "@/test/server";
+import { emptyStory } from "../domain/story";
 import { useDeleteStory, useSaveStory } from "./hooks";
 
 const post = { id: 5, title: "T", slug: "t-slug", status: "draft", author: "ali", created_at: "x", updated_at: "x" };
-const form = { title: "T", subtitle: "", body: "b", tags: "", cover_url: "", publication_id: 0 } as never;
+const form = { ...emptyStory(), title: "T", body: "b" };
 
 const setup = () => {
   const qc = testQueryClient();

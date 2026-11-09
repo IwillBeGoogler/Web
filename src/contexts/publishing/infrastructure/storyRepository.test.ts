@@ -29,7 +29,9 @@ describe("studioRepository", () => {
   it("stats and daily", async () => {
     server.use(
       http.get(api("/me/stats"), () => HttpResponse.json({ data: [{ post_id: 1, title: "T", slug: "t", status: "published" }], meta: {} })),
-      http.get(api("/me/stats/1"), ({ request }) => HttpResponse.json({ data: { post_id: 1, days: new URL(request.url).searchParams.get("days") === "7" ? null : [] } })),
+      http.get(api("/me/stats/1"), ({ request }) =>
+        HttpResponse.json({ data: { post_id: 1, days: new URL(request.url).searchParams.get("days") === "7" ? null : [] } }),
+      ),
     );
     expect((await studioRepository.stats({})).items).toHaveLength(1);
     expect((await studioRepository.daily(1)).days).toEqual([]);

@@ -79,3 +79,22 @@ export type Suggestion = z.infer<typeof suggestionSchema>;
 
 export const tagSchema = z.object({ name: z.string(), count: z.number().default(0) });
 export type Tag = z.infer<typeof tagSchema>;
+
+/** `GET /api/stats/site`: unique view totals, counts and the five most viewed posts and public diagrams. */
+export const siteStatsSchema = z.object({
+  totals: z.object({
+    post_views: z.number().default(0),
+    diagram_views: z.number().default(0),
+    visitors: z.number().default(0),
+    posts: z.number().default(0),
+    diagrams: z.number().default(0),
+    users: z.number().default(0),
+  }),
+  top_posts: z
+    .array(z.object({ id: z.number(), slug: z.string(), title: z.string(), author: z.string().default(""), views: z.number().default(0) }))
+    .default([]),
+  top_diagrams: z
+    .array(z.object({ slug: z.string(), title: z.string(), author: z.string().default(""), views: z.number().default(0) }))
+    .default([]),
+});
+export type SiteStats = z.infer<typeof siteStatsSchema>;

@@ -121,6 +121,10 @@ export const diagramRepository = {
   bookmarkDiagram: async (slug: string, on: boolean): Promise<void> => {
     await http(`${base}/public/${enc(slug)}/bookmark`, { method: on ? "POST" : "DELETE" });
   },
+  /** Counts one unique view of a published diagram; the cached page can't. Best effort. */
+  viewDiagram: async (slug: string): Promise<void> => {
+    await http(`${base}/public/${enc(slug)}/view`, { method: "POST" }).catch(() => undefined);
+  },
   bookmarkedDiagrams: (r: PageRequest = {}, signal?: AbortSignal): Promise<Page<PublicDiagram>> =>
     http("/me/diagram-bookmarks", { query: { page: r.page, limit: r.limit }, schema: pageEnvelope(publicDiagramSchema), signal }),
   publicDiagrams: (q: { q?: string; tag?: string } = {}, r: PageRequest = {}, signal?: AbortSignal): Promise<Page<PublicDiagram>> =>

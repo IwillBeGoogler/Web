@@ -14,6 +14,7 @@ import { excerpt, type Post, postPath, readTime } from "@/contexts/reading/domai
 import type { FeedSource } from "@/contexts/reading/infrastructure/readingRepository";
 import { Feed } from "@/contexts/reading/ui/Feed";
 import { Sidebar } from "@/contexts/reading/ui/Sidebar";
+import { SiteStats } from "@/contexts/reading/ui/SiteStats";
 import { cn } from "@/shared/lib/cn";
 import { compact, shortDate, timeAgo } from "@/shared/lib/format";
 import { Reveal, Stagger, StaggerItem } from "@/shared/motion";
@@ -724,6 +725,9 @@ function HomeFeed({ tab: wanted }: { tab: HomeTab | undefined }) {
       ) : token ? null : (
         <PublicWriters />
       )}
+      <Reveal>
+        <SiteStats />
+      </Reveal>
       <Reveal>
         <section aria-labelledby="stream" className="mx-auto mt-12 max-w-feed">
           <h2 id="stream" className="font-display text-lg font-extrabold tracking-[-0.02em]">

@@ -69,7 +69,11 @@ describe("account queries", () => {
 
 describe("account mutations", () => {
   it("useChangePassword stores the new token and refreshes devices", async () => {
-    server.use(http.put(api("/me/password"), () => HttpResponse.json({ data: { token: "new", expires_at: "2031-01-01T00:00:00Z", user: { ...user, created_at: "x" } } })));
+    server.use(
+      http.put(api("/me/password"), () =>
+        HttpResponse.json({ data: { token: "new", expires_at: "2031-01-01T00:00:00Z", user: { ...user, created_at: "x" } } }),
+      ),
+    );
     const { qc, wrapper } = setup();
     const spy = vi.spyOn(qc, "invalidateQueries");
     const { result } = renderHook(() => useChangePassword(), { wrapper });
@@ -149,6 +153,6 @@ describe("account mutations", () => {
     await act(() => result.current.mutateAsync({ username: "bob", on: true }));
     await waitFor(() => expect(spy).toHaveBeenCalledWith({ queryKey: ["profile", "bob"] }));
     expect(spy).toHaveBeenCalledWith({ queryKey: kind === "block" ? accountKeys.blocks : accountKeys.mutes });
-    expect(spy.mock.calls.some((c) => (c[0]?.queryKey as unknown[])[0] === "feed")).toBe(feeds);
+    expect(spy.mock.calls.some((c) => ((c[0]?.queryKey ?? []) as unknown[])[0] === "feed")).toBe(feeds);
   });
 });

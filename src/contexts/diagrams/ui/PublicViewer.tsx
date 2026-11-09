@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CloudOffIcon, FileQuestionIcon, FlagIcon, LinkIcon } from "lucide-react";
-import { lazy, Suspense, useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import { ReportDialog } from "@/contexts/engagement/ui/ReportDialog";
 import { requireAuth } from "@/contexts/identity/application/authDialog";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
@@ -15,6 +15,7 @@ import { Bone, EmptyState } from "@/shared/ui/states";
 import { useDark } from "@/shared/ui/theme";
 import { toast } from "@/shared/ui/toast";
 import { publicDiagramQuery } from "../application/hooks";
+import { diagramRepository } from "../infrastructure/diagramRepository";
 import { kindKey } from "./DiagramCard";
 import { DiagramEngagement } from "./DiagramEngagement";
 import { Booting } from "./EditorHost";
@@ -35,6 +36,10 @@ export function PublicViewer({ slug }: { slug: string }) {
   const [reporting, setReporting] = useState(false);
   const q = useQuery(publicDiagramQuery(slug));
   const d = q.data;
+  const loaded = Boolean(d);
+  useEffect(() => {
+    if (loaded) void diagramRepository.viewDiagram(slug);
+  }, [loaded, slug]);
   useHead({
     title: d?.title,
     description: d ? d.description || `${t(kindKey[d.kind])} · @${d.author.username}` : undefined,

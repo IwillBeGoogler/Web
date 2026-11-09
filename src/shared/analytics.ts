@@ -41,7 +41,7 @@ export function track(e: AnalyticsEvent, send: typeof fetch = (...a) => fetch(..
   if (!visitor) return;
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   const tok = tokens.get();
-  if (tok) headers.Authorization = `Bearer ${tok}`;
+  if (tok) headers.Authorization = `Bearer ${tok.token}`;
   const body = JSON.stringify({
     ...e,
     visitor,

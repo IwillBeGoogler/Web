@@ -4,6 +4,7 @@ import { renderRouted } from "@/test/render";
 import { HOME_REPLAY, Logo } from "./Logo";
 
 vi.mock("@/shared/splash", () => ({ playSplash: vi.fn() }));
+
 import { playSplash } from "@/shared/splash";
 
 afterEach(() => vi.restoreAllMocks());

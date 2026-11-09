@@ -20,9 +20,9 @@ import {
   useHighlightMutations,
   useListMutations,
   usePublicationMutations,
-  useSeriesMutations,
   userListsQuery,
   userSeriesQuery,
+  useSeriesMutations,
 } from "./hooks";
 
 const setup = () => {

@@ -16,7 +16,12 @@ describe("Sidebar", () => {
   it("shows loading skeletons then trending, topics and footer links", async () => {
     server.use(
       http.get(api("/posts/trending"), () => ok([makePost({ id: 1, title: "Hot one" }), makePost({ id: 2, title: "Hot two" })])),
-      http.get(api("/tags"), () => ok([{ name: "go", count: 2 }, { name: "rust", count: 9 }])),
+      http.get(api("/tags"), () =>
+        ok([
+          { name: "go", count: 2 },
+          { name: "rust", count: 9 },
+        ]),
+      ),
     );
     await renderRouted(<Sidebar />);
     expect(await screen.findByText("Hot one")).toBeInTheDocument();
@@ -27,7 +32,10 @@ describe("Sidebar", () => {
   });
 
   it("shows empty state", async () => {
-    server.use(http.get(api("/posts/trending"), () => ok([])), http.get(api("/tags"), () => ok([])));
+    server.use(
+      http.get(api("/posts/trending"), () => ok([])),
+      http.get(api("/tags"), () => ok([])),
+    );
     await renderRouted(<Sidebar />);
     expect(await screen.findByText("No signal yet.")).toBeInTheDocument();
   });

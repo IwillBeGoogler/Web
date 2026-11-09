@@ -19,13 +19,7 @@ const rich = vi.hoisted(() => ({
 }));
 
 vi.mock("@/contexts/publishing/rich/RichEditor", () => ({
-  default: (p: {
-    ref?: unknown;
-    value: string;
-    onChange: (s: string) => void;
-    onLossy: (s: string | null) => void;
-    onDiagram: () => void;
-  }) => {
+  default: (p: { ref?: unknown; value: string; onChange: (s: string) => void; onLossy: (s: string | null) => void; onDiagram: () => void }) => {
     useImperativeHandle(p.ref as never, () => rich.handle);
     return (
       <div data-testid="rich">
@@ -67,7 +61,11 @@ const signedIn = () => {
 };
 const noPubs = () => server.use(http.get(api("/me/publications"), () => HttpResponse.json({ data: [{ id: 5, name: "Pub Five", slug: "p5" }] })));
 const existing = (o: Record<string, unknown> = {}) =>
-  server.use(http.get(api("/posts/7"), () => HttpResponse.json({ data: makePost({ id: 7, slug: "my-story", author: "admin", title: "Old title", body: "old body", status: "draft", ...o }) })));
+  server.use(
+    http.get(api("/posts/7"), () =>
+      HttpResponse.json({ data: makePost({ id: 7, slug: "my-story", author: "admin", title: "Old title", body: "old body", status: "draft", ...o }) }),
+    ),
+  );
 
 beforeEach(() => {
   localStorage.clear();
@@ -88,11 +86,11 @@ describe("EditorPage visual mode", () => {
     const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
     expect(await screen.findByText("rich:old body")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "rich-change" }));
-    await user.click(screen.getByRole("button", { name: /Insert diagram|Diagram/i }));
+    await user.click(screen.getByRole("button", { name: "Diagram" }));
     await user.click(await screen.findByRole("button", { name: "pick-diagram" }));
     expect(rich.handle.insertDiagram).toHaveBeenCalledWith("::diagram[x]");
     await user.click(screen.getByRole("button", { name: "rich-diagram" }));
-    await user.click(screen.getByRole("button", { name: /live/i }));
+    await user.click(screen.getByRole("button", { name: "Animation" }));
     expect(rich.handle.insertLive).toHaveBeenCalled();
   });
 
@@ -136,6 +134,18 @@ describe("EditorPage visual mode", () => {
     const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
     rich.boom = true;
     await user.click(screen.getByRole("button", { name: /visual/i }));
+    expect(screen.getByLabelText("Story body (Markdown)")).toBeInTheDocument();
+    expect(screen.queryByTestId("rich")).toBeNull();
+  });
+
+  // BUG (production): chooseMode's catch sets refused/problem but not wantRich, so the "can't switch" alert never renders
+  // (the `problem && wantRich` gate stays false). Remove `.fails` once the catch also calls setWantRich(true).
+  it("explains why visual was refused when the markdown check throws", async () => {
+    signedIn();
+    localStorage.setItem("iwillbegoogler.editor.mode", "md");
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    rich.boom = true;
+    await user.click(screen.getByRole("button", { name: /visual/i }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
 
@@ -158,7 +168,7 @@ describe("EditorPage visual mode", () => {
     await screen.findByTestId("rich");
     await user.click(screen.getByRole("button", { name: /preview/i }));
     expect(await screen.findByText(/preview:/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /live/i })); // preview on: falls through to textarea insert
+    await user.click(screen.getByRole("button", { name: "Animation" })); // preview on: falls through to textarea insert
     await user.click(screen.getByRole("button", { name: /edit/i }));
     expect(rich.handle.flush).toHaveBeenCalled();
   });
@@ -200,9 +210,9 @@ describe("EditorPage markdown mode", () => {
     await user.click(screen.getByRole("button", { name: /preview/i }));
     expect(screen.getByText("preview:one two three")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /edit/i }));
-    await user.click(screen.getByRole("button", { name: /live/i }));
+    await user.click(screen.getByRole("button", { name: "Animation" }));
     expect((screen.getByLabelText("Story body (Markdown)") as HTMLTextAreaElement).value.length).toBeGreaterThan(13);
-    await user.click(screen.getByRole("button", { name: /diagram/i }));
+    await user.click(screen.getByRole("button", { name: "Diagram" }));
     await user.click(await screen.findByRole("button", { name: "pick-diagram" }));
     expect((screen.getByLabelText("Story body (Markdown)") as HTMLTextAreaElement).value).toContain("::diagram[x]");
   });
@@ -285,11 +295,13 @@ describe("EditorPage markdown mode", () => {
     existing({ status: "published" });
     noPubs();
     let put = 0;
-    server.use(http.put(api("/posts/7"), () => (put++, HttpResponse.json({ data: makePost({ id: 7, slug: "my-story", author: "admin", status: "published" }) }))));
+    server.use(
+      http.put(api("/posts/7"), () => (put++, HttpResponse.json({ data: makePost({ id: 7, slug: "my-story", author: "admin", status: "published" }) }))),
+    );
     const { user, router } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
     await screen.findByLabelText("Story body (Markdown)");
     expect(await screen.findAllByText("Live")).not.toHaveLength(0);
-    await user.click(screen.getByRole("button", { name: "Update" }));
+    await user.click(screen.getByRole("button", { name: "Update live story" }));
     await user.click(await screen.findByRole("button", { name: "Ship now" }));
     await waitFor(() => expect(put).toBe(1));
     await waitFor(() => expect(router.state.location.pathname).toBe("/@admin/my-story"));
@@ -326,7 +338,7 @@ describe("EditorPage markdown mode", () => {
     signedIn();
     localStorage.setItem("iwillbegoogler.story.new", encodeCopy({ ...emptyStory(), title: "Local title", body: "local body" }, Date.now()));
     const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
-    const banner = await screen.findByRole("region");
+    const banner = await screen.findByRole("region", { name: "Restore unsaved text?" });
     await user.click(within(banner).getAllByRole("button")[0] as HTMLElement);
     expect((screen.getByLabelText("Title") as HTMLTextAreaElement).value).toBe("Local title");
     expect(fireEvent.keyDown(window, { key: "s", metaKey: true })).toBe(false);
@@ -336,10 +348,10 @@ describe("EditorPage markdown mode", () => {
     signedIn();
     localStorage.setItem("iwillbegoogler.story.new", encodeCopy({ ...emptyStory(), title: "Local title", body: "local body" }, Date.now()));
     const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
-    const banner = await screen.findByRole("region");
+    const banner = await screen.findByRole("region", { name: "Restore unsaved text?" });
     fireEvent.keyDown(window, { key: "s", ctrlKey: true }); // banner pending: no save
     await user.click(within(banner).getAllByRole("button")[1] as HTMLElement);
-    expect(screen.queryByRole("region")).toBeNull();
+    expect(screen.queryByRole("region", { name: "Restore unsaved text?" })).toBeNull();
   });
 
   it("restores a newer local copy over a loaded story", async () => {
@@ -347,7 +359,7 @@ describe("EditorPage markdown mode", () => {
     existing();
     localStorage.setItem("iwillbegoogler.story.7", encodeCopy({ ...emptyStory(), title: "Newer", body: "newer body" }, Date.now() + 1e7));
     const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
-    const banner = await screen.findByRole("region");
+    const banner = await screen.findByRole("region", { name: "Restore unsaved text?" });
     await user.click(within(banner).getAllByRole("button")[0] as HTMLElement);
     await waitFor(() => expect((screen.getByLabelText("Title") as HTMLTextAreaElement).value).toBe("Newer"));
   });
@@ -393,7 +405,15 @@ describe("EditorPage markdown mode", () => {
             version: 1,
             title: "v1",
             created_at: "2026-01-01T00:00:00Z",
-            diff: { title: [], subtitle: [], body: [{ op: "=", text: "same" }, { op: "+", text: "added" }, { op: "-", text: "gone" }] },
+            diff: {
+              title: [],
+              subtitle: [],
+              body: [
+                { op: "=", text: "same" },
+                { op: "+", text: "added" },
+                { op: "-", text: "gone" },
+              ],
+            },
           },
         }),
       ),
@@ -421,9 +441,13 @@ describe("EditorPage markdown mode", () => {
     signedIn();
     existing();
     server.use(
-      http.get(api("/posts/7/revisions"), () => HttpResponse.json({ data: [{ id: 1, post_id: 7, version: 1, title: "v1", created_at: "2026-01-01T00:00:00Z" }] })),
+      http.get(api("/posts/7/revisions"), () =>
+        HttpResponse.json({ data: [{ id: 1, post_id: 7, version: 1, title: "v1", created_at: "2026-01-01T00:00:00Z" }] }),
+      ),
       http.get(api("/posts/7/revisions/1"), () =>
-        HttpResponse.json({ data: { id: 1, post_id: 7, version: 1, title: "v1", created_at: "2026-01-01T00:00:00Z", diff: { title: [], subtitle: [], body: [] } } }),
+        HttpResponse.json({
+          data: { id: 1, post_id: 7, version: 1, title: "v1", created_at: "2026-01-01T00:00:00Z", diff: { title: [], subtitle: [], body: [] } },
+        }),
       ),
       http.post(api("/posts/7/revisions/1/restore"), () => HttpResponse.json({ status: 500, detail: "x" }, { status: 500 })),
     );

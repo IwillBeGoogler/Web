@@ -4,17 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { page, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
-import {
-  ListRoute,
-  LibraryPage,
-  NotificationsPage,
-  PublicationRoute,
-  PublicationsPage,
-  SeriesRoute,
-  SettingsPage,
-  StatsRoute,
-  StoriesPage,
-} from "./MePages";
+import { LibraryPage, ListRoute, NotificationsPage, PublicationRoute, PublicationsPage, SeriesRoute, SettingsPage, StatsRoute, StoriesPage } from "./MePages";
 
 vi.mock("@/contexts/account/ui/Settings", () => ({ Settings: ({ tab }: { tab: string }) => <div>settings:{tab}</div> }));
 vi.mock("@/contexts/collections/ui/Lists", () => ({ MyLists: () => <div>mylists</div>, ListPage: ({ slug }: { slug: string }) => <div>list:{slug}</div> }));
@@ -22,7 +12,10 @@ vi.mock("@/contexts/collections/ui/Publications", () => ({
   MyPublications: () => <div>mypubs</div>,
   PublicationPage: ({ slug }: { slug: string }) => <div>pub:{slug}</div>,
 }));
-vi.mock("@/contexts/collections/ui/Series", () => ({ MySeries: () => <div>myseries</div>, SeriesPage: ({ slug }: { slug: string }) => <div>series:{slug}</div> }));
+vi.mock("@/contexts/collections/ui/Series", () => ({
+  MySeries: () => <div>myseries</div>,
+  SeriesPage: ({ slug }: { slug: string }) => <div>series:{slug}</div>,
+}));
 vi.mock("@/contexts/publishing/ui/Studio", () => ({
   ImportStory: () => <div>import</div>,
   StatsPage: ({ post }: { post?: number }) => <div>stats:{String(post)}</div>,
@@ -95,7 +88,10 @@ describe("NotificationsPage extras", () => {
     signIn();
     let marked = false;
     server.use(
-      http.post(api("/me/notifications/read"), () => ((marked = true), new HttpResponse(null, { status: 204 }))),
+      http.post(api("/me/notifications/read"), () => {
+        marked = true;
+        return new HttpResponse(null, { status: 204 });
+      }),
       http.get(api("/me/notifications"), ({ request }) => {
         const p = new URL(request.url).searchParams.get("page") ?? "1";
         const rows =
@@ -103,7 +99,15 @@ describe("NotificationsPage extras", () => {
             ? [
                 { id: 1, type: "follow", actor: "ali", created_at: "2024-01-01T00:00:00Z" },
                 { id: 2, type: "follow", actor: "bo", created_at: "2024-01-01T00:00:00Z", read_at: "2024-01-02T00:00:00Z" },
-                { id: 3, type: "diagram_reply", actor: "cy", diagram_project_id: "p", diagram_file_id: "f", read_at: "2024-01-02T00:00:00Z", created_at: "2024-01-01T00:00:00Z" },
+                {
+                  id: 3,
+                  type: "diagram_reply",
+                  actor: "cy",
+                  diagram_project_id: "p",
+                  diagram_file_id: "f",
+                  read_at: "2024-01-02T00:00:00Z",
+                  created_at: "2024-01-01T00:00:00Z",
+                },
               ]
             : [{ id: 4, type: "follow", actor: "di", created_at: "2024-01-01T00:00:00Z", read_at: "2024-01-02T00:00:00Z" }];
         return HttpResponse.json({ data: rows, meta: { page: Number(p), limit: 3, total: 4, has_more: p === "1", unread: 1 } });

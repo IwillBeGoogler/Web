@@ -7,8 +7,25 @@ import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
 import { MyPublications, PublicationPage } from "./Publications";
 
-const pub = (o: Record<string, unknown> = {}) => ({ id: 1, slug: "acme", name: "Acme", description: "We write", avatar_url: "", members: 3, posts: 4, my_role: "owner", ...o });
-const member = (id: number, username: string, role: string, o: Record<string, unknown> = {}) => ({ user_id: id, username, display_name: "", avatar_url: "", role, ...o });
+const pub = (o: Record<string, unknown> = {}) => ({
+  id: 1,
+  slug: "acme",
+  name: "Acme",
+  description: "We write",
+  avatar_url: "",
+  members: 3,
+  posts: 4,
+  my_role: "owner",
+  ...o,
+});
+const member = (id: number, username: string, role: string, o: Record<string, unknown> = {}) => ({
+  user_id: id,
+  username,
+  display_name: "",
+  avatar_url: "",
+  role,
+  ...o,
+});
 
 afterEach(() => {
   tokens.set(null);

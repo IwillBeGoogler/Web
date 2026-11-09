@@ -26,7 +26,8 @@ afterEach(() => {
   document.documentElement.classList.remove("dark");
 });
 
-const notifs = (unread: number) => http.get(api("/me/notifications"), () => HttpResponse.json({ data: [], meta: { unread, page: 1, limit: 20, total: 0, has_more: false } }));
+const notifs = (unread: number) =>
+  http.get(api("/me/notifications"), () => HttpResponse.json({ data: [], meta: { unread, page: 1, limit: 20, total: 0, has_more: false } }));
 
 describe("TopBar signed out", () => {
   it("shows auth buttons, feedback, theme toggle", async () => {
@@ -139,7 +140,10 @@ describe("TopBar signed in", () => {
 
   it("account menu navigates, toggles theme, feedback, sign out", async () => {
     signIn();
-    server.use(notifs(0), http.post(api("/auth/logout"), () => HttpResponse.json({ data: {} })));
+    server.use(
+      notifs(0),
+      http.post(api("/auth/logout"), () => HttpResponse.json({ data: {} })),
+    );
     const { user, router } = await renderRouted(<TopBar />);
     const open = async () => user.click(await screen.findByRole("button", { name: "Account menu" }));
     const dests: [string, string][] = [

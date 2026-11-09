@@ -7,7 +7,7 @@ import { tokens } from "@/shared/api";
 import { signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
-import { HighlightsPanel, Highlighter } from "./Highlights";
+import { Highlighter, HighlightsPanel } from "./Highlights";
 
 const BODY = "Alpha beta gamma delta";
 

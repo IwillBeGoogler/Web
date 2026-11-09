@@ -617,6 +617,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
     } catch {
       setRefused("error");
       setProblem("error");
+      setWantRich(true);
       return;
     }
     setRefused(null);
