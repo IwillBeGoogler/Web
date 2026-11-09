@@ -270,7 +270,7 @@ describe("Settings security extras", () => {
     );
     const { user: u, router } = await renderRouted(<Settings tab="security" onTab={() => {}} />, { path: "/settings" });
     const outs = await screen.findAllByRole("button", { name: "Sign out" });
-    await u.click(outs[0]);
+    await u.click(outs[0]!);
     await waitFor(() => expect(revoked).toBe("a"));
     await u.click(screen.getByRole("button", { name: "Sign out everywhere" }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/"));
@@ -327,7 +327,7 @@ describe("Settings reading, privacy, account", () => {
     );
     const { user: u } = await renderRouted(<Settings tab="privacy" onTab={() => {}} />);
     await u.click(await screen.findByRole("button", { name: "Unfollow go" }));
-    await u.click((await screen.findAllByRole("button", { name: "Undo" }))[0]);
+    await u.click((await screen.findAllByRole("button", { name: "Undo" }))[0]!);
     await u.click(await screen.findByRole("button", { name: "Unblock" }));
     await u.click(await screen.findByRole("button", { name: "Unmute" }));
     await waitFor(() => expect(calls).toEqual(expect.arrayContaining(["untag", "unhide", "unblock", "unmute"])));

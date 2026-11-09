@@ -2,7 +2,7 @@ import { screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { afterEach, describe, expect, it } from "vitest";
 import { tokens } from "@/shared/api";
-import { makePost, page, signIn } from "@/test/fixtures";
+import { makePost, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
 import { Sidebar } from "./Sidebar";

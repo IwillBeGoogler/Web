@@ -1,5 +1,5 @@
 import { screen, waitFor } from "@testing-library/react";
-import { HttpResponse, http } from "msw";
+import { http } from "msw";
 import { describe, expect, it } from "vitest";
 import { page } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
