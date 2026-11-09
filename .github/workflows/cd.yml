@@ -61,7 +61,7 @@ jobs:
           exit-code: "1"
 
       - name: Vault secrets
-        uses: hashicorp/vault-action@v3.4.0
+        uses: hashicorp/vault-action@v4.0.0
         with:
           url: ${{ vars.VAULT_ADDR }}
           method: jwt
@@ -92,7 +92,7 @@ jobs:
       id-token: write
     steps:
       - name: Vault login (GitHub OIDC)
-        uses: hashicorp/vault-action@v3.4.0
+        uses: hashicorp/vault-action@v4.0.0
         with:
           url: ${{ vars.VAULT_ADDR }}
           method: jwt
