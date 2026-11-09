@@ -1,9 +1,9 @@
 name: CD
 
-# main -> production, dev -> dev: image tagged with the short sha, then the infra repo deploys it to that environment.
+# main -> production: image tagged with the short sha, then the infra repo deploys it. dev runs CI only (ci.yml).
 on:
   push:
-    branches: [main, dev]
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
