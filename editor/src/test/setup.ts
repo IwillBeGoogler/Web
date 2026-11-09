@@ -70,3 +70,6 @@ DEFAULT_ROUTING.budgetMs = 1e9;
 import { setMqttConnect } from '../realtime/link';
 import { MockMqttClient } from '../realtime/mockMqtt';
 setMqttConnect((url, opts) => new MockMqttClient(url, opts));
+
+// jsdom: Range has no layout; image export measures label lines with it
+if (!Range.prototype.getClientRects) Range.prototype.getClientRects = (() => []) as never;

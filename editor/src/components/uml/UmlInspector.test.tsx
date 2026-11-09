@@ -5,7 +5,6 @@ import { SECTIONS } from '../../data/catalog';
 import { registerUmlSection } from '../../data/uml';
 import { createNodesFromPaletteItem } from '../../data/palette';
 import { blankClass } from '../../lib/uml/geometry';
-import { umlEdge } from '../../lib/uml/edges';
 import { UML_REL_KINDS } from '../../lib/uml/types';
 import { exercise } from '../../test/exercise';
 import { ClassInspector, DiagramKindInspector, UmlRelationInspector } from './UmlInspector';

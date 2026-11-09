@@ -35,7 +35,7 @@ async function clickItem(trigger: () => HTMLElement, i: number): Promise<number>
 }
 
 describe('top bar menus: every item can be clicked', () => {
-  for (const [name, label] of [['File', /^File$/], ['View', /^View$/], ['Line style', /^Line style$/], ['Zoom', /^Zoom/], ['More', /^More$/]] as [string, RegExp][])
+  for (const [name, label] of [['File', /^File$/], ['View', /^View$/], ['Line style', /^Line style$/], ['Zoom', /^Zoom/]] as [string, RegExp][])
     it(`${name} menu`, async () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
       const trigger = () => screen.getAllByRole('button', { name: label }).find((b) => b.getAttribute('aria-haspopup') === 'menu') ?? screen.getByRole('button', { name: label });

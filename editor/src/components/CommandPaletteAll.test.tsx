@@ -38,8 +38,9 @@ describe('command palette: every reachable command runs without throwing', () =>
     for (const q of queries) {
       await openK();
       await act(async () => void fireEvent.change(input(), { target: { value: q } }));
-      const n = titles().length;
-      for (let i = 0; i < n; i++) {
+      const listed = titles();
+      for (let i = 0; i < listed.length; i++) {
+        if (done.has(listed[i])) continue; // skip re-opening the palette for commands another query already ran
         await openK();
         await act(async () => void fireEvent.change(input(), { target: { value: q } }));
         const opts = screen.queryAllByRole('option');
