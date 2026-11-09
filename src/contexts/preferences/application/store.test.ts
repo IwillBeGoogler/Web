@@ -11,7 +11,7 @@ describe("reading prefs store", () => {
     expect(root.style.getPropertyValue("--article-measure")).toBe("76ch");
     expect(root.classList.contains("bold-text")).toBe(true);
     expect(root.classList.contains("focus-mode")).toBe(true);
-    expect(JSON.parse(localStorage.getItem("iblog.reading") ?? "{}").palette).toBe("carbon");
+    expect(JSON.parse(localStorage.getItem("iwillbegoogler.reading") ?? "{}").palette).toBe("carbon");
   });
   it("loads a webfont only once, on demand", () => {
     readingPrefs.set({ typeface: "lora" });

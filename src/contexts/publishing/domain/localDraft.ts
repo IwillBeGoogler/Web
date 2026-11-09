@@ -19,7 +19,7 @@ const copySchema = z.object({
 export type LocalCopy = z.infer<typeof copySchema>;
 
 /** One key per story; "new" for a story not created yet. */
-export const localKey = (id: number | undefined) => `iblog.story.${id ?? "new"}`;
+export const localKey = (id: number | undefined) => `iwillbegoogler.story.${id ?? "new"}`;
 
 export const encodeCopy = (form: StoryForm, at: number): string => JSON.stringify({ v: 1, at, form } satisfies LocalCopy);
 

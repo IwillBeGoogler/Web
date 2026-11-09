@@ -15,7 +15,7 @@ describe("i18n", () => {
 
   it("fills placeholders and falls back to English", () => {
     expect(translate("uz", "nav.notificationsUnread", { n: 3 })).toBe("Bildirishnomalar, 3 ta o‘qilmagan");
-    expect(translate("en", "footer.rights", { year: 2026 })).toBe("© 2026 iBlog");
+    expect(translate("en", "footer.rights", { year: 2026 })).toBe("© 2026 IWillBeGoogler");
   });
 
   it("has every key in every language", () => {
@@ -26,7 +26,7 @@ describe("i18n", () => {
 
   it("persists the choice and sets <html lang>", () => {
     i18n.set("ru");
-    expect(localStorage.getItem("iblog.lang")).toBe("ru");
+    expect(localStorage.getItem("iwillbegoogler.lang")).toBe("ru");
     expect(document.documentElement.lang).toBe("ru");
     expect(i18n.t("nav.signIn")).toBe("Войти");
   });

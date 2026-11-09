@@ -16,7 +16,7 @@ describe("track", () => {
     consent.set("necessary");
     track({ name: "page_view", path: "/a" }, f);
     expect(f).not.toHaveBeenCalled();
-    expect(localStorage.getItem("iblog.visitor")).toBeNull();
+    expect(localStorage.getItem("iwillbegoogler.visitor")).toBeNull();
   });
 
   it("sends with a stable visitor id after consent, once per path", () => {
@@ -37,8 +37,8 @@ describe("track", () => {
   it("forgets the visitor id when consent is withdrawn", () => {
     consent.set("all");
     track({ name: "signup_open" }, vi.fn().mockResolvedValue(new Response()));
-    expect(localStorage.getItem("iblog.visitor")).not.toBeNull();
+    expect(localStorage.getItem("iwillbegoogler.visitor")).not.toBeNull();
     consent.set("necessary");
-    expect(localStorage.getItem("iblog.visitor")).toBeNull();
+    expect(localStorage.getItem("iwillbegoogler.visitor")).toBeNull();
   });
 });

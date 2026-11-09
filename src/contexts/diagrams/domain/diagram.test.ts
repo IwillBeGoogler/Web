@@ -35,7 +35,7 @@ describe("publishing helpers", () => {
   it("builds the embed line and reads a slug from a link or the bare slug", async () => {
     const { diagramEmbedLine, slugFromInput } = await import("./diagram");
     expect(diagramEmbedLine("checkout-1a2b3c4d")).toBe("::diagram{slug=checkout-1a2b3c4d}");
-    expect(slugFromInput("https://iblog.dev/d/v/checkout-1a2b3c4d?x=1")).toBe("checkout-1a2b3c4d");
+    expect(slugFromInput("https://iwillbegoogler.dev/d/v/checkout-1a2b3c4d?x=1")).toBe("checkout-1a2b3c4d");
     expect(slugFromInput("  checkout-1a2b3c4d ")).toBe("checkout-1a2b3c4d");
     expect(slugFromInput("/d/v/abc")).toBeNull();
     expect(slugFromInput("not a link!")).toBeNull();

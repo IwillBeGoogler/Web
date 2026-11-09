@@ -32,7 +32,7 @@ async function createFile(api: APIRequestContext, name: string) {
   return { projectId: j.project.id as string, fileId: j.file.id as string };
 }
 
-const consent = (page: Page) => page.addInitScript(() => localStorage.setItem("iblog.consent", "necessary"));
+const consent = (page: Page) => page.addInitScript(() => localStorage.setItem("iwillbegoogler.consent", "necessary"));
 
 async function signInUi(page: Page, a: Pick<Account, "email" | "password">) {
   await consent(page);

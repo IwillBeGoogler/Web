@@ -1,5 +1,5 @@
 /**
- * Starting documents for a host that creates files itself (the iBlog "Write" menu): a DB diagram starts with one table, an OOD
+ * Starting documents for a host that creates files itself (the IWillBeGoogler "Write" menu): a DB diagram starts with one table, an OOD
  * diagram with one class, a system design stays empty. Built with the editor's own template pipelines (`parseSql` +
  * `schemaToDiagram`, `modelToDiagram`), so what the host stores is exactly what the editor would draw.
  *

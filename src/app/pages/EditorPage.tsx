@@ -41,8 +41,8 @@ const loadRichEditor = () => import("@/contexts/publishing/rich/RichEditor");
 const loadRichMarkdown = () => import("@/contexts/publishing/rich/markdown");
 const RichEditor = lazy(loadRichEditor);
 
-const MODE_KEY = "iblog.editor.mode";
-const FOCUS_KEY = "iblog.editor.focus";
+const MODE_KEY = "iwillbegoogler.editor.mode";
+const FOCUS_KEY = "iwillbegoogler.editor.focus";
 const readPref = (key: string): string | null => {
   try {
     return localStorage.getItem(key);

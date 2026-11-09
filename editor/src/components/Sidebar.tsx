@@ -2,12 +2,13 @@ import { editNewNode } from '../lib/editOnAdd';
 import { useClickAdd } from '../hooks/useClickAdd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useReactFlow } from '@xyflow/react';
-import { ChevronsDownUp, ChevronsUpDown, Search } from 'lucide-react';
+import { ChevronsDownUp, ChevronsUpDown, PanelLeftClose, Search } from 'lucide-react';
 import { ITEMS_BY_ID, ITEM_PATH, SECTIONS, searchSections, type CatalogItem, type CatalogSection } from '../data/catalog';
 import { createNodesFromPaletteItem } from '../data/palette';
 import { executeAction } from '../lib/actions';
 import { MODE_KEY, PALETTE_MODES, PLACEHOLDER_SECTIONS, isMode, sectionsForMode, type PaletteMode } from '../data/diagramModes';
 import { useUiStore } from '../store/uiStore';
+import { useLayoutStore } from '../store/layoutStore';
 import { useUsageStore } from '../store/usageStore';
 import { newId } from '../lib/graph';
 import { chunkRows, computeWindow } from '../lib/windowing';
@@ -211,6 +212,7 @@ function SectionBody({ section, query, onPick, forceOpen }: { section: CatalogSe
 }
 
 export function Sidebar() {
+  const collapse = useLayoutStore((s) => s.toggleSidebar);
   const [q, setQ] = useState('');
   const clickAddNodes = useClickAdd();
   const { screenToFlowPosition } = useReactFlow();
@@ -296,9 +298,12 @@ export function Sidebar() {
   return (
     <aside className="sidebar" aria-label={t('Palette')}>
       <div className="sidebar-head">
-        <div className="search-wrap">
-          <Search size={14} aria-hidden />
-          <input className="search" type="search" placeholder={t('Search components...')} aria-label={t('Search components')} value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="sidebar-search-row">
+          <div className="search-wrap">
+            <Search size={14} aria-hidden />
+            <input className="search" type="search" placeholder={t('Search components...')} aria-label={t('Search components')} value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
+          <button type="button" className="acc-toggle sidebar-collapse" title={`${t('Collapse sidebar')} (⌘\\)`} aria-label={t('Collapse sidebar')} data-testid="palette-collapse" onClick={collapse}><PanelLeftClose size={14} aria-hidden /></button>
         </div>
         <div className="mode-filter" role="group" aria-label={t('Diagram type')}>
           {PALETTE_MODES.map((m) => (

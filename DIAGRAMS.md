@@ -1,4 +1,4 @@
-# Diagrams in iBlog
+# Diagrams in IWillBeGoogler
 
 The diagram editor (`editor/`, a React app that lives inside this project) runs inside this site as one product: same navbar, same session, same
 palette. The blog's own pages are untouched; the only changes to them are the **Diagrams** link and the chevron menu next to
@@ -122,7 +122,7 @@ The browser's own `beforeunload` prompt is still registered by the editor.
 The image compiles the editor from `editor/`, so **the build context is `Web/`** and nothing outside it is needed:
 
 ```
-docker build -t iblog-web Web/                       # or: cd Web && docker build -t iblog-web .
+docker build -t iwillbegoogler-web Web/                       # or: cd Web && docker build -t iwillbegoogler-web .
 docker compose up -d --build                         # root docker-compose.yml: Backend (included) + Web + Admin
 ```
 

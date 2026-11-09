@@ -12,7 +12,7 @@ export interface Head {
   noindex?: boolean;
 }
 
-const SITE = "iBlog";
+const SITE = "IWillBeGoogler";
 
 function meta(attr: "name" | "property", key: string, content: string | undefined) {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);

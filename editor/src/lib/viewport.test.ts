@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { centerViewport, contentBounds, DEFAULT_VIEWPORT, initialViewport, isViewport } from './viewport';
+import { centerViewport, contentBounds, DEFAULT_VIEWPORT, fitViewport, initialViewport, isViewport } from './viewport';
 import { parseProject, serializeProject, createProject } from './project';
 import { useDiagramStore } from '../store/diagramStore';
 import type { DiagramNode } from '../types';
@@ -81,5 +81,17 @@ describe('per-page viewport persistence', () => {
     const raw = JSON.parse(serializeProject(p));
     raw.pages[0].viewport = { x: 'bad', y: 0, zoom: 1 };
     expect(parseProject(JSON.stringify(raw)).ok).toBe(false);
+  });
+});
+
+describe('fitViewport', () => {
+  const size = { width: 1000, height: 700 };
+  it('zooms out so wide content fits, and keeps it centred', () => {
+    const vp = fitViewport({ x: 100, y: 0, width: 1904, height: 200 }, size);
+    expect(vp.zoom).toBeCloseTo(0.5);
+    expect(vp.x + 100 * vp.zoom).toBeCloseTo((1000 - 1904 * vp.zoom) / 2);
+  });
+  it('never zooms in past 100%', () => {
+    expect(fitViewport({ x: 0, y: 0, width: 100, height: 100 }, size).zoom).toBe(1);
   });
 });

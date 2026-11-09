@@ -4,10 +4,10 @@ import { renderRouted } from "@/test/render";
 import { Logo } from "./Logo";
 
 describe("Logo", () => {
-  it("is the iBlog wordmark linking home", async () => {
+  it("is the IWillBeGoogler wordmark linking home", async () => {
     await renderRouted(<Logo />);
-    const link = screen.getByRole("link", { name: "iBlog home" });
+    const link = screen.getByRole("link", { name: "IWillBeGoogler home" });
     expect(link).toHaveAttribute("href", "/");
-    expect(link).toHaveTextContent("iBlog");
+    expect(link).toHaveTextContent("IWillBeGoogler");
   });
 });

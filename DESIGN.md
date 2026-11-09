@@ -1,4 +1,4 @@
-# DESIGN.md — iBlog (public reading site)
+# DESIGN.md — IWillBeGoogler (public reading site)
 
 > 2026-10 identity refresh: warm paper `#f7f6f2` / ink `#0b0b0f`, violet accent `#5b3df5` / `#a495ff`, fonts Bricolage Grotesque (display, `font-display`), Geist (UI), Instrument Serif (italic accents, `font-italic`). Cards use `.panel` (`--card` token), buttons `rounded-xl`, pill segmented tabs, floating nav, settings dock (`ReadingDock`) mounted on every route. Values below that conflict are superseded.
 
@@ -162,7 +162,7 @@ No new tokens beyond these. Dark mode toggled by adding `.dark` on `<html>` (per
 ### TopBar (sticky, 56px)
 - `<header class="sticky top-0 z-40 h-14 bg-surface/95 backdrop-blur border-b border-line">`
 - Inner: `mx-auto max-w-shell h-full px-4 md:px-6 flex items-center gap-4`
-- Left: wordmark `<a class="font-serif text-[28px] font-bold tracking-tight text-fg" aria-label="iBlog home">iBlog</a>`
+- Left: wordmark `<a class="font-serif text-[28px] font-bold tracking-tight text-fg" aria-label="IWillBeGoogler home">IWillBeGoogler</a>`
 - Search pill (≥ md): `hidden md:flex items-center gap-2 h-10 w-60 rounded-full bg-surface-2 px-4 text-sm text-muted` with `Search` icon (20px) + `<input class="bg-transparent outline-none placeholder:text-muted w-full" placeholder="Search" aria-label="Search">`. Mobile: ghost icon button `Search` opening `/search`.
 - Right (`ml-auto flex items-center gap-2 md:gap-6`), signed in:
   - Write: `hidden md:flex items-center gap-2 text-sm text-muted hover:text-fg` + `SquarePen` 20px, text "Write"
@@ -312,7 +312,7 @@ Profile layout uses home grid; main column:
 ### AuthDialog
 Radix Dialog: overlay `fixed inset-0 bg-overlay`, content `fixed inset-0 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[678px] md:min-h-[600px] bg-surface md:rounded md:shadow-2xl flex flex-col items-center justify-center px-6 md:px-14 py-14 text-center`.
 - Close ghost-icon `absolute top-4 right-4`.
-- Title `font-serif text-[28px] leading-8` — "Welcome back." (sign in) / "Join iBlog." (sign up).
+- Title `font-serif text-[28px] leading-8` — "Welcome back." (sign in) / "Join IWillBeGoogler." (sign up).
 - Form `mt-12 w-full max-w-[300px] space-y-4 text-left`:
   - Label `block text-sm text-fg mb-1`; Input `h-11 w-full rounded border border-line bg-surface-2 px-3 text-base outline-none focus:border-fg aria-[invalid=true]:border-danger`.
   - Sign up: Name, Email, Password (min 8, show/hide ghost-icon `Eye`/`EyeOff`). Sign in: Email, Password.

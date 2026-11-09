@@ -44,7 +44,7 @@ describe("footer, cookie banner and legal pages", () => {
     i18n.set("ru");
     await renderRouted(<PrivacyPage />);
     expect(screen.getByRole("heading", { level: 1, name: "Политика конфиденциальности" })).toBeInTheDocument();
-    expect(document.title).toBe("Политика конфиденциальности — iBlog");
+    expect(document.title).toBe("Политика конфиденциальности — IWillBeGoogler");
   });
 
   it("renders the terms", async () => {

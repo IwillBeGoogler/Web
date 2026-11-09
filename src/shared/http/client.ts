@@ -62,24 +62,30 @@ const refreshSchema = { token: "", expires_at: "" };
 export const createHttpClient = (cfg: HttpClientConfig): HttpClient => {
   const base = cfg.baseUrl ?? "/api";
   const doFetch = cfg.fetch ?? ((...a: Parameters<typeof fetch>) => fetch(...a));
-  let refreshing: Promise<boolean> | null = null;
+  // "ok": new token; "expired": server refused the session; "error": network/5xx, keep the session.
+  let refreshing: Promise<"ok" | "expired" | "error"> | null = null;
 
-  const refresh = (): Promise<boolean> => {
+  const refresh = (): Promise<"ok" | "expired" | "error"> => {
     refreshing ??= (async () => {
       const t = cfg.tokens.get();
-      if (!t) return false;
+      if (!t) return "expired";
       try {
         const r = await doFetch(`${base}/auth/refresh`, {
           method: "POST",
           headers: { Accept: "application/json", Authorization: `Bearer ${t.token}` },
         });
-        if (!r.ok) return false;
+        if (r.status === 401 || r.status === 403) {
+          // another tab may have rotated the token meanwhile: keep the newer one
+          const now = cfg.tokens.get();
+          return now && now.token !== t.token ? "ok" : "expired";
+        }
+        if (!r.ok) return "error";
         const body = (await readBody(r)) as { data?: typeof refreshSchema } | null;
-        if (!body?.data?.token) return false;
+        if (!body?.data?.token) return "error";
         cfg.tokens.set({ token: body.data.token, expiresAt: body.data.expires_at });
-        return true;
+        return "ok";
       } catch {
-        return false;
+        return "error";
       }
     })().finally(() => {
       refreshing = null;
@@ -117,8 +123,9 @@ export const createHttpClient = (cfg: HttpClientConfig): HttpClient => {
     const hadToken = cfg.tokens.get() !== null;
     let r = await send(path, opts);
     if (r.status === 401 && hadToken && !opts.noRefresh) {
-      if (await refresh()) r = await send(path, opts);
-      else {
+      const res = await refresh();
+      if (res === "ok") r = await send(path, opts);
+      else if (res === "expired") {
         cfg.tokens.set(null);
         cfg.onSessionExpired?.();
       }

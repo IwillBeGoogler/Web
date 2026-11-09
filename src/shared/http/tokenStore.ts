@@ -15,7 +15,7 @@ export interface TokenStore {
   subscribe(l: Listener): () => void;
 }
 
-const KEY = "iblog.session";
+const KEY = "iwillbegoogler.session";
 
 export const createTokenStore = (storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null = safeLocal()): TokenStore => {
   let current: StoredToken | null = read(storage);

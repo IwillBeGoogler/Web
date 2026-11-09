@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 /** null: not asked yet. "necessary": storage needed to work only. "all": also anonymous analytics. */
 export type Consent = "all" | "necessary" | null;
 
-const KEY = "iblog.consent";
+const KEY = "iwillbegoogler.consent";
 const listeners = new Set<() => void>();
 
 const load = (): Consent => {

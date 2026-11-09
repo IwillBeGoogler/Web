@@ -106,6 +106,8 @@ input[type=checkbox] { accent-color: var(--accent); }
 /* ---------- palette accordion ---------- */
 .sidebar { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; min-width: 0; }
 .sidebar-head { flex: none; padding: var(--s-3); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: var(--s-2); }
+.sidebar-search-row { display: flex; align-items: center; gap: var(--s-2); }
+.sidebar-search-row .search-wrap { flex: 1; min-width: 0; }
 .search-wrap { position: relative; }
 .search-wrap svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--faint); pointer-events: none; }
 .search-wrap input { padding-left: 30px; }
@@ -178,13 +180,21 @@ input[type=checkbox] { accent-color: var(--accent); }
 
 /* ---------- nodes: transparent by default - only logo + text ---------- */
 .icon-badge { display: grid; place-items: center; color: #fff; font-weight: var(--fw-bold); }
-.node-icon { position: relative; width: 120px; padding: 6px; text-align: center; border-radius: 8px; outline: 1.5px solid transparent; outline-offset: 1px; transition: outline-color var(--t-fast); color: #2d3340; }
-.node-icon:hover { outline-color: rgba(91,91,247,.3); }
+.node-icon { position: relative; width: 120px; padding: 6px; text-align: center; border-radius: 14px; outline: 1.5px solid transparent; outline-offset: 0; transition: outline-color var(--t-fast); color: #2d3340; }
+.node-icon:not(.carded) { border-radius: 14px !important; }
+.node-icon:hover { outline-color: color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .node-icon.selected { outline-color: var(--accent); }
 .node-content { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .node-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .node-label { font-size: 12px; font-weight: 700; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-word; }
 .node-subtitle { font-size: 10px; font-weight: 600; color: #6b7280; margin-top: -2px; }
+.sdd-root[data-theme='dark'] .node-icon:not(.carded) { color: #eceff5; }
+.sdd-root[data-theme='dark'] .node-icon:not(.carded) .node-subtitle { color: #aeb6c4; }
+/* brand glyphs are drawn for light backgrounds, so they sit on a light chip on the dark canvas */
+.sdd-root[data-theme='dark'] .node-icon:not(.carded) .node-content > :first-child { background: #f4f6fb; border-radius: 10px; padding: 6px; box-sizing: content-box; }
+.sdd-root[data-theme='dark'] .export-capture:not(.export-dark) .node-icon:not(.carded) { color: #2d3340; }
+.sdd-root[data-theme='dark'] .export-capture:not(.export-dark) .node-icon:not(.carded) .node-subtitle { color: #6b7280; }
+.sdd-root[data-theme='dark'] .export-capture .node-icon:not(.carded) .node-content > :first-child { background: none; padding: 0; }
 .inline-edit { font-size: 12px; text-align: center; padding: 2px 4px; color: #2d3340 !important; background: #fff !important; }
 .node-shape, .node-sticky { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; outline: 1.5px solid transparent; outline-offset: 2px; color: #2d3340; transition: outline-color var(--t-fast); }
 .node-shape:hover, .node-sticky:hover { outline-color: rgba(91,91,247,.3); }
@@ -206,8 +216,8 @@ input[type=checkbox] { accent-color: var(--accent); }
 .node-draw { width: 100%; height: 100%; outline: 1.5px solid transparent; }
 .node-draw.selected { outline-color: var(--accent); }
 .react-flow__node-group { z-index: 0 !important; }
-.handle.react-flow__handle { width: 9px; height: 9px; background: var(--accent); border: 2px solid #fff; opacity: 0; transform: scale(0.6); transition: opacity var(--t-fast), transform var(--t-base) var(--ease); }
-.react-flow__node:hover .handle, .react-flow__node.selected .handle { opacity: 1; transform: scale(1); }
+.handle.react-flow__handle { width: 9px; height: 9px; background: #fff; border: 2px solid var(--accent); box-shadow: 0 1px 3px rgba(15, 20, 35, .35); opacity: 0; scale: 0.6; transition: opacity var(--t-fast), scale var(--t-base) var(--ease), box-shadow var(--t-fast); }
+.react-flow__node:hover .handle, .react-flow__node.selected .handle { opacity: 1; scale: 1; }
 
 /* ---------- context menu / modal / toast ---------- */
 .ctx-menu { position: fixed; z-index: 1000; animation: pop-in var(--t-base) var(--ease); transform-origin: top left; }
@@ -329,6 +339,9 @@ input[type=checkbox] { accent-color: var(--accent); }
 .stack-1 { left: 6px; right: 6px; top: 6px; bottom: 6px; }
 .stack-2 { left: 12px; right: 0; top: 12px; bottom: 0; z-index: 0; opacity: .7; }
 .count-badge { font-size: 11px; font-weight: 700; color: #fff; background: var(--cluster-accent); border-radius: 999px; padding: 2px 8px; }
+.arch-badges { display: flex; flex-wrap: wrap; gap: 3px; justify-content: center; max-width: 150px; }
+.arch-badge { font-size: 9.5px; font-weight: 600; line-height: 1; padding: 2px 6px; border-radius: 999px; white-space: nowrap; color: var(--text-2); background: var(--elevated); border: 1px solid var(--border); }
+.cap-field-input { width: 100%; }
 .role-pill { font-size: 10px; font-weight: 600; line-height: 1; padding: 3px 8px; border-radius: 999px; text-transform: lowercase; }
 .role-accent { background: var(--accent); color: var(--on-accent); }
 .role-muted { background: rgba(100,110,130,.16); color: #4b5260; }
@@ -777,7 +790,7 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 .er-table.er-enum .er-name { font-family: var(--font-mono); font-size: 12px; }
 .handle.er-h.react-flow__handle { opacity: 0; width: 9px; height: 9px; }
 .react-flow__node:hover .handle.er-h, .react-flow__node.selected .handle.er-h { opacity: 0; }
-.er-row:hover .handle.er-h { opacity: 1; transform: scale(1); }
+.er-row:hover .handle.er-h { opacity: 1; scale: 1; }
 .dialog.er-dialog { width: min(760px, 94vw); }
 .er-import, .er-export { display: flex; flex-direction: column; gap: var(--s-3); }
 .er-import-row { display: flex; gap: var(--s-3); align-items: flex-end; flex-wrap: wrap; }
@@ -1101,9 +1114,9 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 /* connection dots: small to look at, big to grab (an invisible 26px hit ring around each) */
 .handle.react-flow__handle { width: 11px; height: 11px; }
 .handle.react-flow__handle::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
-.handle.react-flow__handle:hover { transform: scale(1.35); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
-.react-flow__node:hover .handle.react-flow__handle { opacity: 1; transform: scale(1); }
-.react-flow.connecting .react-flow__node .handle.react-flow__handle { opacity: 1; transform: scale(1); }
+.handle.react-flow__handle:hover { scale: 1.35; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent); }
+.react-flow__node:hover .handle.react-flow__handle { opacity: 1; scale: 1; }
+.react-flow.connecting .react-flow__node .handle.react-flow__handle { opacity: 1; scale: 1; }
 
 /* collapsed cluster: right / bottom dots sit on the outer edge of the stack layers (= port rect, routing/index.ts portRectOf) */
 .node-cluster.collapsed > .react-flow__handle { z-index: 5; }
@@ -1174,7 +1187,7 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 .export-dark .react-flow__node-group :is(.group-title, .group-subtitle, .group-caption), .export-dark .react-flow__node-cluster > * > :is(.group-title, .group-subtitle),
 .export-dark .react-flow__node-icon :is(.node-label, .node-subtitle), .export-dark .react-flow__node-text { color: #fff !important; }
 
-/* Settings modal: iBlog console language (tile + mono kicker heads, inverse segs, ON/OFF switches), section nav, inline rows */
+/* Settings modal: IWillBeGoogler console language (tile + mono kicker heads, inverse segs, ON/OFF switches), section nav, inline rows */
 .modal.settings { --ink: var(--inverse, var(--text)); --on-ink: var(--on-inverse, var(--elevated)); --mono: var(--font-mono); --card-bg: var(--card, var(--elevated)); width: min(820px, 96vw); padding-bottom: 0; }
 .modal.settings .modal-head h2 { font-family: var(--font-display, var(--font)); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 .settings-top { display: flex; flex-direction: column; gap: var(--s-2); }
@@ -1203,7 +1216,7 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 .settings-sections .prop-ctl > input[type="range"] { width: 100%; accent-color: var(--ink); }
 .settings-sections input[type="number"], .settings-sections input[type="text"], .settings-sections select { height: 32px; border: 1px solid var(--border-strong); border-radius: var(--r-md); background: var(--input); color: var(--text); font-family: var(--mono); font-size: 12px; padding: 0 8px; }
 .settings-sections .prop-ctl > input[type="number"] { width: 96px; text-align: right; }
-/* checkbox drawn as the iBlog ON/OFF switch, label text first */
+/* checkbox drawn as the IWillBeGoogler ON/OFF switch, label text first */
 .settings-sections .prop-check { flex-direction: row-reverse; cursor: pointer; }
 .settings-sections .prop-check input[type="checkbox"] { appearance: none; -webkit-appearance: none; position: relative; flex: none; width: 56px; height: 28px; margin: 0; border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--elevated); cursor: pointer; transition: background-color 120ms; }
 .settings-sections .prop-check input[type="checkbox"]::before { content: 'OFF'; position: absolute; right: 7px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 10px; color: var(--muted); }

@@ -6,6 +6,11 @@ import type { LayoutAlgo } from '@core/layout';
 import { useDiagramStore } from '../../store/diagramStore';
 import { toast } from '../../store/toastStore';
 import { downloadText, exportFileName } from '../export';
+import { setNodeCapacity } from './capacityBridge';
+import { activePage } from '../dsl/bridge';
+import { useEditorSession } from '../../sync/status';
+import { SIM_ENTRY_RPS } from '../../hooks/useCapacity';
+import { roleOf } from '@core/lint';
 import { sourceText } from '../sdd/sdd';
 
 export function executeSmartAction(action: string): boolean {
@@ -16,6 +21,16 @@ export function executeSmartAction(action: string): boolean {
     case 'toggle-code': smart.toggleCode(); return true;
     case 'problems-toggle': smart.setProblems(!smart.problems); return true;
     case 'capacity-toggle': smart.setCapacity(!smart.capacity); return true;
+    case 'metrics-toggle': smart.setMetrics(!smart.metrics); return true;
+    case 'simulate-toggle': toggleSimulation(); return true;
+    case 'chaos-down': case 'chaos-slow': {
+      const id = arg;
+      const want = name === 'chaos-down' ? 'down' : 'slow';
+      smart.setChaosNode(id, smart.chaosNodes[id] === want ? null : want);
+      smart.setMetrics(true);
+      return true;
+    }
+    case 'chaos-reset': smart.resetChaos(); return true;
     case 'diff-open': void import('../../components/smart/ReviewCompare').then((m) => m.openCompare()); return true;
     case 'timeline-open': void import('../../versions/timelineActions').then((m) => m.openTimelineForCurrent()); return true;
     case 'import-infra': void import('../../components/smart/InfraImport').then((m) => m.openInfraImport()); return true;
@@ -38,4 +53,36 @@ export function executeSmartAction(action: string): boolean {
     }
     default: return false;
   }
+}
+
+/** one-click simulation: seed entry traffic when the page has none (a doc edit, one undo step; not for read-only), then show metrics + overlay + flow */
+export function toggleSimulation(): void {
+  const smart = useSmart.getState();
+  if (smart.simulating) {
+    smart.setSimulating(false);
+    smart.setMetrics(false);
+    smart.resetChaos();
+    return;
+  }
+  const page = activePage();
+  const ids = new Set(page.nodes.map((n) => n.id));
+  const edges = page.edges.filter((e) => ids.has(e.source) && ids.has(e.target) && e.source !== e.target);
+  if (!edges.length) { toast.info('Add components and connect them to simulate'); return; }
+  const hasRps = page.nodes.some((n) => Number((n.data.capacity as { rps?: number } | undefined)?.rps) > 0);
+  if (!hasRps && !useEditorSession.getState().readOnly) {
+    const entry = pickEntryNode(page);
+    if (entry) {
+      setNodeCapacity(entry.id, { rps: SIM_ENTRY_RPS });
+      toast.info(`Entry traffic set to ${SIM_ENTRY_RPS} rps on ${String(entry.data.label ?? entry.id)} — change it in Capacity`);
+    }
+  }
+  smart.setSimulating(true);
+  smart.setMetrics(true);
+}
+
+/** entry = node with outgoing edges and no incoming ones; a client wins, else the first in input order */
+function pickEntryNode(page: ReturnType<typeof activePage>) {
+  const entries = page.nodes.filter((n) => page.edges.some((e) => e.source === n.id && e.target !== n.id) && !page.edges.some((e) => e.target === n.id && e.source !== n.id));
+  const pool = entries.length ? entries : page.nodes.filter((n) => page.edges.some((e) => e.source === n.id));
+  return pool.find((n) => roleOf(n) === 'client') ?? pool[0];
 }

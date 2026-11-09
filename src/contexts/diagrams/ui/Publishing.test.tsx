@@ -109,7 +109,7 @@ describe("PublicViewer", () => {
     expect(p.fileId).toBeUndefined();
     expect((p.getAuthHeaders as () => unknown)()).toEqual({});
     expect(p.features).toMatchObject({ comments: false, sharing: false, realtime: false });
-    await waitFor(() => expect(document.title).toBe("Checkout flow — iBlog"));
+    await waitFor(() => expect(document.title).toBe("Checkout flow — IWillBeGoogler"));
     expect(document.head.querySelector('meta[property="og:image"]')?.getAttribute("content")).toMatch(/\/api\/diagrams\/assets\/abc$/);
     expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
   });
@@ -287,7 +287,7 @@ describe("story reader", () => {
   it("keeps the diagram embed figure and its link through sanitizing", async () => {
     const { ArticlePage } = await import("@/app/pages/ArticlePage");
     server.use(
-      http.get(api("/slug/hello-iblog"), () =>
+      http.get(api("/slug/hello-iwillbegoogler"), () =>
         HttpResponse.json({
           data: makePost({
             body_html:
@@ -299,7 +299,7 @@ describe("story reader", () => {
       http.get(api("/posts/1/related"), () => HttpResponse.json({ data: [] })),
       http.post(api("/posts/1/view"), () => new HttpResponse(null, { status: 204 })),
     );
-    const { container, user, router } = await renderRouted(<ArticlePage slug="hello-iblog" />, { path: "/@ali/hello-iblog" });
+    const { container, user, router } = await renderRouted(<ArticlePage slug="hello-iwillbegoogler" />, { path: "/@ali/hello-iwillbegoogler" });
     const fig = await waitFor(() => {
       const f = container.querySelector("figure.diagram-embed");
       expect(f).not.toBeNull();

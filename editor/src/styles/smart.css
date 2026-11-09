@@ -65,7 +65,7 @@
 .cap-box.cap-warn { border-color: #f5a524; background: color-mix(in srgb, #f5a524 12%, transparent); }
 .cap-box.cap-ok { border-color: #30a46c; }
 .cap-box.cap-unknown { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
-.cap-tag { position: absolute; left: 50%; top: 100%; translate: -50% 4px; transform-origin: 50% 0; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; background: var(--elevated); color: var(--text); border: 1px solid var(--border); white-space: nowrap; }
+.cap-tag { position: absolute; left: 50%; bottom: 100%; translate: -50% -4px; transform-origin: 50% 100%; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; background: var(--elevated); color: var(--text); border: 1px solid var(--border); white-space: nowrap; }
 .cap-over .cap-tag { background: #e5484d; color: #fff; border-color: transparent; } .cap-warn .cap-tag { background: #d98a00; color: #fff; border-color: transparent; }
 .cap-path-line { stroke: var(--accent); stroke-linejoin: round; stroke-linecap: round; opacity: .85; }
 
@@ -94,3 +94,33 @@
 .capacity-panel .layers-x { margin-left: auto; }
 
 .review-legend { display: flex; align-items: center; gap: 8px; padding: 6px 12px; font-size: var(--fs-xs); border-bottom: 1px solid var(--border); }
+
+/* ---------- fix hints, metrics bar, chaos ---------- */
+.problem-row { flex-wrap: wrap; }
+.fix-hint { flex-basis: 100%; padding: 0 10px 8px 34px; font-size: var(--fs-xs); color: var(--text-2); line-height: 1.45; }
+.fix-hint b { color: var(--text); font-weight: 600; }
+.fix-hint a { color: var(--accent); white-space: nowrap; }
+.cap-list li:has(> .fix-hint) { flex-wrap: wrap; }
+.cap-list .fix-hint { padding: 0 2px 4px; }
+.cap-bn.down { border-color: var(--danger); }
+.cap-box.cap-down { border-color: #e5484d; border-style: dashed; background: color-mix(in srgb, #6b7280 38%, transparent); }
+.cap-down .cap-tag { background: #4b5563; color: #fff; border-color: transparent; }
+.cap-box.cap-slow-chaos { box-shadow: 0 0 0 calc(3px / var(--z, 1)) color-mix(in srgb, var(--warn) 55%, transparent); }
+.metrics-bar { position: absolute; bottom: 72px; left: calc((var(--inset-l, 72px) + 100% - var(--inset-r, 12px)) / 2); translate: -50% 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; max-width: calc(100% - var(--inset-l, 72px) - var(--inset-r, 12px) - 24px); padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); color: var(--text); font-size: var(--fs-sm); backdrop-filter: blur(10px); }
+.metrics-bar .m { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+.metrics-bar .m span { color: var(--muted); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em; }
+.metrics-bar .m b { font-variant-numeric: tabular-nums; }
+.metrics-bar .m.bad b { color: var(--danger); } .metrics-bar .m.warn b { color: var(--warn); } .metrics-bar .m.good b { color: var(--success); }
+.metrics-bar .m-budget input { width: 64px; border: 1px solid var(--border); border-radius: var(--r-md); background: transparent; color: inherit; padding: 1px 4px; font-size: var(--fs-xs); }
+.metrics-bar .m-chaos { display: inline-flex; align-items: center; gap: 3px; padding-left: 12px; border-left: 1px solid var(--border); }
+.metrics-bar .m-chaos button { border: 1px solid var(--border); border-radius: 999px; background: transparent; color: inherit; padding: 1px 8px; font-size: var(--fs-xs); }
+.metrics-bar .m-chaos button[aria-pressed="true"] { background: var(--danger-subtle); border-color: var(--danger); color: var(--danger); }
+.metrics-bar .m-x { border: 0; background: transparent; color: var(--muted); padding: 0 2px; }
+
+/* one-click simulation */
+.app .sim-btn, .sim-btn { position: absolute; bottom: 16px; left: calc(var(--inset-l, 72px) + 12px); z-index: 31; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 0; border-radius: 999px; background: var(--accent, #3b6cff); color: #fff; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+.app .sim-btn:hover { background: var(--accent, #3b6cff); filter: brightness(1.1); color: #fff; }
+.app .sim-btn.running, .app .sim-btn.running:hover, .sim-btn.running { background: #e5484d; color: #fff; }
+.cap-assumed { font-style: normal; opacity: .7; margin-right: 3px; }
+.metrics-bar .m-traffic { width: 90px; accent-color: var(--accent, #3b6cff); }
+.react-flow__edge.sim-over path.react-flow__edge-path { stroke: #e5484d !important; }

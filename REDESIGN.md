@@ -1,4 +1,4 @@
-# iBlog public site redesign spec: "Graphite"
+# IWillBeGoogler public site redesign spec: "Graphite"
 
 Status: proposed. Scope: public reading surfaces only (Landing, Home feed, Article, shared chrome). Writer and settings pages inherit the tokens and get no separate spec.
 Owner constraints: very modern, **must not read as Medium**, three.js 3D element, **zero pink**, grayscale palette (monochrome preferred), ReadingDock on every page.
@@ -238,7 +238,7 @@ Below, `·` separates class groups for readability. Write them as one `className
 
 ### 4.2 Logo (`src/app/layout/Logo.tsx`)
 
-The wordmark is `iBlog` with a solid square mark. There is no gradient and no coloured dot.
+The wordmark is `IWillBeGoogler` with a solid square mark. There is no gradient and no coloured dot.
 
 ```tsx
 <span className="inline-flex items-center gap-2 font-display text-[22px] font-extrabold tracking-[-0.05em]">
@@ -320,7 +320,7 @@ Ambient background, the owner's "maybe": **rejected** as a global three.js layer
 - Header: `pt-6 pb-4 border-b border-line`.
   - Kicker: the date, in `kicker`.
   - h1: `mt-2 font-display text-[32px] leading-9 font-extrabold tracking-[-0.03em] md:text-[40px] md:leading-[44px]`.
-  - Copy, signed in: "Hey {first}, read something good." Copy, signed out: "Fresh on iBlog". There is no accent or italic span; the second clause is `text-muted`.
+  - Copy, signed in: "Hey {first}, read something good." Copy, signed out: "Fresh on IWillBeGoogler". There is no accent or italic span; the second clause is `text-muted`.
   - Worst case: a 40-character first name wraps through `text-balance` (already set on h1). The name is `split(" ")[0]`, so it is never truncated.
 - Sticky nav: `sticky top-16 z-30 -mx-4 px-4 bg-surface/90 backdrop-blur-md border-b border-line md:-mx-0 md:px-0`. `top-16` matches the new 64 px TopBar.
 - **Tabs restyle: underline segmented, not pills.**
@@ -449,7 +449,7 @@ States:
 
 - `footer`: `mt-24 border-t border-line`.
 - Inner: `mx-auto grid max-w-shell gap-8 px-4 py-10 md:grid-cols-[1fr_auto] md:px-6`.
-- Left: `Wordmark` at `text-[18px]`, followed by `<p className="mt-2 font-mono text-[12px] text-muted">© {year} iBlog</p>`.
+- Left: `Wordmark` at `text-[18px]`, followed by `<p className="mt-2 font-mono text-[12px] text-muted">© {year} IWillBeGoogler</p>`.
 - Legal nav: `mt-4 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[12px] uppercase tracking-[0.12em] text-muted`. Links: `hover:text-fg`.
 - Right: `Preferences`. Selects use `h-9 rounded-[var(--radius-sm)] border border-line-strong bg-card px-2 text-[13px]`, which takes them from 32 px to 36 px.
 - Optional giant wordmark row (**new**, decorative, `aria-hidden`): `select-none overflow-hidden font-display text-[clamp(5rem,22vw,18rem)] leading-[0.8] font-extrabold tracking-[-0.06em] text-surface-2`. Omit it if footer height is a concern.

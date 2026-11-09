@@ -4,12 +4,12 @@ import { cn } from "@/shared/lib/cn";
 import { motion, useReducedMotion } from "@/shared/motion";
 import { playSplash } from "@/shared/splash";
 
-export const BRAND = "iBlog";
+export const BRAND = "IWillBeGoogler";
 
 /** Fired on logo click; the home page listens and replays its entrance. */
-export const HOME_REPLAY = "iblog:home-replay";
+export const HOME_REPLAY = "iwillbegoogler:home-replay";
 
-/** iBlog wordmark: solid square mark + display "Blog". Monochrome, no gradient. `spin` changes on each logo click to replay the flip. */
+/** IWillBeGoogler wordmark: solid square mark + display "Blog". Monochrome, no gradient. `spin` changes on each logo click to replay the flip. */
 export function Wordmark({ className, spin = 0 }: { className?: string; spin?: number }) {
   const reduce = useReducedMotion();
   const play = spin > 0 && !reduce;

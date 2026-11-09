@@ -13,12 +13,12 @@ export interface LegalDoc {
 export const LEGAL_UPDATED = "2026-10-06";
 
 const OPERATOR = "[Operator: legal name, TIN/STIR, address]";
-const EMAIL = "[privacy@iblog.uz]";
+const EMAIL = "[privacy@iwillbegoogler.uz]";
 
 export const privacy: Record<Lang, LegalDoc> = {
   uz: {
     title: "Maxfiylik siyosati",
-    intro: `Ushbu siyosat iBlog (keyingi o‘rinlarda — «Platforma») shaxsga doir ma’lumotlaringizni qanday yig‘ishi, ishlatishi va himoya qilishini tushuntiradi. Ma’lumotlar operatori: ${OPERATOR}. Siyosat O‘zbekiston Respublikasining «Shaxsga doir ma’lumotlar to‘g‘risida»gi Qonuni (O‘RQ-547) asosida tuzilgan.`,
+    intro: `Ushbu siyosat IWillBeGoogler (keyingi o‘rinlarda — «Platforma») shaxsga doir ma’lumotlaringizni qanday yig‘ishi, ishlatishi va himoya qilishini tushuntiradi. Ma’lumotlar operatori: ${OPERATOR}. Siyosat O‘zbekiston Respublikasining «Shaxsga doir ma’lumotlar to‘g‘risida»gi Qonuni (O‘RQ-547) asosida tuzilgan.`,
     sections: [
       {
         h: "1. Qanday ma’lumotlarni yig‘amiz",
@@ -89,7 +89,7 @@ export const privacy: Record<Lang, LegalDoc> = {
   },
   ru: {
     title: "Политика конфиденциальности",
-    intro: `Эта политика объясняет, как iBlog («Платформа») собирает, использует и защищает ваши персональные данные. Оператор данных: ${OPERATOR}. Политика составлена на основании Закона Республики Узбекистан «О персональных данных» (ЗРУ-547).`,
+    intro: `Эта политика объясняет, как IWillBeGoogler («Платформа») собирает, использует и защищает ваши персональные данные. Оператор данных: ${OPERATOR}. Политика составлена на основании Закона Республики Узбекистан «О персональных данных» (ЗРУ-547).`,
     sections: [
       {
         h: "1. Какие данные мы собираем",
@@ -152,7 +152,7 @@ export const privacy: Record<Lang, LegalDoc> = {
   },
   en: {
     title: "Privacy Policy",
-    intro: `This policy explains how iBlog (the "Platform") collects, uses and protects your personal data. Data operator: ${OPERATOR}. It is based on the Law of the Republic of Uzbekistan "On Personal Data" (ZRU-547).`,
+    intro: `This policy explains how IWillBeGoogler (the "Platform") collects, uses and protects your personal data. Data operator: ${OPERATOR}. It is based on the Law of the Republic of Uzbekistan "On Personal Data" (ZRU-547).`,
     sections: [
       {
         h: "1. What we collect",
@@ -218,7 +218,7 @@ export const privacy: Record<Lang, LegalDoc> = {
 export const terms: Record<Lang, LegalDoc> = {
   uz: {
     title: "Foydalanish shartlari",
-    intro: `Ushbu shartlar siz bilan ${OPERATOR} o‘rtasidagi iBlog’dan foydalanish bo‘yicha kelishuvdir. Ro‘yxatdan o‘tish yoki Platformadan foydalanish orqali siz ularga rozilik bildirasiz.`,
+    intro: `Ushbu shartlar siz bilan ${OPERATOR} o‘rtasidagi IWillBeGoogler’dan foydalanish bo‘yicha kelishuvdir. Ro‘yxatdan o‘tish yoki Platformadan foydalanish orqali siz ularga rozilik bildirasiz.`,
     sections: [
       {
         h: "1. Hisob",
@@ -276,7 +276,7 @@ export const terms: Record<Lang, LegalDoc> = {
   },
   ru: {
     title: "Условия использования",
-    intro: `Настоящие условия — соглашение между вами и ${OPERATOR} об использовании iBlog. Регистрируясь или пользуясь Платформой, вы их принимаете.`,
+    intro: `Настоящие условия — соглашение между вами и ${OPERATOR} об использовании IWillBeGoogler. Регистрируясь или пользуясь Платформой, вы их принимаете.`,
     sections: [
       {
         h: "1. Аккаунт",
@@ -328,7 +328,7 @@ export const terms: Record<Lang, LegalDoc> = {
   },
   en: {
     title: "Terms of Use",
-    intro: `These terms are an agreement between you and ${OPERATOR} about using iBlog. By signing up or using the Platform you accept them.`,
+    intro: `These terms are an agreement between you and ${OPERATOR} about using IWillBeGoogler. By signing up or using the Platform you accept them.`,
     sections: [
       {
         h: "1. Your account",

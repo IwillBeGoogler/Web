@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 64" role="img" aria-label="IWillBeGoogler">
+  <rect width="64" height="64" rx="14" fill="#0b0d1f"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="12.5" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="3"/>
+  <path d="M15.5 14l5 8h-10z" fill="#9aa6ff"/>
+  <path d="M10 27h9v14h3.5v5H10v-5h3.5v-9H10z" fill="#eceeff"/>
+  <path d="M51 24.5A11 11 0 1 0 52 36h-11v-5h16v3A16 16 0 1 1 55.2 21.5z" fill="#9aa6ff" transform="translate(0.5 0)"/>
+  <text x="80" y="43" font-family="Inter, 'Segoe UI', system-ui, -apple-system, sans-serif" font-size="30" font-weight="700" letter-spacing="-0.5" fill="currentColor">IWillBe<tspan fill="#6f7cff">Googler</tspan></text>
+</svg>

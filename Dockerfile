@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
-# iBlog web (blog + embedded diagram editor).
+# IWillBeGoogler web (blog + embedded diagram editor).
 #
 # Self-contained: the build context is this folder (Web/). The diagram editor lives in ./editor.
 #
-#   docker build -t iblog-web Web/          # from the repository root
-#   docker build -t iblog-web .             # from inside Web/
+#   docker build -t iwillbegoogler-web Web/          # from the repository root
+#   docker build -t iwillbegoogler-web .             # from inside Web/
 #   docker compose up --build               # the root docker-compose.yml does the same (context: Web)
 
 FROM oven/bun:1-alpine AS build

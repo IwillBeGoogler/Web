@@ -36,10 +36,11 @@ import { mmSetLabel, revealAll } from '../lib/board/actions';
 import { designSections } from './design/DesignSections';
 import { DevPanel } from './design/DevPanel';
 import { useLibraryDoc } from '../lib/library/store';
+import { ArchSection, hasArchSection } from './ArchSection';
 import { t } from '../i18n';
 
-const SECTION_IDS = ['general', 'cluster', 'style', 'text', 'arrange', 'instance', 'autolayout', 'constraints', 'link', 'styles', 'crosslinks'] as const;
-const DEFAULT_OPEN = { open: ['general', 'cluster', 'style', 'flow', 'crosslinks'], multi: true };
+const SECTION_IDS = ['general', 'cluster', 'style', 'text', 'arrange', 'instance', 'autolayout', 'constraints', 'link', 'styles', 'crosslinks', 'arch'] as const;
+const DEFAULT_OPEN = { open: ['general', 'cluster', 'style', 'flow', 'crosslinks', 'arch'], multi: true };
 const MARKERS: [string, string][] = [['none', 'None'], ['arrow', 'Arrow'], ['open', 'Open arrow'], ['triangle', 'Triangle'], ['diamond', 'Diamond'], ['circle', 'Circle'], ['crowfoot', 'Crow’s foot (ER)'], ['one', 'ER: exactly one'], ['zeroOrOne', 'ER: zero or one'], ['many', 'ER: many'], ['oneOrMany', 'ER: one or many'], ['zeroOrMany', 'ER: zero or many']];
 const TOPOLOGIES = ['single-primary', 'multi-primary', 'sharded', 'ring', 'quorum'];
 
@@ -343,6 +344,9 @@ export function PropertiesPanel() {
           },
           ...(single && (isLinkSource(node) || isArchTarget(node))
             ? [{ id: 'crosslinks', label: isLinkSource(node) ? t('Architecture link') : t('Linked from'), content: <div className="prop-body"><CrossLinkInspector node={node} readOnly={sessionReadOnly} /></div> }]
+            : []),
+          ...(single && hasArchSection(node)
+            ? [{ id: 'arch', label: t('Architecture'), content: <ArchSection node={node} readOnly={sessionReadOnly} onChange={(arch) => patch({ arch })} /> }]
             : []),
           ...(single && node.type === 'cluster'
             ? [{

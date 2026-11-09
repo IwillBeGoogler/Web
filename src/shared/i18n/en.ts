@@ -27,7 +27,7 @@ export const en = {
   "nav.skip": "Skip to content",
 
   "auth.join": "Create your account",
-  "auth.welcomeBack": "Sign in to iBlog",
+  "auth.welcomeBack": "Sign in to IWillBeGoogler",
   "auth.createAccount": "Create an account",
   "auth.signInToAccount": "Sign in to your account",
   "auth.username": "Username",
@@ -70,7 +70,7 @@ export const en = {
   "cookie.more": "Learn more",
 
   "footer.language": "Language",
-  "footer.rights": "© {year} iBlog",
+  "footer.rights": "© {year} IWillBeGoogler",
   "footer.theme": "Colors",
   "footer.light": "Light",
   "footer.dark": "Dark",
@@ -86,7 +86,7 @@ export const en = {
   "page.tryAgain": "Try again",
   "page.pleaseRetry": "Please try again.",
 
-  "meta.description": "iBlog — stories, ideas and expertise from writers on any topic.",
+  "meta.description": "IWillBeGoogler — stories, ideas and expertise from writers on any topic.",
 
   "nav.templates": "Templates",
   "dg.import": "Import .sdd",
@@ -95,7 +95,7 @@ export const en = {
   "dg.publish": "Publish",
   "dg.publish.live": "Published",
   "dg.publish.title": "Publish this diagram",
-  "dg.publish.lead": "It gets a page of its own on iBlog. Readers see the diagram as it is now; later edits show up there too.",
+  "dg.publish.lead": "It gets a page of its own on IWillBeGoogler. Readers see the diagram as it is now; later edits show up there too.",
   "dg.publish.visibility": "Who can open it",
   "dg.vis.unlisted": "Unlisted",
   "dg.vis.unlistedHint": "Anyone with the link. Not listed, not indexed.",

@@ -9,7 +9,7 @@ import { EditorPage } from "./EditorPage";
 
 describe("EditorPage", () => {
   // these tests type into the Markdown textarea; the visual editor has its own tests
-  beforeEach(() => localStorage.setItem("iblog.editor.mode", "md"));
+  beforeEach(() => localStorage.setItem("iwillbegoogler.editor.mode", "md"));
 
   it("publishes with topics and goes to the story", async () => {
     signIn();

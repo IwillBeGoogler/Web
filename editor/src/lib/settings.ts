@@ -12,6 +12,8 @@ export interface Settings {
   theme: Theme;
   /** user-defined edge style presets (builtin ones live in lib/edgePresets) */
   edgePresets: EdgePreset[];
+  /** capacity: monthly budget in USD (project level; the metrics bar warns above it) */
+  monthlyBudgetUsd?: number;
 }
 export type PartialSettings = { [K in Exclude<keyof Settings, 'edgePresets'>]?: Settings[K] extends object ? Partial<Settings[K]> : Settings[K] } & { edgePresets?: EdgePreset[] };
 
@@ -86,6 +88,7 @@ export function validateSettings(raw: unknown): PartialSettings {
     const ok = r.edgePresets.filter(isPreset);
     if (ok.length) out.edgePresets = ok;
   }
+  if (typeof r.monthlyBudgetUsd === 'number' && Number.isFinite(r.monthlyBudgetUsd) && r.monthlyBudgetUsd > 0) out.monthlyBudgetUsd = r.monthlyBudgetUsd;
   if (r.theme === 'light' || r.theme === 'dark' || r.theme === 'system') out.theme = r.theme;
   return out as PartialSettings;
 }

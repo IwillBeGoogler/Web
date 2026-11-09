@@ -28,7 +28,7 @@ export const uz: Record<keyof typeof en, string> = {
   "nav.skip": "Asosiy qismga o‘tish",
 
   "auth.join": "Akkaunt yarating",
-  "auth.welcomeBack": "iBlog’ga kirish",
+  "auth.welcomeBack": "IWillBeGoogler’ga kirish",
   "auth.createAccount": "Hisob yaratish",
   "auth.signInToAccount": "Hisobingizga kiring",
   "auth.username": "Foydalanuvchi nomi",
@@ -71,7 +71,7 @@ export const uz: Record<keyof typeof en, string> = {
   "cookie.more": "Batafsil",
 
   "footer.language": "Til",
-  "footer.rights": "© {year} iBlog",
+  "footer.rights": "© {year} IWillBeGoogler",
   "footer.theme": "Mavzu",
   "footer.light": "Yorug‘",
   "footer.dark": "Qorong‘i",
@@ -87,7 +87,7 @@ export const uz: Record<keyof typeof en, string> = {
   "page.tryAgain": "Qayta urinish",
   "page.pleaseRetry": "Iltimos, qayta urinib ko‘ring.",
 
-  "meta.description": "iBlog — har qanday mavzuda mualliflarning hikoyalari, g‘oyalari va tajribasi.",
+  "meta.description": "IWillBeGoogler — har qanday mavzuda mualliflarning hikoyalari, g‘oyalari va tajribasi.",
 
   "nav.templates": "Andozalar",
   "dg.import": "Import .sdd",
@@ -96,7 +96,7 @@ export const uz: Record<keyof typeof en, string> = {
   "dg.publish": "Nashr qilish",
   "dg.publish.live": "Nashr qilingan",
   "dg.publish.title": "Bu diagrammani nashr qilish",
-  "dg.publish.lead": "Uning iBlog’da o‘z sahifasi bo‘ladi. O‘quvchilar diagrammani hozirgi holatida ko‘radi; keyingi o‘zgarishlar ham u yerda ko‘rinadi.",
+  "dg.publish.lead": "Uning IWillBeGoogler’da o‘z sahifasi bo‘ladi. O‘quvchilar diagrammani hozirgi holatida ko‘radi; keyingi o‘zgarishlar ham u yerda ko‘rinadi.",
   "dg.publish.visibility": "Kim ochishi mumkin",
   "dg.vis.unlisted": "Havola bo‘yicha",
   "dg.vis.unlistedHint": "Havolasi borlar. Ro‘yxatda ko‘rinmaydi, indekslanmaydi.",

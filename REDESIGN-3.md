@@ -659,7 +659,7 @@ Not a drawer today (inline section) — keep inline; restyle as a **discussion l
 
 **Anatomy:** status-bar footer + spec grid, not a giant faded wordmark.
 
-- Remove the `text-[clamp(5rem,22vw,18rem)]` "iBlog" block (`Footer.tsx:73-78`) — giant ghost wordmark is decorative fluff.
+- Remove the `text-[clamp(5rem,22vw,18rem)]` "IWillBeGoogler" block (`Footer.tsx:73-78`) — giant ghost wordmark is decorative fluff.
 - Layout: `footer` `"mt-24 border-t border-line-strong bg-card"`; inner `"mx-auto grid max-w-shell gap-px bg-line md:grid-cols-[1.2fr_1fr_1fr]"` with three cells `bg-card p-6`: (1) Wordmark + rights line, (2) `kicker` "Legal" + nav as vertical list, (3) `kicker` "Preferences" + `<Preferences />` stacked.
 - Bottom status bar: `"border-t border-line px-4 md:px-6 h-9 flex items-center justify-between font-mono text-[11px] uppercase tracking-[0.12em] text-muted"` → left `"● online"` (`size-1.5 bg-fg` square dot, **only if** there's a connectivity signal; else show build/version if available — **unverified**, default to `"RSS · /api/feed.xml"` link), right `"© {year}"`.
 - Preferences selects: `font-mono text-[12px]`, radius sm, `border-line-strong`. Names "Language"/"Theme" (t keys) unchanged; Uzbek "Mavzu" test unaffected.
@@ -669,7 +669,7 @@ Not a drawer today (inline section) — keep inline; restyle as a **discussion l
 
 - Mark: `size-7 rounded-[var(--radius-xs)]` (was sm) + `shadow-[2px_2px_0_0_var(--line-strong)]`; remove `group-hover:rotate-90` → replace with `group-hover:translate-x-[-1px] group-hover:translate-y-[-1px] group-hover:shadow-[3px_3px_0_0_var(--fg)]`.
 - Wordmark text: `font-display font-extrabold tracking-[-0.05em]` kept; add trailing `<span aria-hidden className="ml-1 self-start font-mono text-[9px] font-medium tracking-[0.1em] text-muted">BETA</span>` — **only if** the product is in beta (unverified; default omit).
-- Link name "iBlog home" unchanged.
+- Link name "IWillBeGoogler home" unchanged.
 
 ### 7.4 CookieBanner — `src/app/layout/CookieBanner.tsx`
 
@@ -758,7 +758,7 @@ Status-bar / system-prompt style docked bottom-left (doesn't overlap ReadingDock
 
 ## 9. Accessible-name ledger
 
-**Unchanged (verified against tests):** Sign in, Sign up, Verify, Email or username, Password, Username, Email, Close, Reading settings, Bionic reading, Focus mode, Bold text, Full screen, Larger text, Smaller text, Wider margin, Narrower margin, Theme, Font, Language, Post actions, Spark…, Discussion…, Copy link, Save for later, Remove from saved, Post note, Write a note, Write a reply, Edit response, Delete response, Report response, 1 reply / N replies, More options, More options for {title}, Track/Stop tracking {u}, Ship it, Ship now, Schedule, Save draft, Title, Subtitle, Story body (Markdown), Remove {tag}, Add a topic, Revision history, Necessary only, Accept all, Cookie settings, Cookies (region), iBlog home, Privacy Policy, Terms of Use, Show/Hide password, Go to slide N, Previous, Next, Newest (radio), Account menu, Notifications, Submit report, heading "Discussion", text "Welcome back.", text "1.2K".
+**Unchanged (verified against tests):** Sign in, Sign up, Verify, Email or username, Password, Username, Email, Close, Reading settings, Bionic reading, Focus mode, Bold text, Full screen, Larger text, Smaller text, Wider margin, Narrower margin, Theme, Font, Language, Post actions, Spark…, Discussion…, Copy link, Save for later, Remove from saved, Post note, Write a note, Write a reply, Edit response, Delete response, Report response, 1 reply / N replies, More options, More options for {title}, Track/Stop tracking {u}, Ship it, Ship now, Schedule, Save draft, Title, Subtitle, Story body (Markdown), Remove {tag}, Add a topic, Revision history, Necessary only, Accept all, Cookie settings, Cookies (region), IWillBeGoogler home, Privacy Policy, Terms of Use, Show/Hide password, Go to slide N, Previous, Next, Newest (radio), Account menu, Notifications, Submit report, heading "Discussion", text "Welcome back.", text "1.2K".
 
 **Renamed / new (explicit):**
 | Where | Old | New |

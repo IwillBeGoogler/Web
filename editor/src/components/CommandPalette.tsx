@@ -202,6 +202,8 @@ export function CommandPalette() {
       cmd('layout-groups-row', 'Align groups in a row', 'Layout', () => executeAction('align-groups:row'), undefined, ['boundary', 'container', 'vpc', 'align']),
       cmd('layout-groups-col', 'Align groups in a column', 'Layout', () => executeAction('align-groups:column'), undefined, ['boundary', 'container', 'vpc', 'align']),
       cmd('capacity', 'Capacity & latency: bottlenecks, worst-case path, storage growth, rough cost', 'Smart', () => executeAction('capacity-toggle'), undefined, ['rps', 'load', 'throughput', 'latency', 'p99', 'cost', 'price', 'estimate', 'bottleneck', 'capacity planning']),
+      cmd('simulate', 'Simulation: start / stop', 'Smart', () => executeAction('simulate-toggle'), undefined, ['run', 'play', 'traffic', 'load', 'simulate', 'start simulation']),
+      cmd('metrics', 'Metrics bar: RPS, p99, availability, dropped requests, cost vs budget, chaos', 'Smart', () => executeAction('metrics-toggle'), undefined, ['slo', 'availability', 'budget', 'chaos', 'spike', 'failure', 'latency', 'p99', 'dropped']),
       cmd('compare', 'Compare with another file or version… (diff and review)', 'Smart', () => executeAction('diff-open'), undefined, ['diff', 'review', 'changes', 'compare', 'version', 'report', 'pull request']),
       cmd('version-timeline', 'Version timeline: scrub, play and restore earlier versions', 'Smart', () => executeAction('timeline-open'), undefined, ['history', 'versions', 'timeline', 'restore', 'previous', 'play', 'replay', 'snapshot']),
       cmd('problems', 'Problems: lint this diagram (single points of failure, missing keys, cycles...)', 'Smart', () => executeAction('problems-toggle'), undefined, ['lint', 'check', 'validate', 'warnings', 'errors', 'rules']),

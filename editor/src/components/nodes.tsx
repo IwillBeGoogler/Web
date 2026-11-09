@@ -28,6 +28,7 @@ import { ObjectNode } from './object/ObjectNode';
 import { ComponentNode } from './component/ComponentNode';
 import { DrawBoardNode, FrameNode, MindMapNode, StampNode, StickyBoardNode } from './board/BoardNodes';
 import { t } from '../i18n';
+import { nodeBadges } from '@core/arch';
 
 /** Spring pop-in when a node mounts (reduced-motion users get none via MotionConfig). */
 function PopIn({ children, fill }: { children: ReactNode; fill?: boolean }) {
@@ -81,6 +82,13 @@ const fillStyle = (v: NodeVisual, round?: boolean): CSSProperties => ({
   opacity: v.background === 'filled' ? v.opacity / 100 : undefined,
 });
 
+/** architecture pills (OLTP, PR·async, RF3 ...) under a component; at most 3 */
+function ArchBadges({ type, data }: { type: string; data: DiagramNode['data'] }) {
+  const badges = data.arch ? nodeBadges({ type, data } as never).slice(0, 3) : [];
+  if (!badges.length) return null;
+  return <div className="arch-badges" aria-label={t('Architecture')} data-testid="arch-badges">{badges.map((b) => <span key={b} className="arch-badge">{b}</span>)}</div>;
+}
+
 export function IconNode({ id, data, selected }: NodeProps<DiagramNode>) {
   const ed = useLabelEditing(id);
   const labelTip = useTip({ title: data.label, path: data.subtitle }, { onlyWhenTruncated: true });
@@ -100,6 +108,7 @@ export function IconNode({ id, data, selected }: NodeProps<DiagramNode>) {
           <div className="node-label" style={{ ...textStyle(data, v), ...(data.labelColor ? { color: data.labelColor } : {}) }} {...labelTip}>{data.label}</div>
         )}
         {data.subtitle ? <div className="node-subtitle" style={data.subtitleColor ? { color: data.subtitleColor } : v.textColor ? { color: v.textColor } : undefined}>{data.subtitle}</div> : null}
+        <ArchBadges type="icon" data={data} />
         {data.role ? <span className={`role-pill role-${roleKind(data.role)}`}>{data.role}</span> : null}
         {data.partitions && data.partitions.length > 0 ? (
           <div className="part-strip" aria-label={t('Partitions')}>
@@ -404,6 +413,7 @@ export function CardNode({ id, data, selected }: NodeProps<DiagramNode>) {
             <div className="card-title" onDoubleClick={ed.start}>{data.label}</div>
           )}
           {data.subtitle ? <div className="card-sub">{data.subtitle}</div> : null}
+          <ArchBadges type="card" data={data} />
           <div className="card-tags" aria-label={t('Tags')}>
             {tags.map((tg, i) =>
               editTag === i ? (

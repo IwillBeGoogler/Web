@@ -20,10 +20,10 @@ const PROBE = `<style>
   var probe = function (k, f) { try { out[k] = "value:" + String(f()); } catch (e) { out[k] = "threw:" + e.name; } };
   var show = function () { document.getElementById("out").textContent = JSON.stringify(out); };
   probe("origin", function () { return window.origin; });
-  probe("localStorage", function () { return localStorage.getItem("iblog.session"); });
+  probe("localStorage", function () { return localStorage.getItem("iwillbegoogler.session"); });
   probe("cookie", function () { return document.cookie; });
   probe("parentDocument", function () { return parent.document.title; });
-  probe("parentStorage", function () { return parent.localStorage.getItem("iblog.session"); });
+  probe("parentStorage", function () { return parent.localStorage.getItem("iwillbegoogler.session"); });
   probe("topNavigate", function () { top.location.href = "/api/healthz"; return "assigned"; });
   probe("popup", function () { return window.open("/") === null ? "blocked" : "opened"; });
   var net = function (k, p) { p.then(function () { out[k] = "resolved"; show(); }, function (e) { out[k] = "failed:" + e.name; show(); }); };
@@ -76,7 +76,7 @@ async function signIn(page: Page) {
   await expect(page.getByRole("dialog")).toBeHidden();
 }
 
-const consent = (page: Page) => page.addInitScript(() => localStorage.setItem("iblog.consent", "necessary"));
+const consent = (page: Page) => page.addInitScript(() => localStorage.setItem("iwillbegoogler.consent", "necessary"));
 const frameOf = (page: Page): Frame => {
   const f = page.frames().find((x) => x.url().endsWith("/html-frame.html"));
   if (!f) throw new Error("no live frame");
@@ -90,7 +90,7 @@ const result = async (page: Page) => {
 test("a live block animates in a sandbox that cannot reach the site", async ({ page }) => {
   await consent(page);
   await signIn(page); // the page now holds the bearer token in its localStorage
-  expect(await page.evaluate(() => localStorage.getItem("iblog.session"))).toContain("token");
+  expect(await page.evaluate(() => localStorage.getItem("iwillbegoogler.session"))).toContain("token");
   await page.goto(`/p/${probe.slug}`);
   const url = page.url();
 
@@ -116,7 +116,7 @@ test("a live block animates in a sandbox that cannot reach the site", async ({ p
   expect(r.origin).toBe("value:null");
   expect(r.localStorage).toMatch(/^threw:/);
   expect(r.cookie).toMatch(/^(value:|threw:)/);
-  expect(r.cookie).not.toContain("iblog");
+  expect(r.cookie).not.toContain("iwillbegoogler");
   expect(r.parentDocument).toMatch(/^threw:/);
   expect(r.parentStorage).toMatch(/^threw:/);
   expect(JSON.stringify(r)).not.toContain(probe.slug);
@@ -193,7 +193,7 @@ test("reduced motion: the block waits for a click", async ({ page }) => {
 
 test("the editor preview runs the block without saving", async ({ page }) => {
   await consent(page);
-  await page.addInitScript(() => localStorage.setItem("iblog.editor.mode", "md")); // this one types Markdown
+  await page.addInitScript(() => localStorage.setItem("iwillbegoogler.editor.mode", "md")); // this one types Markdown
   await signIn(page);
   await page.goto("/new-story");
   await page.getByLabel("Story body (Markdown)").fill("```html-live height=200\n<p id=p>live preview</p>\n```");

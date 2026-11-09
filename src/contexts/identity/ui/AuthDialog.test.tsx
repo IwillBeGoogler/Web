@@ -14,7 +14,7 @@ describe("AuthDialog", () => {
     server.use(http.post(api("/auth/login"), () => HttpResponse.json({ data: { token: "tok", expires_at: "x", user } })));
     const { user: u } = await renderRouted(<AuthDialog />);
     act(() => authDialog.open("signin"));
-    expect(await screen.findByText("Sign in to iBlog")).toBeInTheDocument();
+    expect(await screen.findByText("Sign in to IWillBeGoogler")).toBeInTheDocument();
     await u.type(screen.getByLabelText("Email or username"), "ali");
     await u.type(screen.getByLabelText("Password"), "secret");
     await u.click(screen.getByRole("button", { name: "Sign in" }));
@@ -68,7 +68,7 @@ describe("AuthDialog", () => {
     server.use(http.get(api("/config"), () => HttpResponse.json({ data: { captcha_site_key: "" } })));
     await renderRouted(<AuthDialog />);
     act(() => authDialog.open("signin"));
-    expect(await screen.findByText("Sign in to iBlog")).toBeInTheDocument();
+    expect(await screen.findByText("Sign in to IWillBeGoogler")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Continue with/ })).toBeNull();
     act(() => authDialog.close());
   });

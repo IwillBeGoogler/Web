@@ -14,6 +14,7 @@ import { ACTIVITY_KINDS, ACTIVITY_LABEL, isPseudo, type ActivityKind } from './a
 import { DEPLOYMENT_KINDS, DEPLOYMENT_LABEL, type DeploymentKind } from './deployment/types';
 import { COMPONENT_KINDS } from './uml2/types';
 import { STICKY_COLORS } from './board/sticky';
+import { useSmart } from '../store/smartStore';
 
 export interface MenuItem {
   id: string;
@@ -129,15 +130,25 @@ function designMenu(target: MenuTarget, ctx: MenuContext): MenuItem | null {
   return sub('design', 'Design', kids);
 }
 
+function chaosMenu(target: MenuTarget, ctx: MenuContext): MenuItem | null {
+  if (target.type !== 'node') return null;
+  const node = ctx.nodes.find((n) => n.id === target.id);
+  if (!node || !['icon', 'cluster', 'card'].includes(node.type ?? '')) return null;
+  const ch = useSmart.getState().chaosNodes[node.id];
+  return sub('chaos', 'Chaos', [it(`chaos-down:${node.id}`, ch === 'down' ? 'Bring back up' : 'Take down'), it(`chaos-slow:${node.id}`, ch === 'slow' ? 'Back to normal speed' : 'Slow down (x5 latency)')]);
+}
+
 export function getMenuItems(target: MenuTarget, ctx: MenuContext): MenuItem[] {
   const base = baseMenuItems(target, ctx);
   if (target.type !== 'node' && target.type !== 'selection') return base;
-  const d = designMenu(target, ctx);
+  const dm = designMenu(target, ctx);
+  const cm = chaosMenu(target, ctx);
+  const d = dm && cm ? [cm, dm] : dm ? [dm] : cm ? [cm] : null;
   if (!d) return base;
   const at = base.findIndex((i) => i.id === 'delete');
-  if (at < 0) return [...base, SEP(), d];
+  if (at < 0) return [...base, SEP(), ...d];
   const sepBefore = at > 0 && base[at - 1].separator;
-  return [...base.slice(0, sepBefore ? at - 1 : at), d, ...base.slice(sepBefore ? at - 1 : at)];
+  return [...base.slice(0, sepBefore ? at - 1 : at), ...d, ...base.slice(sepBefore ? at - 1 : at)];
 }
 
 function baseMenuItems(target: MenuTarget, ctx: MenuContext): MenuItem[] {

@@ -28,7 +28,7 @@ export const ru: Record<keyof typeof en, string> = {
   "nav.skip": "Перейти к содержимому",
 
   "auth.join": "Создайте аккаунт",
-  "auth.welcomeBack": "Вход в iBlog",
+  "auth.welcomeBack": "Вход в IWillBeGoogler",
   "auth.createAccount": "Создать аккаунт",
   "auth.signInToAccount": "Войдите в аккаунт",
   "auth.username": "Имя пользователя",
@@ -66,13 +66,13 @@ export const ru: Record<keyof typeof en, string> = {
 
   "cookie.title": "Файлы cookie",
   "cookie.body":
-    "Мы используем необходимое хранилище, чтобы вы оставались в аккаунте и сохранялись настройки. С вашего согласия мы анонимно считаем посещения и время чтения, чтобы улучшать iBlog. Рекламных трекеров нет.",
+    "Мы используем необходимое хранилище, чтобы вы оставались в аккаунте и сохранялись настройки. С вашего согласия мы анонимно считаем посещения и время чтения, чтобы улучшать IWillBeGoogler. Рекламных трекеров нет.",
   "cookie.accept": "Принять все",
   "cookie.necessary": "Только необходимые",
   "cookie.more": "Подробнее",
 
   "footer.language": "Язык",
-  "footer.rights": "© {year} iBlog",
+  "footer.rights": "© {year} IWillBeGoogler",
   "footer.theme": "Тема",
   "footer.light": "Светлые",
   "footer.dark": "Тёмные",
@@ -88,7 +88,7 @@ export const ru: Record<keyof typeof en, string> = {
   "page.tryAgain": "Повторить",
   "page.pleaseRetry": "Пожалуйста, попробуйте ещё раз.",
 
-  "meta.description": "iBlog — истории, идеи и опыт авторов на любые темы.",
+  "meta.description": "IWillBeGoogler — истории, идеи и опыт авторов на любые темы.",
 
   "nav.templates": "Шаблоны",
   "dg.import": "Импорт .sdd",
@@ -97,7 +97,7 @@ export const ru: Record<keyof typeof en, string> = {
   "dg.publish": "Опубликовать",
   "dg.publish.live": "Опубликовано",
   "dg.publish.title": "Опубликовать эту диаграмму",
-  "dg.publish.lead": "У неё будет своя страница на iBlog. Читатели видят диаграмму в её текущем виде; позднейшие правки тоже появятся там.",
+  "dg.publish.lead": "У неё будет своя страница на IWillBeGoogler. Читатели видят диаграмму в её текущем виде; позднейшие правки тоже появятся там.",
   "dg.publish.visibility": "Кто может открыть",
   "dg.vis.unlisted": "По ссылке",
   "dg.vis.unlistedHint": "Любой, у кого есть ссылка. Не в списках и не индексируется.",

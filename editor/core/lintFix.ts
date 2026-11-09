@@ -1,8 +1,10 @@
 /** Quick fixes of lint problems (kept apart from the linter so the editor can apply them without loading the icon catalog). */
 import type { CPage } from './types';
+import { archOf, archScale, hasArch } from './arch';
+import { roleOf } from './lint';
 
 export interface Fix {
-  kind: 'add-index' | 'add-pk' | 'sync-type' | 'set-not-null' | 'remove-node' | 'remove-edge' | 'add-operation' | 'add-impl';
+  kind: 'add-index' | 'add-pk' | 'sync-type' | 'set-not-null' | 'remove-node' | 'remove-edge' | 'add-operation' | 'add-impl' | 'set-arch' | 'add-replica';
   label: string;
   nodeId: string;
   column?: string;
@@ -12,6 +14,8 @@ export interface Fix {
   edgeId?: string;
   /** add-operation: the operation name */
   name?: string;
+  /** set-arch: fields merged into node.data.arch */
+  arch?: Record<string, string | number | boolean>;
 }
 
 /** the page with a quick fix applied (the input is not modified) */
@@ -26,6 +30,18 @@ export function applyFix(page: CPage, fix: Fix): CPage {
   if (fix.kind === 'remove-node') {
     next.nodes = next.nodes.filter((n) => n.id !== t.id);
     next.edges = next.edges.filter((e) => e.source !== t.id && e.target !== t.id);
+    return next;
+  }
+  if (fix.kind === 'set-arch') {
+    t.data.arch = { ...(hasArch(t) ? (t.data.arch as object) : {}), ...(fix.arch ?? {}) };
+    return next;
+  }
+  if (fix.kind === 'add-replica') {
+    const cap = (t.data.capacity && typeof t.data.capacity === 'object' ? t.data.capacity : {}) as Record<string, unknown>;
+    const role = roleOf(t);
+    const count = typeof cap.replicas === 'number' ? cap.replicas : (archScale(t, role)?.count ?? 1);
+    if (hasArch(t) && role === 'service') t.data.arch = { ...(t.data.arch as object), instances: Number(archOf(t, role).instances) + 1 };
+    else t.data.capacity = { ...cap, replicas: Math.max(1, count) + 1 };
     return next;
   }
   if (fix.kind === 'add-operation') {

@@ -1,14 +1,14 @@
-# Contributing to iBlog web
+# Contributing to IWillBeGoogler web
 
 Thanks for helping. General rules (branching, Conventional Commits, review) live in the
-[org guide](https://github.com/iBlog/.github/blob/main/CONTRIBUTING.md). This file covers this repo.
+[org guide](https://github.com/IWillBeGoogler/.github/blob/main/CONTRIBUTING.md). This file covers this repo.
 
 ## Setup
 
 Requirements: [bun](https://bun.sh) (latest), Docker for the backend.
 
 ```sh
-git clone https://github.com/iBlog/iblog-monolith-go && cd iblog-monolith-go
+git clone https://github.com/IWillBeGoogler/iwillbegoogler-monolith-go && cd iwillbegoogler-monolith-go
 docker compose up -d          # API on :8080
 
 # in this repo

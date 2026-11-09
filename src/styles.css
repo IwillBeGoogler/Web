@@ -282,7 +282,7 @@ html.focus-mode [data-chrome] {
   display: none !important;
 }
 
-/* ===================================================== iBlog premium layer */
+/* ===================================================== IWillBeGoogler premium layer */
 @theme {
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
   --animate-marquee: marquee 40s linear infinite;
@@ -508,7 +508,7 @@ html.focus-mode [data-chrome] {
   }
 }
 
-/* ===================================================== iBlog identity layer */
+/* ===================================================== IWillBeGoogler identity layer */
 @layer base {
   /* page colour lives on html; body stays clear so the Galaxy canvas shows through */
   html {

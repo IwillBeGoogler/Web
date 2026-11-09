@@ -32,7 +32,7 @@ export function SearchPage({ q }: { q: string }) {
           value={v}
           onChange={(e) => setV(e.target.value)}
           aria-label="Search"
-          placeholder="Search iBlog"
+          placeholder="Search IWillBeGoogler"
           className="w-full min-w-0 bg-transparent text-[17px] text-fg outline-none placeholder:text-muted"
           autoFocus
         />

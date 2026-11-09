@@ -27,7 +27,7 @@ else if (splash) keepSplash(splash);
 if (splash) {
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const story = /^\/(@[^/]+|p|posts)\/[^/]+\/?$/.test(location.pathname);
-  const earth = story ? Promise.resolve() : new Promise((r) => addEventListener("iblog:earth-ready", r, { once: true }));
+  const earth = story ? Promise.resolve() : new Promise((r) => addEventListener("iwillbegoogler:earth-ready", r, { once: true }));
   Promise.race([Promise.all([document.fonts?.ready, earth, wait(story ? 0 : 5000)]), wait(30000)]).then(() => {
     requestAnimationFrame(() => {
       splash.classList.add("out");

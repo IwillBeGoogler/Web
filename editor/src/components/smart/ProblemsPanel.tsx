@@ -4,6 +4,7 @@ import { LINT_RULES_META } from '../../lib/smart/lintMeta';
 import type { Problem, Severity } from '@core/lint';
 import { useLintProblems } from '../../hooks/useLintProblems';
 import { applyFixToStore, showProblem } from '../../lib/smart/lintBridge';
+import { FixHint } from './FixHint';
 import { useSmart } from '../../store/smartStore';
 import { useUiStore } from '../../store/uiStore';
 import { useLayoutStore } from '../../store/layoutStore';
@@ -47,6 +48,7 @@ export function ProblemsPanel() {
                   {p.fix && !readOnly && (
                     <button type="button" className="problem-fix" onClick={() => applyFixToStore(p.fix!)} title={p.fix.label}><Wrench size={12} aria-hidden /> {t('Fix')}</button>
                   )}
+                  <FixHint ruleKey={p.rule} />
                 </div>
               ))}
             </section>

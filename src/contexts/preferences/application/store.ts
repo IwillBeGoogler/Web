@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
 import { articleFontPx, MEASURE_STEP, measureCh, normalizePrefs, paletteOf, paletteVars, type ReadingPrefs, typefaceOf } from "../domain/reading";
 
-const KEY = "iblog.reading";
-const GALAXY_KEY = "iblog.galaxy.v2";
+const KEY = "iwillbegoogler.reading";
+const GALAXY_KEY = "iwillbegoogler.galaxy.v2";
 const listeners = new Set<() => void>();
 
 const load = (): ReadingPrefs => {

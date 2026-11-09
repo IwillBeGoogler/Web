@@ -829,6 +829,9 @@ export const uz: Record<string, string> = {
   "+ option": "+ variant",
   "+ else": "+ else",
   "Follow": "Kuzatish",
+  'Start simulation': 'Simulyatsiyani boshlash',
+  'Stop simulation': 'Simulyatsiyani to‘xtatish',
+  'Traffic': 'Trafik',
 };
 
 export const ru: Record<string, string> = {
@@ -1661,4 +1664,7 @@ export const ru: Record<string, string> = {
   "+ option": "+ option",
   "+ else": "+ else",
   "Follow": "Следовать",
+  'Start simulation': 'Запустить симуляцию',
+  'Stop simulation': 'Остановить симуляцию',
+  'Traffic': 'Трафик',
 };

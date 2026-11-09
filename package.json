@@ -1,5 +1,5 @@
 {
-  "name": "iblog-client-react",
+  "name": "iwillbegoogler-client-react",
   "private": true,
   "type": "module",
   "scripts": {
@@ -92,10 +92,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iBlog/iblog-client-react.git"
+    "url": "https://github.com/IWillBeGoogler/iwillbegoogler-client-react.git"
   },
   "bugs": {
-    "url": "https://github.com/iBlog/iblog-client-react/issues"
+    "url": "https://github.com/IWillBeGoogler/iwillbegoogler-client-react/issues"
   },
-  "homepage": "https://github.com/iBlog/iblog-client-react#readme"
+  "homepage": "https://github.com/IWillBeGoogler/iwillbegoogler-client-react#readme"
 }

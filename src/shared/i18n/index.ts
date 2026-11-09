@@ -14,7 +14,7 @@ export const LANGS: { id: Lang; label: string }[] = [
 ];
 
 const dictionaries: Record<Lang, Partial<Messages>> = { en, ru, uz };
-const KEY = "iblog.lang";
+const KEY = "iwillbegoogler.lang";
 const listeners = new Set<() => void>();
 
 const isLang = (v: unknown): v is Lang => v === "uz" || v === "ru" || v === "en";

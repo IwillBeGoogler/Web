@@ -1,5 +1,5 @@
 /**
- * Embedding entry: the diagram editor as a component for a host app (the iBlog site).
+ * Embedding entry: the diagram editor as a component for a host app (the IWillBeGoogler site).
  *
  *   <DiagramEditor fileId="…" theme="dark" user={me} getAuthHeaders={…} onUnauthorized={…} onNavigate={…} />
  *   <DiagramEditor shareToken="…" />

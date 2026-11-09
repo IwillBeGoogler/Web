@@ -55,8 +55,8 @@ test.beforeEach(async ({ page }, info) => {
   const rich = info.title.startsWith("rich:");
   await page.addInitScript(
     ([md]) => {
-      localStorage.setItem("iblog.consent", "necessary");
-      if (md) localStorage.setItem("iblog.editor.mode", "md");
+      localStorage.setItem("iwillbegoogler.consent", "necessary");
+      if (md) localStorage.setItem("iwillbegoogler.editor.mode", "md");
     },
     [!rich],
   );
@@ -144,7 +144,7 @@ test("restore banner: restore applies, discard drops, nothing happens silently",
       form: { title: "T", subtitle: "", body, status: "draft", publishAt: "", publicationId: 0, coverUrl: "", tags: [] },
     });
   await page.goto("/");
-  await page.evaluate(([k, v]) => localStorage.setItem(k as string, v as string), [`iblog.story.${d.id}`, copy("Newer text from this device.")]);
+  await page.evaluate(([k, v]) => localStorage.setItem(k as string, v as string), [`iwillbegoogler.story.${d.id}`, copy("Newer text from this device.")]);
   await page.goto(`/p/${d.id}/edit`);
   await expect(page.getByText("Restore unsaved text?")).toBeVisible();
   await expect(bodyBox(page)).toHaveValue("Server draft text."); // not overwritten
@@ -152,10 +152,10 @@ test("restore banner: restore applies, discard drops, nothing happens silently",
   expect(await serverBody(d.id), "no autosave while the choice is open").toBe("Server draft text.");
   await page.getByRole("button", { name: "Discard" }).click();
   await expect(page.getByText("Restore unsaved text?")).toBeHidden();
-  expect(await page.evaluate((k) => localStorage.getItem(k), `iblog.story.${d.id}`)).toBeNull();
+  expect(await page.evaluate((k) => localStorage.getItem(k), `iwillbegoogler.story.${d.id}`)).toBeNull();
 
   await page.goto("/"); // leaving a clean editor clears its copy; this one is written after
-  await page.evaluate(([k, v]) => localStorage.setItem(k as string, v as string), [`iblog.story.${d.id}`, copy("Restored words.")]);
+  await page.evaluate(([k, v]) => localStorage.setItem(k as string, v as string), [`iwillbegoogler.story.${d.id}`, copy("Restored words.")]);
   await page.goto(`/p/${d.id}/edit`);
   await page.getByRole("button", { name: "Restore" }).click();
   await expect(bodyBox(page)).toHaveValue("Restored words.");
@@ -521,7 +521,7 @@ test("rich: opening an old post and leaving saves nothing and asks nothing", asy
   expect(dialogs).toBe(0);
   expect(writes).toEqual([]);
   expect(await serverBody(d.id)).toBe(original);
-  expect(await page.evaluate((k) => localStorage.getItem(k), `iblog.story.${d.id}`)).toBeNull();
+  expect(await page.evaluate((k) => localStorage.getItem(k), `iwillbegoogler.story.${d.id}`)).toBeNull();
 });
 
 test("rich: a story with raw HTML opens in Markdown mode and refuses visual mode, untouched", async ({ page }) => {
@@ -619,12 +619,12 @@ test("rich: markdown input rules and the bubble menu work", async ({ page }) => 
 });
 
 test("rich: usable on a phone: toolbar scrolls sideways, the page does not", async ({ browser, page }) => {
-  const session = await page.evaluate(() => localStorage.getItem("iblog.session"));
+  const session = await page.evaluate(() => localStorage.getItem("iwillbegoogler.session"));
   const ctx = await browser.newContext({ ...devices["Pixel 7"], baseURL });
   await ctx.addInitScript(
     ([sess]) => {
-      localStorage.setItem("iblog.consent", "necessary");
-      if (sess) localStorage.setItem("iblog.session", sess);
+      localStorage.setItem("iwillbegoogler.consent", "necessary");
+      if (sess) localStorage.setItem("iwillbegoogler.session", sess);
     },
     [session],
   );
@@ -766,7 +766,7 @@ test("rich: an edit that cannot be written exactly is kept, held back from the s
   await expect.poll(() => wordCount(page)).toBeGreaterThan(3);
   await page.waitForTimeout(5000);
   expect(await serverBody(id), "nothing of the unexact edit reaches the server on its own").toBe("Kept words");
-  expect(await page.evaluate((k) => localStorage.getItem(k), `iblog.story.${id}`)).toContain("quoted words");
+  expect(await page.evaluate((k) => localStorage.getItem(k), `iwillbegoogler.story.${id}`)).toContain("quoted words");
   await page.getByRole("button", { name: "Ship it" }).click();
   await page.getByRole("button", { name: "Ship now" }).click();
   await expect(page.getByText("Open Markdown mode first")).toBeVisible();
@@ -782,7 +782,7 @@ test("the editor chrome and placeholders follow the language", async ({ page }) 
   await page.addInitScript(() => {
     if (sessionStorage.getItem("seeded")) return;
     sessionStorage.setItem("seeded", "1");
-    localStorage.setItem("iblog.lang", "uz");
+    localStorage.setItem("iwillbegoogler.lang", "uz");
   });
   await page.goto("/new-story");
   await expect(page.getByRole("link", { name: "Hikoyalar" })).toBeVisible();
@@ -791,25 +791,25 @@ test("the editor chrome and placeholders follow the language", async ({ page }) 
   await expect(page.getByRole("button", { name: "Ko‘rib chiqish" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Qoralamani saqlash" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Chop etish" })).toBeVisible();
-  await page.evaluate(() => localStorage.setItem("iblog.lang", "ru"));
+  await page.evaluate(() => localStorage.setItem("iwillbegoogler.lang", "ru"));
   await page.reload();
   await expect(page.getByPlaceholder("Черновик без названия")).toBeVisible();
   await expect(page.getByRole("button", { name: "Сохранить черновик" })).toBeVisible();
 });
 
 test("rich: on a phone the restore banner stays clear of the header and Save and Ship are in reach", async ({ browser, page }) => {
-  const session = await page.evaluate(() => localStorage.getItem("iblog.session"));
+  const session = await page.evaluate(() => localStorage.getItem("iwillbegoogler.session"));
   const d = await create("draft", "Server draft text.");
   const ctx = await browser.newContext({ ...devices["Pixel 7"], baseURL });
   await ctx.addInitScript(
     ([sess, key, copy]) => {
-      localStorage.setItem("iblog.consent", "necessary");
-      if (sess) localStorage.setItem("iblog.session", sess);
+      localStorage.setItem("iwillbegoogler.consent", "necessary");
+      if (sess) localStorage.setItem("iwillbegoogler.session", sess);
       localStorage.setItem(key as string, copy as string);
     },
     [
       session,
-      `iblog.story.${d.id}`,
+      `iwillbegoogler.story.${d.id}`,
       JSON.stringify({
         v: 1,
         at: Date.now() + 60_000,
@@ -864,7 +864,7 @@ test("an unverified account is told why it cannot save, is not retried on every 
   expect(reg.status(), await reg.text()).toBe(201);
   const userToken = (await reg.json()).data.token as string;
   const ctx = await browser.newContext({ baseURL });
-  await ctx.addInitScript(() => localStorage.setItem("iblog.consent", "necessary"));
+  await ctx.addInitScript(() => localStorage.setItem("iwillbegoogler.consent", "necessary"));
   const page = await ctx.newPage();
   try {
     await page.goto("/");
@@ -892,7 +892,7 @@ test("an unverified account is told why it cannot save, is not retried on every 
       await page.waitForTimeout(4000);
     }
     expect(posts, "one refused attempt, no retries while typing").toHaveLength(1);
-    expect(await page.evaluate(() => localStorage.getItem("iblog.story.new"))).toContain("and still more");
+    expect(await page.evaluate(() => localStorage.getItem("iwillbegoogler.story.new"))).toContain("and still more");
 
     const resend = page.waitForRequest((r) => new URL(r.url()).pathname === "/api/me/verify-email" && r.method() === "POST");
     await notice.getByRole("button", { name: "Resend verification email" }).click();

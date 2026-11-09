@@ -4,6 +4,8 @@
  */
 import { resolveIcon } from './catalog';
 import type { Fix } from './lintFix';
+import { archOf, hasArch, techOf } from './arch';
+import { archFixFor } from './arch/fixes';
 import type { CEdge, CNode, CPage } from './types';
 
 export { applyFix, type Fix } from './lintFix';
@@ -35,6 +37,25 @@ export const LINT_RULES: RuleDef[] = [
   { id: 'arch/sync-cycle', category: 'architecture', title: 'Cycle of synchronous calls', description: 'Services that call each other in a loop can deadlock or amplify load.', severity: 'warning' },
   { id: 'arch/no-monitoring', category: 'architecture', title: 'No monitoring connection', description: 'A service or database that no monitoring component is connected to.', severity: 'info' },
   { id: 'arch/cluster-profile', category: 'architecture', title: 'Cluster profile warning', description: 'Problems found by the cluster profile (replication factor, quorum, zone spread).', severity: 'warning' },
+  { id: 'arch/single-az', category: 'architecture', title: 'Single availability zone', description: 'A database, cache or queue configured for one availability zone: a zone outage takes it down.', severity: 'info' },
+  { id: 'arch/cache-write-back-loss', category: 'architecture', title: 'Write-back cache can lose data', description: 'A write-back cache acknowledges writes before they reach the store; a crash loses them.', severity: 'warning' },
+  { id: 'arch/stale-reads', category: 'architecture', title: 'Stale reads from async replication', description: 'Asynchronous replication lets replicas lag behind the primary.', severity: 'info' },
+  { id: 'arch/hot-shard', category: 'architecture', title: 'Range sharding can create hot shards', description: 'Range partitioning concentrates monotonic keys on one shard.', severity: 'info' },
+  { id: 'arch/idempotency', category: 'architecture', title: 'At-least-once delivery needs idempotent consumers', description: 'Messages can be delivered more than once.', severity: 'info' },
+  { id: 'arch/no-dlq', category: 'architecture', title: 'Queue without a dead-letter queue', description: 'Poison messages have nowhere to go and block or get lost.', severity: 'info' },
+  { id: 'arch/stateful-no-affinity', category: 'architecture', title: 'Stateful service behind a load balancer without affinity', description: 'Several instances keep local state but the load balancer is not sticky or hashing.', severity: 'warning' },
+  { id: 'arch/lb-no-healthcheck', category: 'architecture', title: 'Load balancer without health checks', description: 'Traffic keeps going to dead instances.', severity: 'warning' },
+  { id: 'arch/kafka-rf', category: 'architecture', title: 'Kafka replication factor below 3', description: 'One broker loss can lose or block a partition.', severity: 'warning' },
+  { id: 'arch/kafka-acks', category: 'architecture', title: 'Kafka producer acks below all', description: 'With acks other than all, a leader failure can lose acknowledged writes.', severity: 'info' },
+  { id: 'arch/kafka-minisr', category: 'architecture', title: 'Kafka min.insync.replicas not below the replication factor', description: 'Writes with acks=all block as soon as one broker is down.', severity: 'error' },
+  { id: 'arch/rabbit-not-durable', category: 'architecture', title: 'RabbitMQ classic queue that is not durable', description: 'Messages are lost on broker restart.', severity: 'warning' },
+  { id: 'arch/redis-standalone', category: 'architecture', title: 'Standalone Redis', description: 'A single Redis node is a single point of failure.', severity: 'warning' },
+  { id: 'arch/redis-no-persistence', category: 'architecture', title: 'Redis without persistence as a primary store', description: 'Redis with no persistence and no database behind it loses all data on restart.', severity: 'info' },
+  { id: 'arch/memcached-no-replication', category: 'architecture', title: 'Memcached has no replication', description: 'A node loss empties its share of the cache.', severity: 'info' },
+  { id: 'arch/mongo-even-members', category: 'architecture', title: 'MongoDB replica set with an even member count', description: 'An even number of voting members gives no quorum benefit and can split.', severity: 'warning' },
+  { id: 'arch/mongo-w1', category: 'architecture', title: 'MongoDB write concern 1', description: 'Acknowledged writes can be rolled back after a failover.', severity: 'info' },
+  { id: 'arch/cassandra-rf', category: 'architecture', title: 'Cassandra replication factor below 3', description: 'Quorum reads and writes tolerate no node loss.', severity: 'warning' },
+  { id: 'arch/es-no-replicas', category: 'architecture', title: 'Elasticsearch without replica shards', description: 'A node loss makes shards unavailable.', severity: 'warning' },
   { id: 'erd/fk-index', category: 'erd', title: 'Foreign key without an index', description: 'Joins and deletes on the parent scan the child table.', severity: 'warning' },
   { id: 'erd/no-pk', category: 'erd', title: 'Table without a primary key', description: 'Rows cannot be identified.', severity: 'error' },
   { id: 'erd/fk-type', category: 'erd', title: 'Foreign key type differs from the referenced key', description: 'The column and the key it references have different types.', severity: 'error' },
@@ -88,7 +109,7 @@ const sevOf = (cfg: LintConfig | undefined, id: string): Severity | null => {
 };
 
 const isReplicaNode = (n: CNode) => n.data.role === 'replica' || n.data.role === 'standby' || REPLICA_LABEL.test(String(n.data.label ?? ''));
-const redundant = (n: CNode) => Number(n.data.replicas ?? 1) > 1 || !!n.data.repeatOf || (n.type === 'cluster' && n.data.topology !== 'single');
+const redundant = (n: CNode) => Number(n.data.replicas ?? 1) > 1 || Number((n.data.capacity as { replicas?: number } | undefined)?.replicas ?? 1) > 1 || (hasArch(n) && roleOf(n) === 'service' && Number(archOf(n).instances) > 1) || !!n.data.repeatOf || (n.type === 'cluster' && n.data.topology !== 'single');
 
 function sccs(ids: string[], adj: Map<string, string[]>): string[][] {
   let idx = 0;
@@ -139,6 +160,51 @@ export function lintPage(page: CPage, cfg: LintConfig = {}): Problem[] {
   const role = new Map(page.nodes.map((n) => [n.id, roleOf(n)]));
   const dbs = page.nodes.filter((n) => role.get(n.id) === 'database');
 
+  // ---- architecture config (node.data.arch, opt-in per node) ----
+  function lintArch() {
+    for (const n of page.nodes) {
+      if (!hasArch(n)) continue;
+      const r = role.get(n.id)!;
+      const a = archOf(n, r);
+      const tech = techOf(n)?.id;
+      const L = label(n.id);
+      const one = (rule: string, msg: string) => push(rule, n.id, msg, [n.id]);
+      if (['database', 'cache', 'queue'].includes(r) && a.deployment === 'single-az') one('arch/single-az', `${L} runs in a single availability zone: a zone outage takes it down. Use multi-az.`);
+      if (r === 'cache' && a.strategy === 'write-back') one('arch/cache-write-back-loss', `${L} is write-back: writes acknowledged by the cache are lost if it crashes before flushing. Use write-through or accept the loss.`);
+      if (r === 'database') {
+        if (/async/.test(String(a.replication))) one('arch/stale-reads', `${L} replicates asynchronously: reads from replicas can be stale. Read from the primary when freshness matters.`);
+        if (a.sharding === 'range') one('arch/hot-shard', `${L} is range-sharded: monotonic keys (time, ids) pile onto one hot shard. Consider hash sharding.`);
+      }
+      if (r === 'queue') {
+        if (a.delivery === 'at-least-once' && !tech) one('arch/idempotency', `${L} delivers at least once: consumers must be idempotent (dedupe by message id).`);
+        if (a.dlq === false) one('arch/no-dlq', `${L} has no dead-letter queue: poison messages block or vanish. Enable a DLQ.`);
+      }
+      if (r === 'lb' && a.healthCheck === false) one('arch/lb-no-healthcheck', `${L} has health checks off: traffic keeps going to dead instances.`);
+      if (r === 'service' && a.stateful && Number(a.instances) > 1) {
+        const bad = ins(n.id).map((e) => byId.get(e.source)!).filter((s) => role.get(s.id) === 'lb' && (!hasArch(s) || (() => { const l = archOf(s, 'lb'); return !l.sticky && l.algorithm !== 'ip-hash' && l.algorithm !== 'consistent-hash'; })()));
+        if (bad.length) push('arch/stateful-no-affinity', n.id, `${L} is stateful with ${a.instances} instances behind ${label(bad[0].id)}, which has no session affinity. Make the balancer sticky or hash-based.`, [n.id, bad[0].id]);
+      }
+      if (tech === 'kafka') {
+        if (Number(a.replicationFactor) < 3) one('arch/kafka-rf', `${L} has replication factor ${a.replicationFactor}: one broker loss can lose or block a partition. Use 3.`);
+        if (a.acks !== 'all') one('arch/kafka-acks', `${L} producers use acks=${a.acks}: a leader failure can lose acknowledged writes. Use acks=all with min.insync.replicas.`);
+        if (Number(a.minInsyncReplicas) >= Number(a.replicationFactor)) one('arch/kafka-minisr', `${L}: min.insync.replicas (${a.minInsyncReplicas}) is not below the replication factor (${a.replicationFactor}), so writes block on any broker loss.`);
+      }
+      if (tech === 'rabbitmq' && a.queueType === 'classic' && a.durable === false) one('arch/rabbit-not-durable', `${L} is a classic non-durable queue: messages are lost on restart. Make it durable or use a quorum queue.`);
+      if (tech === 'redis') {
+        if (a.mode === 'standalone') one('arch/redis-standalone', `${L} is a standalone Redis: a single point of failure. Use sentinel or cluster.`);
+        if (a.persistence === 'none' && !outs(n.id).some((e) => role.get(e.target) === 'database'))
+          one('arch/redis-no-persistence', `${L} has no persistence and no database behind it: a restart loses all data. Enable RDB/AOF if it is a primary store.`);
+      }
+      if (tech === 'memcached') one('arch/memcached-no-replication', `${L} is Memcached: it has no replication, a node loss empties its share of the cache.`);
+      if (tech === 'mongodb') {
+        if (Number(a.replicaSetMembers) % 2 === 0) one('arch/mongo-even-members', `${L} has ${a.replicaSetMembers} replica set members: an even count gives no quorum benefit. Use an odd number or add an arbiter.`);
+        if (a.writeConcern === '1') one('arch/mongo-w1', `${L} uses write concern 1: acknowledged writes can roll back after a failover. Use majority.`);
+      }
+      if (tech === 'cassandra' && Number(a.replicationFactor) < 3) one('arch/cassandra-rf', `${L} has replication factor ${a.replicationFactor}: quorum tolerates no node loss. Use 3.`);
+      if (tech === 'elasticsearch' && Number(a.replicas) === 0) one('arch/es-no-replicas', `${L} has no replica shards: a node loss makes shards unavailable.`);
+    }
+  }
+
   // ---- architecture ----
   for (const lb of page.nodes.filter((n) => role.get(n.id) === 'lb')) {
     const targets = [...new Set(outs(lb.id).map((e) => e.target))].map((id) => byId.get(id)!).filter((t) => ['service', 'cache', 'database', 'other'].includes(role.get(t.id)!) && t.type !== 'group');
@@ -147,11 +213,13 @@ export function lintPage(page: CPage, cfg: LintConfig = {}): Problem[] {
   }
   for (const db of dbs) {
     const peers = [...ins(db.id), ...outs(db.id)].map((e) => ({ e, other: byId.get(e.source === db.id ? e.target : e.source)! }));
-    const hasReplica = redundant(db) || !!db.data.replication || isReplicaNode(db) || peers.some(({ e, other }) => role.get(other.id) === 'database' && (e.data?.kind === 'replication' || isReplicaNode(other) || other.data.iconId === db.data.iconId));
+    const ar = hasArch(db) ? archOf(db, 'database') : undefined;
+    const hasReplica = redundant(db) || (!!ar && ar.replication !== 'none') || !!db.data.replication || isReplicaNode(db) || peers.some(({ e, other }) => role.get(other.id) === 'database' && (e.data?.kind === 'replication' || isReplicaNode(other) || other.data.iconId === db.data.iconId));
     if (!hasReplica && !isReplicaNode(db)) push('arch/db-no-replica', db.id, `${label(db.id)} has no replica or standby: a failure loses availability. Add a replica or use a replicated cluster.`, [db.id]);
-    const hasBackup = peers.some(({ e, other }) => role.get(other.id) === 'storage' || BACKUP_LABEL.test(String(e.label ?? '')) || e.data?.preset === 'backup' || BACKUP_LABEL.test(String(other.data.label ?? '')));
-    if (!hasBackup && !isReplicaNode(db)) push('arch/db-no-backup', db.id, `${label(db.id)} has no backup: connect it to backup storage (or label the edge "backup").`, [db.id]);
+    const hasBackup = (!!ar && ar.backup !== 'none' && db.data.arch?.backup !== undefined) || peers.some(({ e, other }) => role.get(other.id) === 'storage' || BACKUP_LABEL.test(String(e.label ?? '')) || e.data?.preset === 'backup' || BACKUP_LABEL.test(String(other.data.label ?? '')));
+    if (!hasBackup && !isReplicaNode(db)) push('arch/db-no-backup', db.id, ar?.backup === 'none' ? `${label(db.id)} is configured with backup "none": set snapshot or PITR, or connect it to backup storage.` : `${label(db.id)} has no backup: connect it to backup storage (or label the edge "backup").`, [db.id]);
   }
+  lintArch();
   const shields = new Set<Role>(['lb', 'gateway', 'waf', 'cdn', 'client', 'monitoring', 'queue']);
   for (const e of edges) {
     const from = byId.get(e.source)!, to = byId.get(e.target)!;
@@ -329,6 +397,12 @@ export function lintPage(page: CPage, cfg: LintConfig = {}): Problem[] {
 
   const rank = { error: 0, warning: 1, info: 2 } as const;
   const order = new Map(LINT_RULES.map((r, i) => [r.id, i]));
+  // one-click fixes of architecture problems (the component is the first node, the instance behind the balancer for spof)
+  for (const p of out) {
+    if (p.fix || !p.rule.startsWith('arch/')) continue;
+    const f = archFixFor(p.rule, byId.get(p.rule === 'arch/spof' ? p.nodeIds[1] : p.nodeIds[0]));
+    if (f) p.fix = f;
+  }
   return out.sort((a, b) => rank[a.severity] - rank[b.severity] || order.get(a.rule)! - order.get(b.rule)! || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 }
 

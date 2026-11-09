@@ -115,6 +115,8 @@ export type DiagramNodeData = {
   source?: string;
   /** capacity & latency calculator inputs (schema v8) */
   capacity?: import('@core/capacity').NodeCapacity;
+  /** per-component architecture config (OLTP / replication / cache strategy ...), see core/arch */
+  arch?: import('@core/arch').ArchConfig;
 } & Record<string, unknown>;
 
 export type DiagramNode = Node<DiagramNodeData, NodeKind>;

@@ -1,6 +1,6 @@
 import { i18n } from "@/shared/i18n";
 
-/** iBlog-style date: "Oct 5" this year, "Oct 5, 2024" otherwise. */
+/** IWillBeGoogler-style date: "Oct 5" this year, "Oct 5, 2024" otherwise. */
 export const shortDate = (iso: string | null | undefined, now = new Date()): string => {
   if (!iso) return "";
   const d = new Date(iso);

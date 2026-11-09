@@ -311,7 +311,7 @@ export default function EarthHorizon({ brand, satellite = false }: { brand?: str
         cloudMat.opacity = 0;
         fading = true;
         setProgress(1);
-        dispatchEvent(new Event("iblog:earth-ready")); // lets the loading splash lift
+        dispatchEvent(new Event("iwillbegoogler:earth-ready")); // lets the loading splash lift
         kick();
       })
       .catch(() => undefined);

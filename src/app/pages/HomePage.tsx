@@ -683,7 +683,7 @@ function HomeFeed({ tab: wanted }: { tab: HomeTab | undefined }) {
                 </>
               ) : (
                 <>
-                  Fresh on <span className="text-muted">iBlog</span>
+                  Fresh on <span className="text-muted">IWillBeGoogler</span>
                 </>
               )}
             </h1>

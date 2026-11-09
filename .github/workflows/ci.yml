@@ -45,6 +45,6 @@ jobs:
           context: .
           file: Dockerfile
           push: false
-          tags: iblog-web:ci
+          tags: iwillbegoogler-web:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max

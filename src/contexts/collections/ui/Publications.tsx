@@ -43,7 +43,7 @@ function PublicationForm({ initial, onDone }: { initial?: Publication; onDone: (
           <input {...a} className={inputCls} {...f.register("name", { onBlur: () => !initial && !f.getValues("slug") && f.setValue("slug", slugify(name)) })} />
         )}
       </Field>
-      <Field label="Address" error={e.slug?.message} hint={initial ? "The address can't change." : "iblog.app/pub/your-address"}>
+      <Field label="Address" error={e.slug?.message} hint={initial ? "The address can't change." : "iwillbegoogler.app/pub/your-address"}>
         {(a) => <input {...a} className={inputCls} disabled={!!initial} {...f.register("slug")} />}
       </Field>
       <Field label="Description" error={e.description?.message}>

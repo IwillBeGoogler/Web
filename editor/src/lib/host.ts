@@ -29,7 +29,7 @@ export interface HostActionContext {
 export type HostActions = (ctx: HostActionContext) => import('react').ReactNode;
 let hostActions: HostActions | null = null;
 const hostActionSubs = new Set<() => void>();
-/** the host's own buttons in the editor's toolbar (the iBlog "Publish" button). They render inside the editor's React tree, so the host's providers apply. */
+/** the host's own buttons in the editor's toolbar (the IWillBeGoogler "Publish" button). They render inside the editor's React tree, so the host's providers apply. */
 export const setHostActions = (fn: HostActions | null): void => {
   hostActions = fn;
   hostActionSubs.forEach((f) => f());

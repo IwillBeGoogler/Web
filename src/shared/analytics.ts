@@ -5,7 +5,7 @@ import { i18n } from "@/shared/i18n";
 
 export type AnalyticsEvent = { name: "page_view"; path: string } | { name: "signup_open" } | { name: "read_time"; post_id: number; value: number };
 
-const VISITOR_KEY = "iblog.visitor";
+const VISITOR_KEY = "iwillbegoogler.visitor";
 
 /** Random id kept only after consent; dropped when consent is withdrawn. */
 function visitorId(): string | null {

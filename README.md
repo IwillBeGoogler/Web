@@ -1,4 +1,4 @@
-# iBlog — client (React)
+# IWillBeGoogler — client (React)
 
 React 19 + TypeScript 7 + Vite 8, TanStack Router/Query, Tailwind 4 (+ typography), Radix, Zod 4, RHF. Talks to the Go monolith (`/api` → `:8080`).
 
@@ -17,7 +17,7 @@ Routes: `/` (landing for visitors, feed for readers), `/@user`, `/@user/slug`, `
 
 Production: nginx serves the SPA with CSP and security headers, gzip, immutable hashed assets, no-cache HTML, unbuffered SSE proxy and `/healthz`; the image has a Docker HEALTHCHECK.
 
-Brand: **iBlog**. Motion: `motion` (Framer Motion) primitives in `src/shared/motion` (Reveal, Stagger, Magnetic, Tilt, CountUp, RotatingWord, ReadingProgress), View Transitions between routes, CSS keyframes for dialogs/menus/shimmer; everything respects `prefers-reduced-motion` (e2e project `reduced-motion`).
+Brand: **IWillBeGoogler**. Motion: `motion` (Framer Motion) primitives in `src/shared/motion` (Reveal, Stagger, Magnetic, Tilt, CountUp, RotatingWord, ReadingProgress), View Transitions between routes, CSS keyframes for dialogs/menus/shimmer; everything respects `prefers-reduced-motion` (e2e project `reduced-motion`).
 
 ## Contributing
 

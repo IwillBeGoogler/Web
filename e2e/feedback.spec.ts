@@ -9,7 +9,7 @@ const ADMIN_URL = process.env.E2E_ADMIN_URL ?? "http://localhost:3100";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "";
 const uniq = (s: string) => `${s}-${Date.now().toString(36)}-${Math.floor(Math.random() * 1e4)}`;
 
-const consent = (page: Page) => page.addInitScript(() => localStorage.setItem("iblog.consent", "necessary"));
+const consent = (page: Page) => page.addInitScript(() => localStorage.setItem("iwillbegoogler.consent", "necessary"));
 
 async function signUp(page: Page) {
   const u = uniq("e2e").replaceAll("-", "");

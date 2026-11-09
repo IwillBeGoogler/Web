@@ -2,10 +2,10 @@
 // Palette tokens mirror src/contexts/preferences/domain/reading.ts (dark ones listed).
 try {
   var root = document.documentElement;
-  var p = JSON.parse(localStorage.getItem("iblog.reading") || "null");
+  var p = JSON.parse(localStorage.getItem("iwillbegoogler.reading") || "null");
   var dark = ["galaxy", "ink", "gruvbox", "nord", "dracula", "carbon", "solarized-dark", "one-dark", "midnight", "mocha"];
-  // Galaxy is the default; a saved pick sticks once the one-time Galaxy move has run (store.ts, iblog.galaxy.v2).
-  var id = p && p.palette && localStorage.getItem("iblog.galaxy.v2") ? p.palette : "galaxy";
+  // Galaxy is the default; a saved pick sticks once the one-time Galaxy move has run (store.ts, iwillbegoogler.galaxy.v2).
+  var id = p && p.palette && localStorage.getItem("iwillbegoogler.galaxy.v2") ? p.palette : "galaxy";
   if (dark.indexOf(id) > -1) root.classList.add("dark");
   root.setAttribute("data-palette", id);
   if (p) {

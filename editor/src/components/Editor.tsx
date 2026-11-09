@@ -5,6 +5,8 @@ import { SplitView } from './smart/SplitView';
 import { ProblemsPanel } from './smart/ProblemsPanel';
 import { ReviewPanel } from './smart/ReviewPanel';
 import { CapacityPanel } from './smart/CapacityPanel';
+import { MetricsBar } from './smart/MetricsBar';
+import { SimulateButton } from './smart/SimulateButton';
 import { DriftPanel } from './smart/DriftPanel';
 import { useSmart } from '../store/smartStore';
 import { DialogHost } from './ui/DialogHost';
@@ -158,6 +160,8 @@ export function Editor({ fileId, projectId, onBack, sync }: { fileId: string; pr
           <ProblemsPanel />
           <ReviewPanel />
           <CapacityPanel />
+          <MetricsBar />
+          <SimulateButton />
           <DriftPanel />
           <PluginPanel />
           <CommentsPanel />

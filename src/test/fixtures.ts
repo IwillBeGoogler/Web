@@ -6,9 +6,9 @@ export const me = { id: 3, username: "admin", email: "a@x.dev", display_name: "A
 
 export const makePost = (o: Record<string, unknown> = {}) => ({
   id: 1,
-  title: "Hello iBlog",
+  title: "Hello IWillBeGoogler",
   subtitle: "A subtitle",
-  slug: "hello-iblog",
+  slug: "hello-iwillbegoogler",
   status: "published",
   body: "Some body text here.",
   body_html: "<p>Some body text here.</p>",

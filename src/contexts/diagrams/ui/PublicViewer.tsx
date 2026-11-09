@@ -74,48 +74,38 @@ export function PublicViewer({ slug }: { slug: string }) {
 
   return (
     <main className="flex h-[calc(100dvh-3.5rem)] flex-col" id="main">
-      <header className="shrink-0 border-b border-line-strong bg-card px-4 py-3 md:px-6">
+      <header className="shrink-0 border-b border-line-strong bg-card px-3 py-1 md:px-4">
         {d ? (
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-            <div className="min-w-0 flex-1 basis-64">
-              <p className="kicker truncate">
-                {t(kindKey[d.kind])} · {t("dg.view.readOnly")}
-              </p>
-              <h1 title={d.title} className="truncate font-display text-xl leading-7 font-bold tracking-[-0.02em] md:text-2xl">
-                <Bio>{d.title}</Bio>
-              </h1>
-              {d.description ? <p className="line-clamp-1 hidden text-sm text-muted md:block">{d.description}</p> : null}
-            </div>
-            <div className="flex min-w-0 items-center gap-2 text-sm">
+          <div className="flex min-h-8 items-center gap-3">
+            <h1 title={d.description || d.title} className="min-w-0 truncate font-display text-sm font-bold tracking-[-0.01em]">
+              <Bio>{d.title}</Bio>
+            </h1>
+            <span className="flex shrink-0 items-center gap-1.5 text-xs max-sm:hidden" title={t("dg.view.updated", { date: shortDate(d.updated_at) })}>
               <Avatar name={d.author.display_name || d.author.username} src={d.author.avatar_url} size="xs" />
-              <span className="min-w-0">
-                <span className="text-muted">{t("dg.view.by")} </span>
-                <Link to="/@{$username}" params={{ username: d.author.username }} className="font-medium hover:underline">
-                  @{d.author.username}
-                </Link>
-                <span className="block font-mono text-[11px] text-muted">{t("dg.view.updated", { date: shortDate(d.updated_at) })}</span>
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* three at most: the bar must leave the canvas its height, on phones too */}
-              {d.tags.slice(0, 3).map((tag) => (
-                <Link key={tag} to="/tag/$tag" params={{ tag }} className="tag max-sm:hidden">
+              <Link to="/@{$username}" params={{ username: d.author.username }} className="text-muted hover:underline">
+                @{d.author.username}
+              </Link>
+            </span>
+            <span className="min-w-0 flex-1" />
+            <div className="flex shrink-0 items-center gap-1 [&_button]:h-7 [&_button]:px-2 [&_button]:text-xs">
+              {/* the bar must leave the canvas its height, on phones too */}
+              {d.tags.slice(0, 2).map((tag) => (
+                <Link key={tag} to="/tag/$tag" params={{ tag }} className="tag text-xs max-lg:hidden">
                   <span className="truncate">#{tag}</span>
                 </Link>
               ))}
               <DiagramEngagement d={d} />
               <Button variant="outline" size="sm" onClick={copy}>
-                <LinkIcon className="size-3.5" aria-hidden /> {t("dg.view.share")}
+                <LinkIcon className="size-3.5" aria-hidden /> <span className="max-md:sr-only">{t("dg.view.share")}</span>
               </Button>
               <Button variant="outline" size="sm" onClick={requireAuth(() => setReporting(true))}>
-                <FlagIcon className="size-3.5" aria-hidden /> {t("dg.view.report")}
+                <FlagIcon className="size-3.5" aria-hidden /> <span className="max-md:sr-only">{t("dg.view.report")}</span>
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-2" aria-busy="true">
-            <Bone className="h-3 w-24" />
-            <Bone className="h-6 w-1/3" />
+          <div className="flex min-h-8 items-center" aria-busy="true">
+            <Bone className="h-4 w-1/3" />
           </div>
         )}
       </header>

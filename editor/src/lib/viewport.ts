@@ -37,6 +37,18 @@ export function centerViewport(bounds: Rect, size: { width: number; height: numb
   return { x: axis(bounds.x, bounds.width, insets.left, insets.right, size.width), y: axis(bounds.y, bounds.height, insets.top, insets.bottom, size.height), zoom: 1 };
 }
 
+/** Like centerViewport, but zooms out (never in, floor 20%) so the whole content fits the free area: for read-only viewers. */
+export function fitViewport(bounds: Rect, size: { width: number; height: number }, insets: Insets = NO_INSETS): Viewport {
+  const availW = size.width - insets.left - insets.right - UI_MARGIN * 2;
+  const availH = size.height - insets.top - insets.bottom - UI_MARGIN * 2;
+  const zoom = Math.max(0.2, Math.min(1, availW / (bounds.width || 1), availH / (bounds.height || 1)));
+  return {
+    x: insets.left + (size.width - insets.left - insets.right - bounds.width * zoom) / 2 - bounds.x * zoom,
+    y: insets.top + (size.height - insets.top - insets.bottom - bounds.height * zoom) / 2 - bounds.y * zoom,
+    zoom,
+  };
+}
+
 export function contentBounds(nodes: DiagramNode[]): Rect {
   const rs = nodes.map((n) => {
     const p = absolutePosition(nodes, n);

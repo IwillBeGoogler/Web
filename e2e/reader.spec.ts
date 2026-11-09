@@ -13,7 +13,7 @@ async function signIn(page: Page) {
 
 // The cookie banner is answered up front; its own test below starts without consent.
 test.beforeEach(async ({ page }, info) => {
-  if (!info.title.startsWith("cookie banner")) await page.addInitScript(() => localStorage.setItem("iblog.consent", "necessary"));
+  if (!info.title.startsWith("cookie banner")) await page.addInitScript(() => localStorage.setItem("iwillbegoogler.consent", "necessary"));
 });
 
 test("cookie banner: choice sticks, legal pages and language switch work", async ({ page }) => {
@@ -34,8 +34,8 @@ test("cookie banner: choice sticks, legal pages and language switch work", async
 test("visitors land on the landing page and start reading", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "Ideas worth shipping" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "iBlog home" })).toBeVisible();
-  await expect(page).toHaveTitle(/iBlog/);
+  await expect(page.getByRole("link", { name: "IWillBeGoogler home" })).toBeVisible();
+  await expect(page).toHaveTitle(/IWillBeGoogler/);
   await page.getByRole("link", { name: "Open the stream" }).first().click();
   await expect(page.getByRole("radio", { name: "Newest" })).toBeVisible();
 });
@@ -57,12 +57,12 @@ test("clap asks anonymous readers to sign in", async ({ page }) => {
     .getByRole("button", { name: /^Spark/ })
     .first()
     .click();
-  await expect(page.getByText("Sign in to iBlog")).toBeVisible();
+  await expect(page.getByText("Sign in to IWillBeGoogler")).toBeVisible();
 });
 
 test("writer publishes a story and finds it in search", async ({ page, isMobile }) => {
   test.skip(isMobile, "editor flow covered on desktop");
-  await page.addInitScript(() => localStorage.setItem("iblog.editor.mode", "md")); // types Markdown; the visual editor is covered in editor.spec.ts
+  await page.addInitScript(() => localStorage.setItem("iwillbegoogler.editor.mode", "md")); // types Markdown; the visual editor is covered in editor.spec.ts
   await signIn(page);
   const title = `E2E story ${Date.now()}`;
   await page.goto("/new-story");
@@ -150,5 +150,5 @@ test("reading settings: palette, bionic and focus persist across reloads", async
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-palette", "sepia");
   await expect(page.locator("header[data-chrome]")).toBeHidden();
-  await page.evaluate(() => localStorage.removeItem("iblog.reading"));
+  await page.evaluate(() => localStorage.removeItem("iwillbegoogler.reading"));
 });

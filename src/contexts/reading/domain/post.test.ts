@@ -21,7 +21,7 @@ describe("post", () => {
     expect(p.claps).toBe(0);
     expect(p.bookmarked).toBe(false);
   });
-  it("builds iBlog-style paths", () => {
+  it("builds IWillBeGoogler-style paths", () => {
     expect(postPath({ author: "ali", slug: "t-1" })).toBe("/@ali/t-1");
     expect(postPath({ author: "", slug: "t-1" })).toBe("/p/t-1");
   });

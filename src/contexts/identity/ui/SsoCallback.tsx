@@ -13,12 +13,38 @@ export function parseSsoFragment(hash: string): { token: string; expiresAt: stri
   return { error: p.get("error") ?? "failed" };
 }
 
+const SSO_PENDING = "iwillbegoogler.sso.pending";
+const SSO_MAX_AGE_MS = 10 * 60 * 1000;
+
+/** Remember (this tab only) that the user started a social login, so the callback accepts only a token it asked for. */
+export function markSsoStarted() {
+  try {
+    sessionStorage.setItem(SSO_PENDING, String(Date.now()));
+  } catch {
+    /* storage blocked: the callback will refuse, the user can sign in with a password */
+  }
+}
+
+/** True once per started login: a crafted #token link (login CSRF) opened in a tab that never started SSO is refused. */
+export function takeSsoStarted(now = Date.now()): boolean {
+  try {
+    const at = Number(sessionStorage.getItem(SSO_PENDING));
+    sessionStorage.removeItem(SSO_PENDING);
+    return at > 0 && now - at < SSO_MAX_AGE_MS;
+  } catch {
+    return false;
+  }
+}
+
 /** Landing page of a single sign-on: store the token like a normal login, scrub it from the address bar, go home. */
 export function SsoCallbackPage() {
   const t = useT();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const [result] = useState(() => parseSsoFragment(window.location.hash));
+  const [result] = useState(() => {
+    const r = parseSsoFragment(window.location.hash);
+    return "token" in r && !takeSsoStarted() ? { error: "failed" } : r;
+  });
   useEffect(() => {
     window.history.replaceState(null, "", window.location.pathname);
     if (!("token" in result)) return;

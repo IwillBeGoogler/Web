@@ -52,6 +52,7 @@ import { CommentCapture, CommentPins } from './collab/CommentPins';
 import { DiffBanner, DiffOverlay } from './collab/DiffOverlay';
 import { previewEdgesChange, previewNodesChange, useTimeline } from '../versions/timelineStore';
 import { CapacityOverlay } from './smart/CapacityOverlay';
+import { useSmart } from '../store/smartStore';
 import { flowRegistry } from '../lib/flow/registry';
 import { collectFlowPaths, flowTip, traceEdges } from '../lib/flow/build';
 import { traceFlow } from '../lib/flow/trace';
@@ -62,7 +63,7 @@ import { useShownCanvasBackground, useSkyPaper } from '../embed/canvasTheme';
 import { loadSketchFont, SKETCH_DEFS_ID, SKETCH_DEFS_INNER, SKETCH_FILTER_NODE_LIMIT } from '../lib/sketch';
 import '../styles/sketch.css';
 import { ErSqlPanel } from './er/ErSqlPanel';
-import { DEFAULT_VIEWPORT, FALLBACK_SIZE, initialViewport } from '../lib/viewport';
+import { DEFAULT_VIEWPORT, FALLBACK_SIZE, contentBounds, fitViewport, initialViewport } from '../lib/viewport';
 
 /** Clicking the canvas takes focus away from inspector / rename inputs so Delete, Backspace and arrows act on the diagram again. */
 function blurInputs(target: EventTarget | null) {
@@ -149,16 +150,19 @@ export function Canvas() {
   const [dragMeasures, setDragMeasures] = useState<Measure[]>([]);
   const presenting = useBoardStore((st) => !!st.presenting);
 
-  // 100% zoom on open / new page / tab switch: saved viewport, else centre the content (pan only, no scale).
+  const viewOnly = useEditorSession((st) => st.readOnly);
+  // 100% zoom on open / new page / tab switch (view-only sessions fit the whole diagram instead): saved viewport, else centre the content (pan only, no scale).
   useEffect(() => {
     const st = useDiagramStore.getState();
     const el = wrapRef.current;
     const size = el && el.clientWidth ? { width: el.clientWidth, height: el.clientHeight } : FALLBACK_SIZE;
     const lay = useLayoutStore.getState();
-    const vp = initialViewport(st.nodes, st.viewports[st.activePageId], size, { top: 76, bottom: 70, left: lay.sidebarOpen ? 300 : 0, right: lay.inspectorOpen ? 300 : 0 });
+    const insets = { top: 76, bottom: 70, left: lay.sidebarOpen ? 300 : 0, right: lay.inspectorOpen ? 300 : 0 };
+    const fit = viewOnly && st.nodes.length > 0;
+    const vp = fit ? fitViewport(contentBounds(st.nodes), size, insets) : initialViewport(st.nodes, st.viewports[st.activePageId], size, insets);
     void setViewport(vp);
     if (!st.viewports[st.activePageId]) setPageViewport(st.activePageId, vp);
-  }, [activePageId, projectId, setViewport, setPageViewport]);
+  }, [activePageId, projectId, viewOnly, setViewport, setPageViewport]);
 
   const grid = settings.canvas.gridSize;
   const snapPt = useCallback((p: Pt): Pt => (snap ? { x: Math.round(p.x / (grid / 2)) * (grid / 2), y: Math.round(p.y / (grid / 2)) * (grid / 2) } : p), [snap, grid]);
@@ -175,8 +179,13 @@ export function Canvas() {
   const pageFlow = useDiagramStore((s) => !!s.pageFlow[s.activePageId]);
   const traceNodeId = useUiStore((s) => s.traceNodeId);
   const setTrace = useUiStore((s) => s.setTrace);
-  const flowPaths = useMemo(() => collectFlowPaths(routedNodes, projected, routes, settings, pageFlow), [routedNodes, projected, routes, settings, pageFlow]);
-  useEffect(() => { flowRegistry.paths = pageFlow ? flowPaths : []; return () => { flowRegistry.paths = []; }; }, [flowPaths, pageFlow]);
+  // simulation (never persisted): packets on every edge that carries load, unless the edge opted out (dataFlow === false)
+  const simulating = useSmart((s) => s.simulating);
+  const simEdges = useSmart((s) => s.simEdges);
+  const flowOn = pageFlow || simulating;
+  const flowEdges = useMemo(() => (simulating ? projected.map((e) => (e.id in simEdges && e.data?.dataFlow !== false ? { ...e, data: { ...e.data, dataFlow: true } } : e)) : projected), [projected, simulating, simEdges]);
+  const flowPaths = useMemo(() => collectFlowPaths(routedNodes, flowEdges, routes, settings, pageFlow), [routedNodes, flowEdges, routes, settings, pageFlow]);
+  useEffect(() => { flowRegistry.paths = flowOn ? flowPaths : []; return () => { flowRegistry.paths = []; }; }, [flowPaths, flowOn]);
   const trace = useMemo(() => (pageFlow && traceNodeId ? traceFlow(traceNodeId, traceEdges(projected, settings)) : null), [pageFlow, traceNodeId, projected, settings]);
   const traceVisible = useMemo(() => (trace ? (p: { edgeIds: string[] }) => p.edgeIds.some((id) => trace.edgeIds.has(id)) : undefined), [trace]);
   // ER focus: one selected table lights itself, the tables it is joined to and those relations; the rest dims
@@ -227,10 +236,10 @@ export function Canvas() {
         alignX: others.flatMap((o) => [o.r.x, o.r.x + o.r.width / 2, o.r.x + o.r.width]),
         alignY: others.flatMap((o) => [o.r.y, o.r.y + o.r.height / 2, o.r.y + o.r.height]),
       };
-      const dim = spot && !spot.edgeIds.has(e.id) ? ' flow-dim' : '';
+      const dim = (spot && !spot.edgeIds.has(e.id) ? ' flow-dim' : '') + (simEdges[e.id] ? ' sim-over' : '');
       return { ...styled, className: `${styled.className ?? ''}${dim}`.trim() || undefined, type: 'diagram', label: undefined, markerStart: undefined, markerEnd: undefined, style: undefined, data: { ...styled.data, ui } };
     });
-  }, [projected, routes, routedNodes, settings, snap, isDragging, pageFlow, spot, hiddenIds]);
+  }, [projected, routes, routedNodes, settings, snap, isDragging, pageFlow, spot, hiddenIds, simEdges]);
   const measures = useMemo(() => {
     if (!alt || !hoverId) return [];
     const sel = nodes.filter((n) => n.selected);
@@ -608,7 +617,7 @@ export function Canvas() {
         }}
         onPaneClick={() => { if (traceNodeId) setTrace(null); }}
       >
-        {pageFlow && <FlowLayer paths={flowPaths} visible={traceVisible} />}
+        {flowOn && <FlowLayer paths={flowPaths} visible={traceVisible} />}
         <PresencePublisher />
         <PresenceLayer />
         <CommentPins />

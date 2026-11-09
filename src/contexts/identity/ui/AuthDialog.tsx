@@ -17,6 +17,7 @@ import { Turnstile } from "@/shared/ui/turnstile";
 import { authDialog, useAuthDialog } from "../application/authDialog";
 import { useLogin, useLoginMfa, useRegister } from "../application/session";
 import { type LoginInput, loginInputSchema, mfaInputSchema, type RegisterInput, registerInputSchema } from "../domain/account";
+import { markSsoStarted } from "./SsoCallback";
 
 const GoogleLogo = () => (
   <svg viewBox="0 0 24 24" className="size-4" aria-hidden>
@@ -46,7 +47,7 @@ function SocialButtons() {
     <div className="space-y-2 border-t border-line pt-4">
       {providers.map(({ id, label, Logo }) => (
         <Button key={id} asChild variant="outline" size="lg" className="w-full justify-center gap-2">
-          <a href={`/api/auth/oauth/${id}/login`}>
+          <a href={`/api/auth/oauth/${id}/login`} onClick={markSsoStarted}>
             <Logo />
             {t("auth.continueWith").replace("{label}", label)}
           </a>

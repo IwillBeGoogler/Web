@@ -143,7 +143,7 @@ export function ArticlePage({ slug }: { slug: string }) {
     return () => el.removeEventListener("click", onClick);
   }, [hasBody, nav]);
   useEffect(() => {
-    if (post) document.title = `${post.title} | iBlog`;
+    if (post) document.title = `${post.title} | IWillBeGoogler`;
   }, [post]);
 
   return (
