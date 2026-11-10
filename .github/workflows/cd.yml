@@ -112,6 +112,9 @@ jobs:
   notify:
     needs: [ci, publish, deploy]
     if: always()
+    permissions:
+      contents: read
+      actions: read # _notify reads job results and logs
     uses: ./.github/workflows/_notify.yml
     with:
       environment: production
