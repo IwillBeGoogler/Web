@@ -390,8 +390,8 @@ export function Canvas() {
   useEffect(() => {
     const id = pendingFrame.current;
     if (!id || !nodes.some((n) => n.id === id && n.type === 'frame')) return;
-    pendingFrame.current = null;
-    const t = setTimeout(() => { zoomToFrame(id, { duration: 0 }); useDiagramStore.getState().selectOnly('node', id); }, 30);
+    // clear the pending id only when the timer fires: a re-run of this effect (linkTick) cancels the timer, and must be able to reschedule it
+    const t = setTimeout(() => { pendingFrame.current = null; zoomToFrame(id, { duration: 0 }); useDiagramStore.getState().selectOnly('node', id); }, 30);
     return () => clearTimeout(t);
   }, [nodes, linkTick, zoomToFrame]);
   // links: `#node=<id>` (from "Go to main", a prototype link or a backlink) selects and zooms to that node once the file is open
@@ -400,8 +400,7 @@ export function Canvas() {
   useEffect(() => {
     const id = pendingNode.current;
     if (!id || !nodes.some((n) => n.id === id)) return;
-    pendingNode.current = null;
-    const t = setTimeout(() => zoomToNode(id), 60);
+    const t = setTimeout(() => { pendingNode.current = null; zoomToNode(id); }, 60);
     return () => clearTimeout(t);
   }, [nodes, linkTick]);
   const frameDrag = useRef<{ id: string; from: Pt; members: Map<string, Pt> } | null>(null);

@@ -14,3 +14,11 @@ describe("scrollProgress", () => {
     expect(scrollProgress(0, 0, 300, 800)).toBe(1);
   });
 });
+
+describe("scrollProgress short elements", () => {
+  it("is 1 once the viewport bottom passes the top of an element shorter than the viewport, else 0", async () => {
+    const { scrollProgress } = await import("./progress");
+    expect(scrollProgress(0, 100, 50, 800)).toBe(1);
+    expect(scrollProgress(0, 1000, 50, 800)).toBe(0);
+  });
+});

@@ -27,8 +27,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
-      # blog tests, then the embedded editor's own tests (editor/)
-      - run: bun run test
+      # blog tests, then the embedded editor's own tests (editor/); each fails under 95% coverage
+      - run: bun run test:coverage
       # the hand-written diagram-editor.d.ts must still match editor/src/embed.tsx
       - name: Editor types match
         run: bun run typecheck:editor

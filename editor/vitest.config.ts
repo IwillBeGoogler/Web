@@ -15,6 +15,8 @@ export default defineConfig({
       provider: "v8",
       include: ["src/**/*.{ts,tsx}", "core/**/*.ts"],
       exclude: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/*.d.ts", "**/*.generated.*", "src/test/**", "src/main.tsx", "src/assets/**", "src/landing/threeScene.ts", "src/landing/HeroScene.tsx"],
+      // floor of current coverage; target is 95 everywhere, raise as branches improve
+      thresholds: { statements: 96, branches: 93, functions: 95, lines: 96 },
       reporter: ["text-summary", "json-summary", "text"],
     },
   },

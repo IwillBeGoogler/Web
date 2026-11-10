@@ -229,7 +229,7 @@ export class SyncEngine {
     if (e.isNetwork) {
       set({ status: 'offline', queued: q, message: null });
       this.retryLater();
-    } else if (e.isConflict) {
+    } else if (e.isConflict && rounds < MAX_CONFLICT_ROUNDS) {
       await this.resolveConflict(mine, rounds);
     } else if (e.isUnauthorized) {
       set({ status: 'error', message: 'Signed out. Log in again to sync your changes.' });

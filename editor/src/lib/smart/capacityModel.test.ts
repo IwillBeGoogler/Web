@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeCapacity, queueFactor, MAX_QUEUE_FACTOR } from '@core/capacity';
+import { analyzeCapacity, queueFactor, queueWaitMs, MAX_QUEUE_FACTOR } from '@core/capacity';
 import { archFixFor, blogUrl, RECOMMENDATIONS, recommendationFor } from '@core/arch/fixes';
 import { LINT_RULES, applyFix, lintPage } from '@core/lint';
 import type { CEdge, CNode, CPage } from '@core/types';
@@ -20,11 +20,15 @@ describe('queueing latency', () => {
     expect(queueFactor(3)).toBe(MAX_QUEUE_FACTOR);
   });
   it('applies to node latency and the worst path', () => {
-    const r = analyzeCapacity(chain({ capacityRps: 200 })); // api rho 0.5
-    expect(r.nodes.api.p99Ms).toBeCloseTo(40);
-    expect(r.nodes.api.p50Ms).toBeCloseTo(20);
-    expect(r.worstPath!.p99Ms).toBeCloseTo(10 / (1 - 0.1) + 40 + 30 / (1 - 0.2));
+    const r = analyzeCapacity(chain({ capacityRps: 200 })); // api rho 0.5 (S = 5 ms), lb rho 0.1 (S = 1 ms), db rho 0.2 (S = 2 ms)
+    expect(r.nodes.api.p99Ms).toBeCloseTo(20 + queueWaitMs(0.5, 5, 0.99));
+    expect(r.nodes.api.p50Ms).toBeCloseTo(10); // rho 0.5: the median never waits
+    expect(r.worstPath!.p99Ms).toBeCloseTo(10 + queueWaitMs(0.1, 1, 0.99) + 20 + queueWaitMs(0.5, 5, 0.99) + 30 + queueWaitMs(0.2, 2, 0.99));
     expect(r.totals.p99Ms).toBe(r.worstPath!.p99Ms);
+    const old = analyzeCapacity(chain({ capacityRps: 200 }), { latencyModel: 'factor' });
+    expect(old.nodes.api.p99Ms).toBeCloseTo(40);
+    expect(old.nodes.api.p50Ms).toBeCloseTo(20);
+    expect(old.worstPath!.p99Ms).toBeCloseTo(10 / (1 - 0.1) + 40 + 30 / (1 - 0.2));
   });
   it('rho >= 1: over, drops 1-1/rho, saturated at the cap', () => {
     const r = analyzeCapacity(chain({ capacityRps: 50 })); // rho 2
@@ -152,5 +156,181 @@ describe('fix recommendations', () => {
     const db = icon('d', 'database');
     const withFix = applyFix(page([db]), archFixFor('arch/db-no-replica', db)!);
     expect(lintPage(withFix).some((x) => x.rule === 'arch/db-no-replica')).toBe(false);
+  });
+});
+
+describe('fan-out split (lb / gateway / waf)', () => {
+  const fan = (ratios: Array<number | undefined>, srcArch?: Record<string, unknown>) =>
+    page(
+      [icon('lb', 'load-balancer', { rps: 300 }, srcArch), ...ratios.map((_, i) => icon(`s${i}`, 'server'))],
+      ratios.map((r, i) => ({ ...edge(`e${i}`, 'lb', `s${i}`), ...(r !== undefined ? { data: { traffic: { ratio: r } } } : {}) }) as CEdge),
+    );
+  it('lb splits evenly', () => {
+    const r = analyzeCapacity(fan([undefined, undefined, undefined]));
+    for (const id of ['s0', 's1', 's2']) expect(r.nodes[id].load).toBeCloseTo(100);
+    expect(r.edges.e0.rps).toBeCloseTo(100);
+  });
+  it('explicit ratio wins, remainder is split', () => {
+    const r = analyzeCapacity(fan([0.5, undefined, undefined]));
+    expect([r.nodes.s0.load, r.nodes.s1.load, r.nodes.s2.load].map((x) => Math.round(x))).toEqual([150, 75, 75]);
+  });
+  it('explicit ratios >= 1 leave nothing for unset edges', () => {
+    const r = analyzeCapacity(fan([1, undefined]));
+    expect(r.nodes.s0.load).toBeCloseTo(300);
+    expect(r.nodes.s1.load).toBe(0);
+  });
+  it('service still calls every edge', () => {
+    const r = analyzeCapacity(page([icon('a', 'server', { rps: 100 }), icon('d', 'database'), icon('c', 'redis')], [edge('e1', 'a', 'd'), edge('e2', 'a', 'c')]));
+    expect(r.nodes.d.load).toBe(100);
+    expect(r.nodes.c.load).toBe(100);
+  });
+  it("fanOut:'broadcast' restores the old behaviour", () => {
+    const r = analyzeCapacity(fan([undefined, undefined]), { fanOut: 'broadcast' });
+    expect(r.nodes.s0.load).toBe(300);
+    expect(r.nodes.s1.load).toBe(300);
+  });
+  it('lb health check routes around a down target', () => {
+    const r = analyzeCapacity(fan([undefined, undefined]), { chaos: { nodes: { s0: 'down' } } });
+    expect(r.nodes.s0.load).toBe(0);
+    expect(r.nodes.s1.load).toBeCloseTo(300);
+    const off = analyzeCapacity(fan([undefined, undefined], { healthCheck: false }), { chaos: { nodes: { s0: 'down' } } });
+    expect(off.nodes.s0.load).toBeCloseTo(150);
+    expect(off.nodes.s1.load).toBeCloseTo(150);
+  });
+});
+
+describe('default cache / cdn hit rate (assumeDefaults)', () => {
+  const mk = (iconId: string, arch?: Record<string, unknown>) => page([icon('c', iconId, { rps: 1000 }, arch), icon('s', 'server')], [edge('e', 'c', 's')]);
+  it('cache without arch: 80%', () => {
+    const r = analyzeCapacity(mk('redis'), { assumeDefaults: true });
+    expect(r.nodes.s.load).toBeCloseTo(200);
+    expect(r.nodes.c.assumed).toBe(true);
+    expect(analyzeCapacity(mk('redis')).nodes.s.load).toBe(1000);
+  });
+  it('cdn without arch: 90%', () => {
+    expect(analyzeCapacity(mk('cdn'), { assumeDefaults: true }).nodes.s.load).toBeCloseTo(100);
+  });
+  it('explicit arch hitRate wins', () => {
+    expect(analyzeCapacity(mk('redis', { hitRate: 50 }), { assumeDefaults: true }).nodes.s.load).toBeCloseTo(500);
+  });
+});
+
+describe('perf', () => {
+  it('2000-node chain plus fan analyses fast', () => {
+    const n = 2000;
+    const nodes = Array.from({ length: n }, (_, i) => icon(`n${i}`, 'server', i === 0 ? { rps: 10 } : {}));
+    const edges = Array.from({ length: n - 1 }, (_, i) => edge(`e${i}`, `n${i}`, `n${i + 1}`));
+    for (let i = 2; i < 1000; i++) edges.push(edge(`f${i}`, 'n0', `n${i}`));
+    const t0 = performance.now();
+    analyzeCapacity(page(nodes, edges));
+    expect(performance.now() - t0).toBeLessThan(1000);
+  });
+});
+
+describe('queue backlog', () => {
+  const pipe = (qCap: Record<string, unknown> = {}, workerCap = 600, rps = 1000, qArch?: Record<string, unknown>) =>
+    page(
+      [icon('svc', 'server', { rps }), icon('q', 'kafka', qCap, qArch), icon('w', 'server', { capacityRps: workerCap })],
+      [edge('e1', 'svc', 'q'), edge('e2', 'q', 'w')],
+    );
+  it('slow consumer: queue buffers, the consumer is not overloaded', () => {
+    const r = analyzeCapacity(pipe());
+    expect(r.nodes.w.load).toBe(600);
+    expect(r.nodes.w.droppedFraction).toBe(0); // at capacity, not past it
+    expect(r.nodes.q.backlogRps).toBe(400);
+    expect(r.nodes.q.status).toBe('warn');
+    expect(r.totals.backlogRps).toBe(400);
+    expect(r.totals.droppedPct).toBeCloseTo(40); // the consumers never catch up: the backlog is lost in the end
+  });
+  it('backlog that drains after the spike is not counted as dropped', () => {
+    const r = analyzeCapacity(pipe({}, 300, 200), { chaos: { spike: 2 } });
+    expect(r.nodes.q.backlogRps).toBe(100);
+    expect(r.nodes.q.retentionExceeded).toBe(false);
+    expect(r.totals.droppedPct).toBeCloseTo(0);
+  });
+  it('consumerRps explicit wins', () => {
+    const r = analyzeCapacity(pipe({ consumerRps: 300 }));
+    expect(r.nodes.w.load).toBe(300);
+    expect(r.nodes.q.backlogRps).toBe(700);
+  });
+  it('ingest overflow still drops', () => {
+    const r = analyzeCapacity(pipe({ capacityRps: 500 }, 10000));
+    expect(r.nodes.q.droppedFraction).toBeCloseTo(0.5);
+    expect(r.nodes.q.backlogRps).toBeUndefined();
+    expect(r.totals.droppedPct).toBeCloseTo(50);
+  });
+  it('time to drain after a spike', () => {
+    const r = analyzeCapacity(pipe({}, 600, 200), { chaos: { spike: 2 }, spikeDurationSec: 300 }); // base 200, spike 400, drain 600 -> no backlog
+    expect(r.nodes.q.backlogRps).toBeUndefined();
+    const s = analyzeCapacity(pipe({}, 300, 200), { chaos: { spike: 2 }, spikeDurationSec: 300 }); // base 200, spike 400, drain 300
+    expect(s.nodes.q.backlogRps).toBe(100);
+    expect(s.nodes.q.backlogMsgs).toBe(30000);
+    expect(s.nodes.q.timeToDrainSec).toBeCloseTo(30000 / (300 - 200));
+  });
+  it('never drains: Infinity and retentionExceeded', () => {
+    const q = analyzeCapacity(pipe()).nodes.q;
+    expect(q.timeToDrainSec).toBe(Infinity);
+    expect(q.retentionExceeded).toBe(true);
+  });
+  it('unknown consumer capacity: no backlog', () => {
+    const r = analyzeCapacity(page([icon('svc', 'server', { rps: 1000 }), icon('q', 'kafka'), icon('w', 'server')], [edge('e1', 'svc', 'q'), edge('e2', 'q', 'w')]));
+    expect(r.nodes.q.backlogRps).toBeUndefined();
+    expect(r.nodes.w.load).toBe(1000);
+  });
+});
+
+describe('percentile latency', () => {
+  it('queueWaitMs: median waits only past rho 0.5, p99 grows faster', () => {
+    expect(queueWaitMs(0.4, 10, 0.5)).toBe(0);
+    expect(queueWaitMs(0.9, 10, 0.5)).toBeGreaterThan(0);
+    expect(queueWaitMs(0.9, 10, 0.99)).toBeGreaterThan(queueWaitMs(0.9, 10, 0.5));
+    expect(queueWaitMs(1, 10, 0.99)).toBe(Infinity);
+  });
+  it('p99EstMs is between the biggest hop and the summed upper bound', () => {
+    const w = analyzeCapacity(chain({ capacityRps: 200 })).worstPath!;
+    expect(w.p99EstMs!).toBeLessThanOrEqual(w.p99Ms);
+    expect(w.p99EstMs!).toBeGreaterThanOrEqual(w.p50Ms);
+  });
+});
+
+describe('retries', () => {
+  const withTraffic = (traffic: Record<string, unknown>, apiCap = 100) =>
+    page(
+      [icon('c', 'server', { rps: 100 }), icon('api', 'server', { capacityRps: apiCap, p50Ms: 10, p99Ms: 20 })],
+      [{ ...edge('e', 'c', 'api'), data: { traffic } } as CEdge],
+    );
+  it('no retries: nothing changes', () => {
+    const r = analyzeCapacity(withTraffic({}, 50));
+    expect(r.nodes.api.load).toBe(100);
+    expect(r.edges.e.amplification).toBeUndefined();
+    expect(r.totals.retryStorm).toBe(false);
+  });
+  it('healthy target: amplification 1', () => {
+    const r = analyzeCapacity(withTraffic({ retries: 3 }, 1000));
+    expect(r.edges.e.amplification).toBeCloseTo(1);
+    expect(r.nodes.api.load).toBeCloseTo(100);
+  });
+  it('overloaded target: retries raise its load', () => {
+    const plain = analyzeCapacity(withTraffic({}, 50));
+    const r = analyzeCapacity(withTraffic({ retries: 3 }, 50));
+    expect(r.nodes.api.load).toBeGreaterThan(plain.nodes.api.load);
+    expect(r.edges.e.amplification!).toBeGreaterThan(1);
+    expect(r.edges.e.failRate!).toBeGreaterThan(0.5);
+  });
+  it('down target: every attempt fails, amplification retries + 1', () => {
+    const r = analyzeCapacity(withTraffic({ retries: 3 }), { chaos: { nodes: { api: 'down' } } });
+    expect(r.edges.e.failRate).toBe(1);
+    expect(r.edges.e.amplification).toBe(4);
+  });
+  it('timeout below p50 fails half the calls and adds retry latency', () => {
+    const r = analyzeCapacity(withTraffic({ retries: 2, timeoutMs: 5, backoffMs: 5 }, 1000));
+    expect(r.edges.e.failRate).toBeCloseTo(0.5);
+    expect(r.edges.e.amplification).toBeCloseTo(1 + 0.5 + 0.25, 1);
+    expect(r.worstPath!.p99Ms).toBeCloseTo(r.nodes.api.p99Ms! + 0.5 * (5 + 5), 5); // api p99 + failed share x (timeout + backoff)
+  });
+  it('retries do not break the dropped share baseline', () => {
+    const r = analyzeCapacity(withTraffic({ retries: 3 }, 50));
+    expect(r.totals.droppedPct).toBeGreaterThan(0);
+    expect(r.totals.droppedPct).toBeLessThanOrEqual(100);
   });
 });

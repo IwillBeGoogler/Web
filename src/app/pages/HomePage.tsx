@@ -733,7 +733,12 @@ function HomeFeed({ tab: wanted }: { tab: HomeTab | undefined }) {
           <h2 id="stream" className="font-display text-lg font-extrabold tracking-[-0.02em]">
             The stream
           </h2>
-          <div className="sticky top-14 z-30 -mx-4 mt-3 mb-3 flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 md:mx-0 md:px-0">
+          <div className="sticky top-14 z-30 -mx-4 mt-3 mb-3 flex items-center justify-between gap-3 px-4 py-3 md:-mx-10 md:px-10">
+            {/* the band's backdrop and rule fade out at both ends instead of stopping in hard corners */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10 border-b border-line bg-surface md:[mask-image:linear-gradient(to_right,transparent,#000_10%,#000_90%,transparent)]"
+            />
             <Lens
               label="Feed lens"
               value={tab}

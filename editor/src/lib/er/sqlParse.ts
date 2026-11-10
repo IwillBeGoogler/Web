@@ -441,10 +441,12 @@ function parseCreateTable(toks: Tok[], schema: ErSchemaDef, warnings: string[], 
     const h = item[0];
     if (isWord(h, 'LIKE')) { copyLike(item, schema, table, warnings); continue; }
     const looksLikeList = (at: number) => isP(item[at], '(') && (item[at + 1]?.k === 'word' || item[at + 1]?.k === 'qident');
+    // MySQL index with an access method: INDEX USING btree (a) / KEY k USING hash (b) / UNIQUE KEY k USING btree (c)
+    const usingAt = item.findIndex((t, k) => k > 0 && k <= 4 && isWord(t, 'USING'));
     const tableLevel =
       isWord(h, 'CONSTRAINT', 'PRIMARY', 'FOREIGN', 'CHECK', 'EXCLUDE', 'LIKE') ||
       (isWord(h, 'UNIQUE', 'KEY', 'INDEX', 'FULLTEXT', 'SPATIAL', 'PERIOD') &&
-        (looksLikeList(1) || (ident(item[1]) !== undefined && (looksLikeList(2) || (isWord(item[1], 'KEY', 'INDEX') && (looksLikeList(2) || looksLikeList(3)))))));
+        (looksLikeList(1) || (usingAt > 0 && looksLikeList(usingAt + 2)) || (ident(item[1]) !== undefined && (looksLikeList(2) || (isWord(item[1], 'KEY', 'INDEX') && (looksLikeList(2) || looksLikeList(3)))))));
     if (tableLevel) { deferred.push(item); continue; }
     const c = parseColumn(item);
     if (c) {

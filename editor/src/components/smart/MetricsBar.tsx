@@ -37,9 +37,10 @@ export function MetricsBar() {
   return (
     <div className="metrics-bar" role="region" aria-label={t('Metrics')} data-testid="metrics-bar">
       <span className="m"><span>{t('RPS in')}</span><b data-testid="m-rps">{tot ? rps(tot.rpsIn) : '–'}</b></span>
-      <span className="m"><span>p99</span><b data-testid="m-p99">{tot && tot.p99Ms > 0 ? `${rps(tot.p99Ms)} ms` : '–'}</b></span>
+      <span className="m"><span title={t('Upper bound: sum of the per-hop p99')}>p99</span><b data-testid="m-p99">{tot && tot.p99Ms > 0 ? `${rps(tot.p99Ms)} ms` : '–'}</b></span>
       <span className={`m ${availCls}`}><span>{t('Availability')}</span><b data-testid="m-avail">{tot ? pct(tot.availability) : '–'}</b></span>
       <span className={`m ${tot && tot.droppedPct > 0 ? 'bad' : ''}`}><span>{t('Dropped')}</span><b data-testid="m-dropped">{tot ? `${tot.droppedPct.toFixed(1)}%` : '–'}</b></span>
+      {tot && tot.backlogRps > 0 && <span className="m warn"><span>{t('Backlog')}</span><b data-testid="m-backlog">{rps(tot.backlogRps)} msg/s</b></span>}
       <span className={`m m-budget ${tot?.overBudget ? 'bad' : ''}`}>
         <span>$/{t('mo')}</span><b data-testid="m-cost">{tot ? usd(tot.costUsdMonth) : '–'}</b>
         <span>{t('of')}</span>

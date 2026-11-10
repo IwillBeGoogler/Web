@@ -1,6 +1,6 @@
-import { settingsSync } from "@/shared/settingsSync";
 import { createHttpClient } from "@/shared/http/client";
 import { createTokenStore } from "@/shared/http/tokenStore";
+import { settingsSync } from "@/shared/settingsSync";
 
 /** App-wide token store and HTTP client. */
 export const tokens = createTokenStore();

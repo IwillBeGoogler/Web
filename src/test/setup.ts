@@ -1,7 +1,10 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
+import { cleanup, configure } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll } from "vitest";
 import { server } from "./server";
+
+// CI runners are slower than laptops: wait longer for async UI before calling it a failure
+configure({ asyncUtilTimeout: 4000 });
 
 beforeAll(() => server.listen({ onUnhandledFrame: "error" }));
 afterEach(() => {

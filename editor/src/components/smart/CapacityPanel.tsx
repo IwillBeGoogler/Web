@@ -66,6 +66,7 @@ export function CapacityPanel() {
             <NumField label="Latency p50" value={cap.p50Ms} disabled={readOnly} onChange={(v) => setNodeCapacity(node.id, { p50Ms: v })} unit="ms" />
             <NumField label="Latency p99" value={cap.p99Ms} disabled={readOnly} onChange={(v) => setNodeCapacity(node.id, { p99Ms: v })} unit="ms" />
             <NumField label="Availability" value={cap.availability} disabled={readOnly} onChange={(v) => setNodeCapacity(node.id, { availability: v === null ? null : Math.min(100, v) })} unit="% (default by role)" />
+            <NumField label="Consumer rate" value={cap.consumerRps} disabled={readOnly} onChange={(v) => setNodeCapacity(node.id, { consumerRps: v })} unit="msg/s (queues)" />
             <NumField label="Payload" value={cap.payloadKb} disabled={readOnly} onChange={(v) => setNodeCapacity(node.id, { payloadKb: v })} unit="KB" />
             <NumField label="Write share" value={cap.writeRatio} step="0.01" disabled={readOnly} onChange={(v) => setNodeCapacity(node.id, { writeRatio: v === null ? null : Math.min(1, v) })} unit="0-1" />
             <NumField label="Stored now" value={cap.storageGb} disabled={readOnly} onChange={(v) => setNodeCapacity(node.id, { storageGb: v })} unit="GB" />
@@ -85,6 +86,9 @@ export function CapacityPanel() {
             <NumField label="Calls per request" value={traffic.ratio} step="0.1" disabled={readOnly} onChange={(v) => setEdgeTraffic(edge.id, { ratio: v })} unit="default 1" />
             <NumField label="Network p50" value={traffic.p50Ms} disabled={readOnly} onChange={(v) => setEdgeTraffic(edge.id, { p50Ms: v })} unit="ms" />
             <NumField label="Network p99" value={traffic.p99Ms} disabled={readOnly} onChange={(v) => setEdgeTraffic(edge.id, { p99Ms: v })} unit="ms" />
+            <NumField label="Retries" value={traffic.retries} step="1" disabled={readOnly} onChange={(v) => setEdgeTraffic(edge.id, { retries: v })} unit="default 0" />
+            <NumField label="Timeout" value={traffic.timeoutMs} disabled={readOnly} onChange={(v) => setEdgeTraffic(edge.id, { timeoutMs: v })} unit="ms" />
+            <NumField label="Retry backoff" value={traffic.backoffMs} disabled={readOnly} onChange={(v) => setEdgeTraffic(edge.id, { backoffMs: v })} unit="ms" />
             <NumField label="Payload per call" value={traffic.payloadKb} disabled={readOnly} onChange={(v) => setEdgeTraffic(edge.id, { payloadKb: v })} unit="KB" />
           </fieldset>
         )}
@@ -95,7 +99,7 @@ export function CapacityPanel() {
             {w ? (
               <button type="button" className="cap-path" data-testid="cap-worst" onClick={() => showProblem(w.nodeIds, w.edgeIds)}>
                 {w.nodeIds.map(name).join(' → ')}
-                {w.broken ? <strong className="cap-broken">{t('down: requests fail')}</strong> : <><strong>p99 {fmt(w.p99Ms)} ms</strong> <span className="muted">p50 {fmt(w.p50Ms)} ms{w.incomplete ? ` · ${t('some figures missing')}` : ''}</span></>}
+                {w.broken ? <strong className="cap-broken">{t('down: requests fail')}</strong> : <><strong>p99 {fmt(w.p99Ms)} ms</strong> <span className="muted">p50 {fmt(w.p50Ms)} ms{w.p99EstMs !== undefined && w.nodeIds.length > 1 ? ` · ${t('upper bound, est.')} ${fmt(w.p99EstMs)} ms` : ''}{w.incomplete ? ` · ${t('some figures missing')}` : ''}</span></>}
               </button>
             ) : <p className="muted">{t('Enter latencies (p50 / p99) to see the slowest path.')}</p>}
             <h4>{t('Bottlenecks')}</h4>

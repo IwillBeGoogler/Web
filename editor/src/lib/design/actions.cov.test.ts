@@ -1,0 +1,202 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useDiagramStore } from '../../store/diagramStore';
+import { useToastStore } from '../../store/toastStore';
+import { useUiStore } from '../../store/uiStore';
+import { useWorkspace } from '../../workspace/store';
+import type { DiagramNode } from '../../types';
+import { flowRef } from '../board/flowRef';
+import { useLibraryDoc } from '../library/store';
+import { emptyLibrary } from '../library/components';
+import { executeDesignAction, followLink, linkAtPoint, linkBack, zoomToNode } from './actions';
+
+const s = () => useDiagramStore.getState();
+const ui = () => useUiStore.getState();
+const toasts = () => useToastStore.getState().toasts.map((t) => t.message);
+const file = (id: string) => ({ id, folderId: null, name: id, kind: 'sdd' as const, position: 0, createdAt: 0, updatedAt: 0, pageCount: 1 });
+const n = (id: string, extra: Partial<DiagramNode> = {}, data: Record<string, unknown> = {}): DiagramNode => ({ id, type: 'icon', position: { x: 0, y: 0 }, width: 100, height: 60, data: { label: id, ...data }, ...extra }) as DiagramNode;
+
+beforeEach(() => {
+  ui().resetUi();
+  s().reset();
+  useToastStore.getState().clear();
+  useDiagramStore.setState({ projectId: 'arch' });
+  useWorkspace.setState({ projectId: 'prj1', tree: { folders: [], files: [file('arch'), file('erd')] } });
+  useLibraryDoc.setState({ doc: emptyLibrary() } as never);
+  flowRef.current = null;
+  window.history.replaceState({}, '', '/p/prj1/f/arch');
+});
+
+describe('navigation helpers', () => {
+  it('zoomToNode needs a flow instance and an existing node, then selects and fits', () => {
+    s().addNode(n('a'));
+    zoomToNode('a');
+    const fitView = vi.fn();
+    flowRef.current = { fitView } as never;
+    zoomToNode('ghost');
+    expect(fitView).not.toHaveBeenCalled();
+    zoomToNode('a');
+    expect(fitView).toHaveBeenCalled();
+    expect(s().nodes[0].selected).toBe(true);
+  });
+  it('followLink: same file zooms to the node, unknown file toasts, no workspace project toasts', () => {
+    s().addNode(n('a'));
+    const fitView = vi.fn();
+    flowRef.current = { fitView } as never;
+    followLink({ fileId: 'arch', nodeId: 'a' });
+    expect(fitView).toHaveBeenCalled();
+    followLink({ fileId: 'arch' });
+    followLink({ fileId: 'nope' });
+    expect(toasts()).toContain('The linked file no longer exists');
+    useWorkspace.setState({ projectId: null } as never);
+    followLink({ fileId: 'erd' });
+  });
+  it('linkBack: empty trail is a no-op; same-file entries zoom; other-file entries navigate; no project does nothing', () => {
+    linkBack();
+    s().addNode(n('a'));
+    const fitView = vi.fn();
+    flowRef.current = { fitView } as never;
+    ui().setDesign({ linkTrail: [{ fileId: 'arch', nodeId: 'a' }] });
+    linkBack();
+    expect(fitView).toHaveBeenCalled();
+    ui().setDesign({ linkTrail: [{ fileId: 'arch' }] });
+    linkBack();
+    ui().setDesign({ linkTrail: [{ fileId: 'erd' }] });
+    linkBack();
+    expect(window.location.pathname).toBe('/p/prj1/f/erd');
+    useWorkspace.setState({ projectId: null } as never);
+    ui().setDesign({ linkTrail: [{ fileId: 'erd' }] });
+    linkBack();
+  });
+  it('linkAtPoint returns the link of the node under the point, skipping unlinked nodes', () => {
+    s().addNode(n('plain'));
+    s().addNode(n('linked', {}, { link: { fileId: 'erd' } }));
+    const mk = (id: string) => {
+      const el = document.createElement('div');
+      el.className = 'react-flow__node';
+      el.setAttribute('data-id', id);
+      return el;
+    };
+    (document as unknown as { elementsFromPoint: () => Element[] }).elementsFromPoint = () => [document.createElement('span'), mk('plain'), mk('linked')];
+    expect(linkAtPoint(1, 1)).toEqual({ fileId: 'erd' });
+    (document as unknown as { elementsFromPoint: () => Element[] }).elementsFromPoint = () => [mk('plain')];
+    expect(linkAtPoint(1, 1)).toBeNull();
+  });
+});
+
+describe('executeDesignAction', () => {
+  it('unknown names return false; panel toggles flip their flags', () => {
+    expect(executeDesignAction('nope')).toBe(false);
+    for (const a of ['layers-toggle', 'outline-toggle', 'rulers-toggle', 'dev-toggle', 'plugins-open']) expect(executeDesignAction(a)).toBe(true);
+  });
+  it('connect-start: node id, focused element, selection, or a hint', () => {
+    expect(executeDesignAction('connect-start')).toBe(true);
+    expect(toasts().some((m) => m.includes('Shift+C'))).toBe(true);
+    s().addNode(n('a'));
+    executeDesignAction('connect-start', { nodeId: 'a' });
+    expect(ui().connectFrom).toBe('a');
+    ui().setConnectFrom(null);
+    s().selectOnly('node', 'a');
+    executeDesignAction('connect-start');
+    expect(ui().connectFrom).toBe('a');
+    ui().setConnectFrom(null);
+    const el = document.createElement('div');
+    el.className = 'react-flow__node';
+    el.setAttribute('data-id', 'a');
+    const btn = document.createElement('button');
+    el.appendChild(btn);
+    document.body.appendChild(el);
+    btn.focus();
+    useDiagramStore.setState((st) => ({ nodes: st.nodes.map((x) => ({ ...x, selected: false })) }));
+    executeDesignAction('connect-start');
+    expect(ui().connectFrom).toBe('a');
+    el.remove();
+  });
+  it('toggle-hidden hides then shows the selection; an explicit unselected id; nothing selected is a no-op', () => {
+    s().addNode(n('a'));
+    s().addNode(n('b'));
+    executeDesignAction('toggle-hidden');
+    s().selectOnly('node', 'a');
+    executeDesignAction('toggle-hidden');
+    expect(s().nodes.find((x) => x.id === 'a')!.data.hidden).toBe(true);
+    s().selectOnly('node', 'a');
+    executeDesignAction('toggle-hidden');
+    expect(s().nodes.find((x) => x.id === 'a')!.data.hidden).toBe(false);
+    executeDesignAction('toggle-hidden', { nodeId: 'b' });
+    expect(s().nodes.find((x) => x.id === 'b')!.data.hidden).toBe(true);
+  });
+  it('components: create, insert, detach, reset overrides, go-to-main', () => {
+    executeDesignAction('create-component');
+    expect(toasts().some((m) => m.includes('Select something'))).toBe(true);
+    s().addNode(n('a'));
+    s().addNode(n('b', { position: { x: 200, y: 0 } }));
+    useDiagramStore.setState((st) => ({ nodes: st.nodes.map((x) => ({ ...x, selected: true })) }));
+    executeDesignAction('create-component');
+    const cid = Object.keys(useLibraryDoc.getState().doc.components)[0];
+    expect(cid).toBeTruthy();
+    expect(toasts().some((m) => m.includes('Created component'))).toBe(true);
+    executeDesignAction('insert-component:ghost');
+    executeDesignAction(`insert-component:${cid}`, { at: { x: 500, y: 500 } });
+    executeDesignAction(`insert-component:${cid}`);
+    const inst = s().nodes.find((x) => x.data.instance);
+    expect(inst).toBeTruthy();
+    const kid = s().nodes.find((x) => x.parentId === inst!.id)!;
+    executeDesignAction('reset-overrides');
+    executeDesignAction('reset-overrides', { nodeId: kid.id });
+    executeDesignAction('reset-overrides', { nodeId: 'a' });
+    const fitView = vi.fn();
+    flowRef.current = { fitView } as never;
+    executeDesignAction('go-to-main', { nodeId: inst!.id });
+    executeDesignAction('go-to-main', { nodeId: s().nodes.find((x) => x.data.componentMain)!.id });
+    executeDesignAction('go-to-main');
+    executeDesignAction('go-to-main', { nodeId: 'ghost' });
+    expect(toasts().some((m) => m.includes('main component was deleted'))).toBe(true);
+    useDiagramStore.setState((st) => ({ nodes: st.nodes.map((x) => ({ ...x, selected: false })) }));
+    executeDesignAction('detach-instance');
+    executeDesignAction('detach-instance', { nodeId: kid.id });
+    expect(s().nodes.filter((x) => x.data.instance && !x.data.componentMain).length).toBeLessThan(2);
+  });
+  it('auto-layout: off, group config for each mode, wrap a selection, nothing to wrap', () => {
+    s().addNode(n('g', { type: 'group' } as never));
+    s().addNode(n('c1', { parentId: 'g' }));
+    s().addNode(n('c2', { parentId: 'g' }));
+    executeDesignAction('auto-layout:off', { nodeId: 'ghost' });
+    s().selectOnly('node', 'g');
+    for (const m of ['row', 'column', 'grid', 'weird']) executeDesignAction(`auto-layout:${m}`);
+    executeDesignAction('auto-layout:off', { nodeId: 'g' });
+    useDiagramStore.setState((st) => ({ nodes: st.nodes.map((x) => ({ ...x, selected: x.id === 'c1' || x.id === 'c2' })) }));
+    executeDesignAction('auto-layout:column');
+    executeDesignAction('auto-layout:grid');
+    useDiagramStore.setState((st) => ({ nodes: st.nodes.map((x) => ({ ...x, selected: false })) }));
+    executeDesignAction('auto-layout:row');
+    expect(toasts().some((m) => m.includes('Select cards'))).toBe(true);
+    executeDesignAction('reflow');
+  });
+  it('styles apply and detach; light and dark theme; link-open / link-follow / link-back', () => {
+    s().addNode(n('a', { selected: true }, { link: { fileId: 'erd' } }));
+    executeDesignAction('style-apply:fill:nope');
+    document.documentElement.dataset.theme = 'dark';
+    executeDesignAction('style-apply:fill:nope');
+    delete document.documentElement.dataset.theme;
+    executeDesignAction('style-detach:fill');
+    executeDesignAction('style-detach:fill', { nodeId: 'a' });
+    executeDesignAction('link-follow');
+    expect(window.location.pathname).toBe('/p/prj1/f/erd');
+    window.history.replaceState({}, '', '/p/prj1/f/arch');
+    executeDesignAction('link-follow', { nodeId: 'ghost' });
+    s().addNode(n('plain'));
+    executeDesignAction('link-follow', { nodeId: 'plain' });
+    executeDesignAction('link-open:erd:');
+    executeDesignAction('link-open:erd:node1');
+    executeDesignAction('link-back');
+  });
+  it('copy-snippet copies when a snippet matches, reports clipboard failures, ignores unknown ids', async () => {
+    s().addNode(n('a', { selected: true }));
+    const writeText = vi.fn(async () => undefined);
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    executeDesignAction('copy-snippet:nope');
+    executeDesignAction('copy-snippet:nope', { nodeId: 'ghost' });
+    expect(writeText).not.toHaveBeenCalled();
+    Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    executeDesignAction('copy-snippet:nope');
+  });
+});

@@ -31,6 +31,7 @@ export default defineConfig({
         "vite/**/*.test.ts",
       ],
       reporter: ["text-summary", "json-summary", "text"],
+      thresholds: { statements: 95, branches: 95, functions: 95, lines: 95 },
     },
   },
 });
