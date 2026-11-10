@@ -11,6 +11,8 @@ import Strike from "@tiptap/extension-strike";
 import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
 import { Node as PMNode } from "@tiptap/pm/model";
+import { Plugin } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import StarterKit from "@tiptap/starter-kit";
 import { scanLive } from "./liveScan";
 import { DiagramEmbed, HtmlLive, UploadPlaceholder } from "./nodes";
@@ -125,18 +127,77 @@ const RichStrike = Strike.extend({
 });
 const RichCode = Code.extend(noPaste);
 
+/** `group=name` in a fence's info string: fences next to each other with the same name are shown as one block with a tab per language. */
+const GROUP_ATTR = /(?:^|\s)group=([A-Za-z0-9_-]{1,32})(?=\s|$)/;
+
+/** A fence's info string split into its language (everything but the group) and its group name. */
+export function splitInfo(info: string): { language: string | null; group: string | null } {
+  const m = GROUP_ATTR.exec(info);
+  const language = (m ? info.replace(GROUP_ATTR, " ") : info).trim();
+  return { language: language || null, group: m ? (m[1] as string) : null };
+}
+
+/** A new group name for the code blocks of one article. */
+export const newCodeGroup = () => `g${Math.random().toString(36).slice(2, 7)}`;
+
+/** Marks each code block that belongs to a group, and the first/last of a run, so the editor can draw them as one block. */
+const codeGroupMarks = new Plugin({
+  props: {
+    decorations(state) {
+      const out: Decoration[] = [];
+      const items: { pos: number; size: number; group: string | null; lang: string }[] = [];
+      state.doc.forEach((n, pos) => {
+        items.push({
+          pos,
+          size: n.nodeSize,
+          group: n.type.name === "codeBlock" ? ((n.attrs.group as string | null) ?? null) : null,
+          lang: String(n.attrs.language ?? "") || "text",
+        });
+      });
+      items.forEach((it, i) => {
+        if (!it.group) return;
+        const first = items[i - 1]?.group !== it.group;
+        const last = items[i + 1]?.group !== it.group;
+        const pos = first && last ? "solo" : first ? "first" : last ? "last" : "mid";
+        out.push(Decoration.node(it.pos, it.pos + it.size, { class: `code-group code-group-${pos}`, "data-lang": it.lang }));
+      });
+      return out.length ? DecorationSet.create(state.doc, out) : DecorationSet.empty;
+    },
+  },
+});
+
 /** A code block fenced with more backticks than any line inside could close it with. */
 const RichCodeBlock = CodeBlock.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      group: {
+        default: null as string | null,
+        parseHTML: (el: HTMLElement) => el.getAttribute("data-group"),
+        renderHTML: (a: Record<string, unknown>) => (a.group ? { "data-group": a.group as string } : {}),
+      },
+    };
+  },
+  addProseMirrorPlugins() {
+    return [...(this.parent?.() ?? []), codeGroupMarks];
+  },
+  parseMarkdown(token, helpers) {
+    if (token.raw?.startsWith("```") === false && token.raw?.startsWith("~~~") === false && token.codeBlockStyle !== "indented") return [];
+    const { language, group } = splitInfo(String(token.lang ?? ""));
+    return helpers.createNode("codeBlock", { language, group }, token.text ? [helpers.createTextNode(token.text)] : []);
+  },
   renderMarkdown(node) {
     const code = (node.content ?? []).map((c) => c.text ?? "").join("");
     const lang = String(node.attrs?.language ?? "").replace(/[`\r\n]/g, "");
+    const group = /^[A-Za-z0-9_-]{1,32}$/.test(String(node.attrs?.group ?? "")) ? String(node.attrs?.group) : "";
+    const info = [lang, group ? `group=${group}` : ""].filter(Boolean).join(" ");
     let n = 3;
     for (const l of code.split("\n")) {
       const m = /^ {0,3}(`{3,})/.exec(l);
       if (m && (m[1] as string).length >= n) n = (m[1] as string).length + 1;
     }
     const f = "`".repeat(n);
-    return `${f}${lang}\n${code}\n${f}`;
+    return `${f}${info}\n${code}\n${f}`;
   },
 });
 

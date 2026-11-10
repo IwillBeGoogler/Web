@@ -9,6 +9,7 @@ import {
   Heading3Icon,
   ImageIcon,
   ItalicIcon,
+  LayersIcon,
   LinkIcon,
   ListIcon,
   ListOrderedIcon,
@@ -16,6 +17,7 @@ import {
   QuoteIcon,
   Redo2Icon,
   SquareCodeIcon,
+  SquareMinusIcon,
   Undo2Icon,
   XIcon,
 } from "lucide-react";
@@ -27,7 +29,7 @@ import { type MessageKey, useT } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { toast } from "@/shared/ui/toast";
 import { scanLive } from "./liveScan";
-import { canRoundTrip, parseMarkdown, patchEditor, type RichProblem, richExtensions, sameRichDoc, serializeDoc } from "./markdown";
+import { canRoundTrip, newCodeGroup, parseMarkdown, patchEditor, type RichProblem, richExtensions, sameRichDoc, serializeDoc } from "./markdown";
 import { safeHref } from "./safeLink";
 import { filterSlash, SLASH_ORDER, type SlashId, slashQuery } from "./slash";
 import { DiagramNode, HtmlLiveNode } from "./views";
@@ -58,7 +60,61 @@ type Props = {
 const SERIALIZE_MS = 250;
 const keys = (k: string) => `Control+${k} Meta+${k}`;
 
-const LANGS = ["", "bash", "c", "cpp", "css", "go", "html", "java", "javascript", "json", "python", "rust", "sql", "typescript", "yaml"];
+const LANGS = [
+  "",
+  "bash",
+  "c",
+  "cpp",
+  "csharp",
+  "css",
+  "dart",
+  "dockerfile",
+  "go",
+  "html",
+  "java",
+  "javascript",
+  "json",
+  "kotlin",
+  "lua",
+  "php",
+  "python",
+  "ruby",
+  "rust",
+  "scala",
+  "sql",
+  "swift",
+  "toml",
+  "typescript",
+  "yaml",
+];
+
+/** The languages a new tab of a group tries first, in this order. */
+const GROUP_LANGS = ["javascript", "python", "go", "java", "typescript", "rust", "bash", "csharp"];
+
+/**
+ * Starts a code group at the selected code block (or adds a tab to its group): a new empty block of the same group follows it,
+ * in the first language of GROUP_LANGS the group does not have yet.
+ */
+function addGroupTab(ed: Editor) {
+  const { $from } = ed.state.selection;
+  if ($from.parent.type.name !== "codeBlock") return;
+  const group = ($from.parent.attrs.group as string | null) ?? newCodeGroup();
+  const used = new Set<string>();
+  ed.state.doc.forEach((n) => {
+    if (n.type.name === "codeBlock" && n.attrs.group === group) used.add(String(n.attrs.language ?? ""));
+  });
+  const language = GROUP_LANGS.find((l) => !used.has(l)) ?? "";
+  const before = $from.before();
+  const after = $from.after();
+  ed.chain()
+    .focus()
+    .command(({ tr }) => {
+      tr.setNodeMarkup(before, undefined, { ...$from.parent.attrs, group });
+      return true;
+    })
+    .insertContentAt(after, { type: "codeBlock", attrs: { language, group } })
+    .run();
+}
 
 function Tb({
   label,
@@ -112,6 +168,7 @@ const toolbarState = (editor: Editor) => ({
   quote: editor.isActive("blockquote"),
   codeBlock: editor.isActive("codeBlock"),
   language: (editor.getAttributes("codeBlock").language as string | null) ?? "",
+  grouped: Boolean(editor.getAttributes("codeBlock").group),
   canUndo: editor.can().undo(),
   canRedo: editor.can().redo(),
 });
@@ -264,6 +321,15 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
           return void c.toggleBlockquote().run();
         case "code":
           return void c.setCodeBlock().run();
+        case "codegroup": {
+          const group = newCodeGroup();
+          return void c
+            .insertContent([
+              { type: "codeBlock", attrs: { language: "javascript", group } },
+              { type: "codeBlock", attrs: { language: "python", group } },
+            ])
+            .run();
+        }
         case "hr":
           return void c.setHorizontalRule().run();
         case "image":
@@ -477,6 +543,16 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
               ))}
               {LANGS.includes(st.language) ? null : <option value="__other">{st.language}</option>}
             </select>
+          ) : null}
+          {st?.codeBlock ? (
+            <Tb label={t(st.grouped ? "rich.codegroup.add" : "rich.slash.codegroup")} onClick={() => addGroupTab(editor)}>
+              <LayersIcon className="size-4" aria-hidden />
+            </Tb>
+          ) : null}
+          {st?.codeBlock && st.grouped ? (
+            <Tb label={t("rich.codegroup.out")} onClick={() => chain().updateAttributes("codeBlock", { group: null }).run()}>
+              <SquareMinusIcon className="size-4" aria-hidden />
+            </Tb>
           ) : null}
           <Tb label={t("rich.hr")} onClick={() => chain().setHorizontalRule().run()}>
             <MinusIcon className="size-4" aria-hidden />

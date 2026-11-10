@@ -204,6 +204,67 @@
     font-size: 0.875rem;
     line-height: 1.6;
   }
+  /* code blocks: CodeTabs (language tabs, copy, token colours) */
+  .prose-article .code-view {
+    @apply my-8 overflow-hidden rounded-sm;
+    background: var(--tw-prose-pre-bg);
+  }
+  .prose-article .code-view pre {
+    @apply my-0 rounded-none;
+  }
+  .prose-article .code-view-bar {
+    @apply flex items-center justify-between gap-3 px-3 font-sans text-sm;
+    border-bottom: 1px solid var(--line);
+  }
+  .prose-article .code-view-tabs {
+    @apply flex min-w-0 overflow-x-auto;
+  }
+  .prose-article .code-view-tabs button,
+  .prose-article .code-view-copy {
+    @apply cursor-pointer px-3 py-2;
+    color: var(--muted);
+  }
+  .prose-article .code-view-tabs button[aria-selected="true"] {
+    color: var(--fg);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+  .prose-article .code-view-tabs button:hover,
+  .prose-article .code-view-copy:hover {
+    color: var(--fg);
+  }
+  .prose-article .code-view-lang {
+    @apply px-3 py-2;
+    color: var(--muted);
+  }
+  .prose-article .code-view code {
+    @apply bg-transparent p-0;
+  }
+  .prose-article .code-view .tok-keyword,
+  .prose-article .code-view .tok-operatorKeyword,
+  .prose-article .code-view .tok-modifier,
+  .prose-article .code-view .tok-definitionKeyword {
+    color: var(--accent);
+  }
+  .prose-article .code-view .tok-string,
+  .prose-article .code-view .tok-string2,
+  .prose-article .code-view .tok-regexp {
+    color: color-mix(in srgb, var(--accent) 45%, var(--fg));
+  }
+  .prose-article .code-view .tok-number,
+  .prose-article .code-view .tok-bool,
+  .prose-article .code-view .tok-atom,
+  .prose-article .code-view .tok-typeName,
+  .prose-article .code-view .tok-className {
+    color: color-mix(in srgb, var(--accent) 70%, var(--muted));
+  }
+  .prose-article .code-view .tok-comment {
+    color: var(--muted);
+    font-style: italic;
+  }
+  .prose-article .code-view .tok-meta,
+  .prose-article .code-view .tok-punctuation {
+    color: var(--muted);
+  }
   .prose-article :where(img) {
     @apply mx-auto my-10 w-full h-auto;
   }
@@ -1190,6 +1251,34 @@ html.dark .reading-glass .prose-article code {
   }
   .rich-body :where(pre) {
     background: var(--surface-2);
+  }
+  /* code blocks of one group (```lang group=name): drawn as a stack with an accent bar and the language on top */
+  .rich-body pre.code-group {
+    position: relative;
+    margin-block: 0;
+    border-left: 3px solid var(--accent);
+    border-radius: 0;
+  }
+  .rich-body pre.code-group::before {
+    content: attr(data-lang);
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--muted);
+    font: 12px var(--font-mono);
+  }
+  .rich-body pre.code-group-first,
+  .rich-body pre.code-group-solo {
+    margin-top: 1.5rem;
+    border-top-left-radius: var(--radius-xs);
+  }
+  .rich-body pre.code-group-last,
+  .rich-body pre.code-group-solo {
+    margin-bottom: 1.5rem;
+    border-bottom-left-radius: var(--radius-xs);
+  }
+  .rich-body pre.code-group-mid,
+  .rich-body pre.code-group-last {
+    border-top: 1px solid var(--line);
   }
   .rich-body :where(pre code) {
     background: none;
