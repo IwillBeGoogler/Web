@@ -106,3 +106,18 @@ jobs:
       - name: GHCR logout
         if: always()
         run: docker logout ghcr.io || true
+
+  # One Telegram message with the result (never fails the run). Needs TELEGRAM_CHAT_ID / TELEGRAM_TOPIC_ID vars and the
+  # TELEGRAM_BOT_TOKEN secret in the `production` environment of this repo.
+  notify:
+    needs: [ci, publish, deploy]
+    if: always()
+    uses: ./.github/workflows/_notify.yml
+    with:
+      environment: production
+      mode: cd
+      results: ${{ toJSON(needs) }}
+      tag: ${{ needs.publish.outputs.tag }}
+      health-url: https://iwillbegoogler.uz
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
