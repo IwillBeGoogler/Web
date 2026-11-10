@@ -191,11 +191,52 @@ describe("RichEditor slash menu", () => {
     await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
   });
 
+  it("/group inserts a code group of two languages", async () => {
+    const { ref, onChange } = await slash("/group");
+    const list = await screen.findByRole("listbox");
+    fireEvent.mouseDown(within(list).getAllByRole("option")[0] as HTMLElement);
+    act(() => ref.current?.flush());
+    const out = md(onChange);
+    const groups = [...out.matchAll(/^```(\w+) group=(\w+)$/gm)];
+    expect(groups.map((g) => g[1])).toEqual(["javascript", "python"]);
+    expect(groups[0]?.[2]).toBe(groups[1]?.[2]);
+    expect(document.querySelectorAll(".rich-body pre.code-group")).toHaveLength(2);
+  });
+
   it("Tab runs the highlighted item", async () => {
     await slash("/h2");
     await screen.findByRole("listbox");
     fireEvent.keyDown(await body(), { key: "Tab" });
     await waitFor(() => expect(document.querySelector(".rich-body h2")).not.toBeNull());
+  });
+});
+
+describe("RichEditor code groups", () => {
+  it("starts a group at the code block, adds a language, and takes one out", async () => {
+    const { ref, onChange } = setup("```go\nx := 1\n```");
+    await body();
+    const user = userEvent.setup();
+    await waitFor(() => expect(document.querySelector(".rich-body pre")).not.toBeNull());
+    const pre = document.querySelector(".rich-body pre code") as HTMLElement;
+    act(() => ref.current?.focus());
+    const sel = window.getSelection() as Selection;
+    const range = document.createRange();
+    range.setStart(pre.firstChild as Node, 1);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    act(() => {
+      document.dispatchEvent(new Event("selectionchange"));
+    });
+    await user.click(await screen.findByRole("button", { name: "Code in several languages" }));
+    act(() => ref.current?.flush());
+    expect(md(onChange)).toMatch(/^```go group=(\w+)\nx := 1\n```\n\n```javascript group=\1\n\n```$/);
+    await user.click(await screen.findByRole("button", { name: "Add language" }));
+    act(() => ref.current?.flush());
+    expect(md(onChange)).toMatch(/```python group=/);
+    await user.click(await screen.findByRole("button", { name: "Remove from group" }));
+    act(() => ref.current?.flush());
+    expect([...md(onChange).matchAll(/group=/g)]).toHaveLength(2);
   });
 });
 

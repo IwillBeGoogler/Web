@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { extractCode } from "./codeBlocks";
 import { canonLang, langLabel, pickTab } from "./codeLang";
-import { highlight, spansOf } from "./highlight";
+import { canHighlight, HIGHLIGHT_LANGS, HIGHLIGHT_MAX, highlight, spansOf } from "./highlight";
 
 const pre = (lang: string, code: string) => `<pre><code class="language-${lang}">${code}</code></pre>`;
 
@@ -49,6 +49,18 @@ describe("highlight", () => {
     expect(runs?.map((r) => r.text).join("")).toBe(code);
     expect(runs?.some((r) => r.cls === "tok-keyword")).toBe(true);
     expect(spansOf((await import("@codemirror/legacy-modes/mode/go")).go as never, "")).toEqual([]);
+  });
+  it("loads every grammar and keeps the source whole", async () => {
+    const code = "let a = 1\n// x\n";
+    for (const lang of HIGHLIGHT_LANGS) {
+      const runs = await highlight(code, lang);
+      expect(runs?.map((r) => r.text).join(""), lang).toBe(code);
+      expect(canHighlight(lang)).toBe(true);
+    }
+    expect(canHighlight("zig")).toBe(false);
+  });
+  it("leaves very long code as plain text", async () => {
+    expect(await highlight("a".repeat(HIGHLIGHT_MAX + 1), "go")).toBeNull();
   });
   it("gives up on an unknown language", async () => {
     expect(await highlight("x", "zig")).toBeNull();

@@ -107,6 +107,9 @@ const GRAMMARS: Record<string, () => Promise<StreamParser<unknown>>> = {
 /** Longer than this is shown as plain text: highlighting runs on the reader's main thread. */
 export const HIGHLIGHT_MAX = 20_000;
 
+/** Every language with a grammar. */
+export const HIGHLIGHT_LANGS = Object.keys(GRAMMARS);
+
 /** Whether a language has a grammar. */
 export const canHighlight = (lang: string) => canonLang(lang) in GRAMMARS;
 
