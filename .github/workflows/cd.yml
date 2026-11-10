@@ -84,7 +84,7 @@ jobs:
   # health check and automatic rollback, old secret_ids destroyed). The stack files on the server come from Backend/infra.
   deploy:
     needs: publish
-    runs-on: [self-hosted, iwillbegoogler-prod]
+    runs-on: [iwillbegoogler-prod] # runner has no `self-hosted` label (registered with --no-default-labels)
     timeout-minutes: 20
     environment: production
     permissions:
