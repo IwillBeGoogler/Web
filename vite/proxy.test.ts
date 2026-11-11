@@ -8,10 +8,10 @@ const MQTT_URL = "$" + "{MQTT_URL}";
 const nginx = readFileSync(join(process.cwd(), "nginx.conf"), "utf8");
 
 describe("dev proxy", () => {
-  it("routes /mqtt to EMQX as a WebSocket (VITE_MQTT_PROXY, default http://localhost:8083)", () => {
+  it("routes /mqtt to EMQX as a WebSocket (VITE_MQTT_PROXY, default http://127.0.0.1:8083)", () => {
     const m = devProxy["/mqtt"];
     expect(m.ws).toBe(true);
-    expect(m.target).toBe(process.env.VITE_MQTT_PROXY ?? "http://localhost:8083");
+    expect(m.target).toBe(process.env.VITE_MQTT_PROXY ?? "http://127.0.0.1:8083");
   });
   it("never lets /api/internal reach the API, and keeps it ahead of /api", () => {
     const keys = Object.keys(devProxy);

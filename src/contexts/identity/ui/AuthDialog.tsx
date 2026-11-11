@@ -210,7 +210,7 @@ export function AuthDialog() {
     <Dialog.Root open={mode !== null} onOpenChange={(o) => !o && authDialog.close()}>
       <Dialog.Portal>
         <Dialog.Overlay className="overlay-fade fixed inset-0 z-50 bg-overlay" />
-        <Dialog.Content className="dialog-pop fixed inset-0 z-50 grid grid-rows-[auto_1fr] overflow-y-auto bg-card md:inset-auto md:top-1/2 md:left-1/2 md:h-[560px] md:w-[880px] md:max-w-[calc(100vw-2rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:grid-cols-[320px_1fr] md:grid-rows-1 md:overflow-hidden md:rounded-[var(--radius-md)] md:border md:border-line-strong md:shadow-[6px_6px_0_0_var(--fg)]">
+        <Dialog.Content className="dialog-pop fixed inset-0 z-50 grid grid-rows-[auto_1fr] overflow-y-auto bg-card md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[calc(100dvh-2rem)] md:min-h-[600px] md:w-[960px] md:max-w-[calc(100vw-2rem)] md:-translate-x-1/2 md:-translate-y-1/2 md:grid-cols-[320px_1fr] md:grid-rows-1 md:overflow-hidden md:rounded-[var(--radius-md)] md:border md:border-line-strong md:shadow-[6px_6px_0_0_var(--fg)]">
           <aside
             aria-hidden
             className="flex h-14 items-center gap-3 bg-inverse px-5 text-on-inverse md:h-auto md:flex-col md:items-stretch md:justify-between md:p-7"
