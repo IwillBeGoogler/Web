@@ -15,6 +15,9 @@ COPY . ./
 RUN bun run build
 
 FROM nginx:1-alpine
+
+# Pick up fixed Alpine packages the base image has not rebuilt yet (Trivy gate: libxslt CVE-2026-9947 / CVE-2026-87636, fixed in 1.1.43-r4).
+RUN apk upgrade --no-cache
 ENV API_URL=http://api:8080
 # EMQX WebSocket listener for /mqtt (diagram realtime); the root compose sets it too
 ENV MQTT_URL=http://emqx:8083
