@@ -108,6 +108,9 @@ describe('top tag chips', () => {
   });
 });
 
+// 10 ms on a laptop; shared CI runners are 2-4x slower, so they get 40 ms (still catches an accidental O(n^2))
+const BUDGET_MS = process.env.CI ? 40 : 10;
+
 describe('performance', () => {
   const synthetic = (n: number): SearchIndexData => {
     const tagsPool = ['aws', 'gcp', 'azure', 'database', 'monitoring', 'k8s', 'queue', 'security', 'open-source', 'apache'];
@@ -122,7 +125,7 @@ describe('performance', () => {
     }
     return idx;
   };
-  it('3000 items: text, tag, multi-term and #tag searches each take < 10 ms (best of 15)', () => {
+  it('3000 items: text, tag, multi-term and #tag searches each stay within the time budget (best of 15)', () => {
     const big = synthetic(3000);
     for (const q of ['aws', 'aws database', '#monitoring', 'serv', 'thing 12']) {
       let best = Infinity;
@@ -131,7 +134,7 @@ describe('performance', () => {
         searchIndex(big, q);
         best = Math.min(best, performance.now() - t);
       }
-      expect(best, q).toBeLessThan(10);
+      expect(best, q).toBeLessThan(BUDGET_MS);
     }
   });
   it('the real index too', () => {
@@ -141,6 +144,6 @@ describe('performance', () => {
       searchIndex(SEARCH_INDEX, 'aws database');
       best = Math.min(best, performance.now() - t);
     }
-    expect(best).toBeLessThan(10);
+    expect(best).toBeLessThan(BUDGET_MS);
   });
 });

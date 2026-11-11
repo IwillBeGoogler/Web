@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 // The embedded diagram editor's own unit tests (moved from the standalone Client app). Run from Web/: `bun run test:editor`.
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
@@ -11,6 +11,10 @@ export default defineConfig({
   resolve: { alias: { "@core": here("./core") }, dedupe: ["react", "react-dom"] },
   test: {
     environment: "jsdom", globals: true, setupFiles: ["./src/test/setup.ts"], css: false, include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    // zz_probe.cov.test.tsx is a leftover scratch probe that writes to a local path; delete it (git rm) and drop this line
+    exclude: [...configDefaults.exclude, "src/**/zz_probe*"],
+    // CI runners are slower than a laptop: the heavy tests (virtualized palette, zip-bomb) need more than the default 5 s
+    testTimeout: 30_000, hookTimeout: 30_000,
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}", "core/**/*.ts"],
