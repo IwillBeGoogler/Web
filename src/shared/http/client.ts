@@ -57,7 +57,10 @@ const refreshSchema = { token: "", expires_at: "" };
 /**
  * createHttpClient: JSON over fetch with Bearer auth, Accept-Language, RFC 9457
  * errors and Zod-validated responses. A 401 on an authenticated call triggers
- * one shared POST /auth/refresh (the token rotates) and a single retry.
+ * one shared POST /auth/refresh (the token rotates) and a single retry. The
+ * server refreshes only a session that is still valid, so this does not bring
+ * back one that ran out (SESSION_IDLE_TIMEOUT / SESSION_ABSOLUTE_TIMEOUT on
+ * the API): it covers a token that another tab or device rotated meanwhile.
  */
 export const createHttpClient = (cfg: HttpClientConfig): HttpClient => {
   const base = cfg.baseUrl ?? "/api";

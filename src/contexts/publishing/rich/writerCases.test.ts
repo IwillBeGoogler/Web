@@ -24,6 +24,13 @@ describe("escapeText", () => {
 });
 
 describe("escapeLineStart", () => {
+  it("escapes a line that reads as a horizontal rule", () => {
+    expect(escapeLineStart("***")).toBe("\\***");
+    expect(escapeLineStart("___")).toBe("\\___");
+    expect(escapeLineStart("_ _ _ _")).toBe("\\_ _ _ _");
+    expect(escapeLineStart("__")).toBe("__");
+    expect(escapeLineStart("_*_")).toBe("_*_");
+  });
   it("escapes the marker of a line that would start a block", () => {
     expect(escapeLineStart("1. a")).toBe("1\\. a");
     expect(escapeLineStart("12) a")).toBe("12\\) a");

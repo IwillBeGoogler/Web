@@ -1,6 +1,8 @@
 /**
  * Holds the bearer token. Memory is the source of truth; localStorage mirrors
- * it so a reader stays signed in across reloads and tabs.
+ * it so a reader stays signed in across reloads and tabs. Other tabs' writes
+ * arrive as `storage` events: a token another tab rotated (or a sign-out
+ * there) replaces the one in memory, so this tab never sends a retired token.
  */
 export interface StoredToken {
   token: string;
@@ -17,9 +19,22 @@ export interface TokenStore {
 
 const KEY = "iwillbegoogler.session";
 
-export const createTokenStore = (storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null = safeLocal()): TokenStore => {
+type StorageEvents = Pick<Window, "addEventListener">;
+
+export const createTokenStore = (
+  storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | null = safeLocal(),
+  events: StorageEvents | null = typeof window === "undefined" ? null : window,
+): TokenStore => {
   let current: StoredToken | null = read(storage);
   const listeners = new Set<Listener>();
+  // fired in every other tab of this origin, never in the one that wrote
+  events?.addEventListener("storage", (e) => {
+    if (e.key !== KEY && e.key !== null) return; // null: storage.clear()
+    const next = read(storage);
+    if (next?.token === current?.token) return;
+    current = next;
+    for (const l of listeners) l(next);
+  });
   return {
     get: () => current,
     set(t) {

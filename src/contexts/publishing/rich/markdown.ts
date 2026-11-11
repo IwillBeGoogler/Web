@@ -77,7 +77,7 @@ const RichLink = Link.extend({
 
 /** A line that starts like another block ("# ", "- ", "1. ", "> ", a fence, a rule) is written with its first marker character escaped. */
 const BLOCK_START =
-  /^(?: {0,3})(#|(?:[A-Za-z]|[ivxlcdmIVXLCDM]{2,6})[.)](?:\s|$)|[-+*](?:\s|$)|\d{1,9}[.)](?:\s|$)|>|`{3,}|~{3,}|(?:([-_*])[ \t]*\1[ \t]*\1[ \t]*(?:\1[ \t]*)*)$|=+\s*$|-+\s*$|\|)/;
+  /^(?: {0,3})(#|(?:[A-Za-z]|[ivxlcdmIVXLCDM]{2,6})[.)](?:\s|$)|[-+*](?:\s|$)|\d{1,9}[.)](?:\s|$)|>|`{3,}|~{3,}|(?:([-_*])[ \t]*\2[ \t]*\2[ \t]*(?:\2[ \t]*)*)$|=+\s*$|-+\s*$|\|)/;
 const NUMBERED = /^( {0,3}(?:\d{1,9}|[A-Za-z]|[ivxlcdmIVXLCDM]{2,6}))([.)])/;
 export function escapeLineStart(line: string): string {
   if (!BLOCK_START.test(line) || line.startsWith("&nbsp;")) return line;
