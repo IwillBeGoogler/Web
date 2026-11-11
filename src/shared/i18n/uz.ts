@@ -81,6 +81,10 @@ export const uz: Record<keyof typeof en, string> = {
   "nav.toggleTheme": "Mavzuni almashtirish",
   "footer.rss": "RSS",
   "footer.legal": "Huquqiy",
+  "footer.site": "Sayt",
+  "info.about": "Biz haqimizda",
+  "info.contact": "Aloqa",
+  "info.help": "Yordam",
   "footer.preferences": "Sozlamalar",
 
   "page.notFound": "Sahifa topilmadi",

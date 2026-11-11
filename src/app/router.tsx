@@ -207,6 +207,9 @@ const P = {
   Unsubscribe: lazy(() => import("@/contexts/account/ui/AuthPages"), "UnsubscribePage"),
   Privacy: lazy(() => import("./pages/LegalPages"), "PrivacyPage"),
   Terms: lazy(() => import("./pages/LegalPages"), "TermsPage"),
+  About: lazy(() => import("./pages/LegalPages"), "AboutPage"),
+  Contact: lazy(() => import("./pages/LegalPages"), "ContactPage"),
+  Help: lazy(() => import("./pages/LegalPages"), "HelpPage"),
   Diagrams: lazy(() => import("./pages/DiagramPages"), "DiagramsPage"),
   DiagramProject: lazy(() => import("./pages/DiagramPages"), "DiagramProjectPage"),
   DiagramFile: lazy(() => import("./pages/DiagramPages"), "DiagramFilePage"),
@@ -269,6 +272,9 @@ const pub = createRoute({
 
 const privacy = createRoute({ getParentRoute: () => shell, path: "/privacy", component: P.Privacy });
 const terms = createRoute({ getParentRoute: () => shell, path: "/terms", component: P.Terms });
+const about = createRoute({ getParentRoute: () => shell, path: "/about", component: P.About });
+const contact = createRoute({ getParentRoute: () => shell, path: "/contact", component: P.Contact });
+const help = createRoute({ getParentRoute: () => shell, path: "/help", component: P.Help });
 // Links in emails sent before stories moved to /p/$slug.
 const legacyPost = createRoute({
   getParentRoute: () => shell,
@@ -390,6 +396,9 @@ const routeTree = root.addChildren([
     pub,
     privacy,
     terms,
+    about,
+    contact,
+    help,
     legacyPost,
     ssoCallback,
     forgot,

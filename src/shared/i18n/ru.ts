@@ -82,6 +82,10 @@ export const ru: Record<keyof typeof en, string> = {
   "nav.toggleTheme": "Сменить тему",
   "footer.rss": "RSS",
   "footer.legal": "Правовая информация",
+  "footer.site": "Сайт",
+  "info.about": "О нас",
+  "info.contact": "Контакты",
+  "info.help": "Помощь",
   "footer.preferences": "Настройки",
 
   "page.notFound": "Страница не найдена",

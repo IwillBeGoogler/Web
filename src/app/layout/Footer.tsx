@@ -49,10 +49,24 @@ export function Footer() {
   const year = new Date().getFullYear();
   return (
     <footer data-chrome className="liquid-glass mx-3 mt-24 mb-3 overflow-hidden rounded-[28px] md:mx-6">
-      <div className="mx-auto grid max-w-shell divide-y divide-white/10 md:grid-cols-[1.2fr_1fr_1fr] md:divide-x md:divide-y-0">
+      <div className="mx-auto grid max-w-shell divide-y divide-white/10 md:grid-cols-[1.2fr_1fr_1fr_1fr] md:divide-x md:divide-y-0">
         <div className="p-6">
           <Wordmark className="text-[18px]" />
           <p className="mt-2 font-mono text-[12px] text-muted">{t("footer.rights", { year })}</p>
+        </div>
+        <div className="p-6">
+          <p className="kicker">{t("footer.site")}</p>
+          <nav aria-label="Site" className="mt-3 flex flex-col gap-2 font-mono text-[12px] tracking-[0.12em] text-muted uppercase">
+            <Link to="/about" className={link}>
+              {t("info.about")}
+            </Link>
+            <Link to="/help" className={link}>
+              {t("info.help")}
+            </Link>
+            <Link to="/contact" className={link}>
+              {t("info.contact")}
+            </Link>
+          </nav>
         </div>
         <div className="p-6">
           <p className="kicker">{t("footer.legal")}</p>

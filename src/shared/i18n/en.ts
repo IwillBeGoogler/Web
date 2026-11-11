@@ -80,6 +80,10 @@ export const en = {
   "nav.toggleTheme": "Switch light or dark",
   "footer.rss": "RSS",
   "footer.legal": "Legal",
+  "footer.site": "Site",
+  "info.about": "About",
+  "info.contact": "Contact",
+  "info.help": "Help",
   "footer.preferences": "Preferences",
 
   "page.notFound": "Page not found",
