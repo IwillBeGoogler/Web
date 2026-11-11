@@ -47,18 +47,50 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
 
-  # blog tests, fails under 95% coverage
-  test:
-    name: Tests (blog)
+  # blog tests: 3 shards, the 95% coverage floor is checked once on the merged report
+  test-shard:
+    name: Tests (blog ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    env:
+      VITEST_SHARD: "1"
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.3
       - run: bun install --frozen-lockfile
-      - run: bunx vitest run --coverage
+      - name: Run shard
+        run: bunx vitest run --coverage --reporter=blob --shard=${{ matrix.shard }}/3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blog-blob-${{ matrix.shard }}
+          path: .vitest/blob/*
+          include-hidden-files: true
+          retention-days: 1
+
+  test:
+    name: Tests (blog, merged coverage)
+    needs: test-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: blog-blob-*
+          path: .vitest/blob
+          merge-multiple: true
+      - name: Merge reports and check the coverage floor
+        run: bunx vitest --merge-reports --coverage
 
   # The embedded editor's own tests are the slow part: split them over 4 runners. Each shard writes a blob report with its
   # coverage; `test-editor` merges them and applies the coverage floor once.

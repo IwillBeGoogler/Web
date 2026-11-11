@@ -31,7 +31,8 @@ export default defineConfig({
         "vite/**/*.test.ts",
       ],
       reporter: ["text-summary", "json-summary", "text"],
-      thresholds: { statements: 95, branches: 95, functions: 95, lines: 95 },
+      // shards (CI) only collect: the 95% floor is applied once on the merged report
+      thresholds: process.env.VITEST_SHARD ? undefined : { statements: 95, branches: 95, functions: 95, lines: 95 },
     },
   },
 });
