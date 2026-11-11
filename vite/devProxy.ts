@@ -8,5 +8,5 @@ export const devProxy = {
   "/mqtt": { target: process.env.VITE_MQTT_PROXY ?? env.VITE_MQTT_PROXY ?? "http://localhost:8083", ws: true },
   // `bypass` returning false makes Vite answer 404 without proxying
   "/api/internal": { target: "http://localhost:1", bypass: () => false as const },
-  "/api": "http://localhost:8080",
+  "/api": process.env.VITE_API_PROXY ?? env.VITE_API_PROXY ?? "http://localhost:8080",
 };
