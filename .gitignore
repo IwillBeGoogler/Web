@@ -10,3 +10,6 @@ playwright-report
 coverage
 .tanstack
 *.log
+
+# vitest shard reports (CI merges them)
+.vitest/

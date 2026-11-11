@@ -17,8 +17,12 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  # Everything below runs in parallel: static checks, the blog tests, the editor tests (4 shards + a merge for the
+  # coverage floor) and the build. The image waits for all of them.
+  static:
+    name: Lint and types
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -27,16 +31,86 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun run typecheck
-      # blog tests, then the embedded editor's own tests (editor/); each fails under 95% coverage
-      - run: bun run test:coverage
       # the hand-written diagram-editor.d.ts must still match editor/src/embed.tsx
       - name: Editor types match
         run: bun run typecheck:editor
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
       - run: bun run build
+
+  # blog tests, fails under 95% coverage
+  test:
+    name: Tests (blog)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - run: bunx vitest run --coverage
+
+  # The embedded editor's own tests are the slow part: split them over 4 runners. Each shard writes a blob report with its
+  # coverage; `test-editor` merges them and applies the coverage floor once.
+  test-editor-shard:
+    name: Tests (editor ${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    env:
+      VITEST_SHARD: "1"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - name: Run shard
+        working-directory: editor
+        run: bunx vitest run --coverage --reporter=blob --shard=${{ matrix.shard }}/4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: editor-blob-${{ matrix.shard }}
+          path: editor/.vitest/blob/*
+          include-hidden-files: true
+          retention-days: 1
+
+  test-editor:
+    name: Tests (editor, merged coverage)
+    needs: test-editor-shard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: editor-blob-*
+          path: editor/.vitest/blob
+          merge-multiple: true
+      - name: Merge reports and check the coverage floor
+        working-directory: editor
+        run: bunx vitest --merge-reports --coverage
 
   # The production image; context is this repository (Web/ in the workspace).
   image:
-    needs: check
+    needs: [static, build, test, test-editor]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
