@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * E2E against the running compose stack (root `docker compose up -d --build`): web on :3000 proxies /api and /mqtt.
+ * E2E against a running stack: web on :3000 proxies /api and /mqtt. Locally the root `docker compose up -d --build`, or the
+ * self-contained e2e/stack/docker-compose.yml (what the E2E workflow uses; needs E2E_API_IMAGE, see that file).
  * Override with E2E_BASE_URL. Set E2E_CHANNEL="" to use Playwright's own Chromium instead of the local Chrome.
  */
 const baseURL = process.env.E2E_BASE_URL ?? "http://localhost:3000";

@@ -737,7 +737,7 @@ function HomeFeed({ tab: wanted }: { tab: HomeTab | undefined }) {
             {/* the band's backdrop and rule fade out at both ends instead of stopping in hard corners */}
             <span
               aria-hidden
-              className="pointer-events-none absolute inset-0 -z-10 border-b border-line bg-surface md:[mask-image:linear-gradient(to_right,transparent,#000_10%,#000_90%,transparent)]"
+              className="pointer-events-none absolute inset-0 -z-10 border-b border-line glass md:[mask-image:linear-gradient(to_right,transparent,#000_10%,#000_90%,transparent)]"
             />
             <Lens
               label="Feed lens"

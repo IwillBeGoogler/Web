@@ -25,6 +25,9 @@ export const uz: Record<keyof typeof en, string> = {
   "nav.newDbDiagram": "Ma’lumotlar bazasi diagrammasi",
   "nav.newOodDiagram": "OOP diagrammasi",
   "nav.topics": "Mavzular",
+  "nav.categories": "Kategoriyalar",
+  "nav.myDiagrams": "Mening diagrammalarim",
+  "nav.allTopics": "Barcha mavzular",
   "nav.skip": "Asosiy qismga o‘tish",
 
   "auth.join": "Akkaunt yarating",

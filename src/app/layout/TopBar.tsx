@@ -30,6 +30,7 @@ import { Avatar } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { useDark } from "@/shared/ui/theme";
 import { Logo } from "./Logo";
+import { CategoriesMenu, DiagramsMenu } from "./NavMenus";
 
 const item =
   "flex h-9 cursor-pointer items-center gap-3 rounded-[var(--radius-xs)] px-2.5 text-[13px] text-fg outline-none data-[highlighted]:bg-inverse data-[highlighted]:text-on-inverse [&_svg]:size-4 [&_svg]:text-muted data-[highlighted]:[&_svg]:text-on-inverse";
@@ -236,14 +237,8 @@ export function TopBar() {
               {t("nav.library")}
             </Link>
           ) : null}
-          {me ? (
-            <Link to="/d" className={navLink}>
-              {t("nav.diagrams")}
-            </Link>
-          ) : null}
-          <Link to="/search" className={navLink}>
-            {t("nav.topics")}
-          </Link>
+          <DiagramsMenu />
+          <CategoriesMenu />
         </nav>
         {sep}
         <SearchBox />

@@ -25,6 +25,9 @@ export const ru: Record<keyof typeof en, string> = {
   "nav.newDbDiagram": "Диаграмма БД",
   "nav.newOodDiagram": "ООП-диаграмма",
   "nav.topics": "Темы",
+  "nav.categories": "Категории",
+  "nav.myDiagrams": "Мои диаграммы",
+  "nav.allTopics": "Все темы",
   "nav.skip": "Перейти к содержимому",
 
   "auth.join": "Создайте аккаунт",

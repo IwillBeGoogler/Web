@@ -1,0 +1,84 @@
+name: E2E
+
+# Playwright suite (e2e/*.spec.ts) against this repo's web image in front of a published backend image
+# (e2e/stack/docker-compose.yml). Not part of CI or CD: it needs a backend build and takes minutes, so it runs
+# nightly and on demand, and a failure does not block a release.
+#
+# The backend image comes from GHCR, never from another repository's files. Setup, once:
+#   - the Backend package `iwillbegoogler-api` lets this repository read it (package settings -> Manage Actions access);
+#   - the repository variable E2E_API_TAG names the backend build the nightly run tests (a short sha; the Backend CD
+#     publishes immutable sha tags only, there is no :latest). Run manually to try any other tag.
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+    inputs:
+      api-tag:
+        description: Backend image tag (short sha); empty = the E2E_API_TAG repository variable
+        type: string
+        default: ""
+
+concurrency:
+  group: e2e
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read # pull the backend image from GHCR with GITHUB_TOKEN
+
+jobs:
+  e2e:
+    name: Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      E2E_API_IMAGE: ghcr.io/iwillbegoogler/iwillbegoogler-api:${{ inputs.api-tag || vars.E2E_API_TAG }}
+      E2E_BASE_URL: http://localhost:3000
+      E2E_CHANNEL: "" # Playwright's own Chromium, not a locally installed Chrome
+    steps:
+      - name: Backend tag
+        run: |
+          case "$E2E_API_IMAGE" in
+            *:) echo "::error::no backend tag: pass api-tag or set the E2E_API_TAG repository variable"; exit 1 ;;
+          esac
+
+      - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps chromium
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Start the stack
+        run: docker compose -f e2e/stack/docker-compose.yml up -d --build --wait --wait-timeout 300
+
+      - name: Seed one story
+        run: sh e2e/stack/seed.sh
+
+      - name: Run the suite
+        run: bunx playwright test
+
+      - name: Stack logs
+        if: failure()
+        run: docker compose -f e2e/stack/docker-compose.yml logs --no-color --tail 200
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            test-results
+            playwright-report
+          retention-days: 7
+
+      - name: Stop the stack
+        if: always()
+        run: docker compose -f e2e/stack/docker-compose.yml down -v

@@ -1,0 +1,153 @@
+# Throwaway stack for the Playwright suite (e2e/*.spec.ts): this folder's web image in front of a published backend image.
+# Nothing here reads another repository's folder: the API comes from the registry, the data stores are stock images.
+#
+#   E2E_API_IMAGE=ghcr.io/iwillbegoogler/iwillbegoogler-api:<short sha> docker compose -f e2e/stack/docker-compose.yml up -d --build --wait
+#   sh e2e/stack/seed.sh                         # one published story for the reader specs
+#   E2E_CHANNEL= bunx playwright test            # http://localhost:3000 (E2E_WEB_PORT / E2E_BASE_URL to move it)
+#   docker compose -f e2e/stack/docker-compose.yml down -v
+#
+# The API runs in dev mode: it migrates the schema itself, runs the background jobs in-process, keeps mail in memory
+# and seeds the admin the specs sign in with (admin / admin12345). The broker settings mirror the backend's own local
+# stack (its docs/MQTT.md); only the web port is published.
+
+name: web-e2e
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: blog
+      POSTGRES_PASSWORD: blog
+      POSTGRES_DB: blog
+    tmpfs: [/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blog -d blog"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:8-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  minio:
+    image: cgr.dev/chainguard/minio@sha256:3c60a2a8c4d33409a9bc7a623a7fcbfb4605adc3d89422d2f53b3f673a6e5597 # same build the backend's local stack pins
+    command: ["server", "/data"]
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio12345
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  emqx:
+    image: emqx/emqx:5.8.6
+    configs:
+      - source: emqx_conf
+        target: /opt/emqx/etc/emqx.conf
+    healthcheck:
+      test: ["CMD", "emqx", "ctl", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  api:
+    image: ${E2E_API_IMAGE:?set E2E_API_IMAGE to a published backend api image, e.g. ghcr.io/iwillbegoogler/iwillbegoogler-api:<short sha>}
+    environment:
+      APP_ENV: dev
+      PORT: "8080"
+      DATABASE_URL: postgres://blog:blog@postgres:5432/blog?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT: minio:9000
+      S3_ACCESS_KEY: minio
+      S3_SECRET_KEY: minio12345
+      MQTT_URL: tcp://emqx:1883
+      MIGRATE_ON_START: "true"
+      WORKER: "true"
+      ADMIN_USERNAME: admin
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: admin12345
+      SITE_URL: http://localhost:${E2E_WEB_PORT:-3000}
+      PUBLIC_URL: http://localhost:${E2E_WEB_PORT:-3000}
+      TRUST_PROXY: "true"
+      # the suite signs in and registers far more often than a person would
+      RATE_LIMIT_MULTIPLIER: "50"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio: { condition: service_healthy }
+      emqx: { condition: service_healthy }
+
+  web:
+    build:
+      context: ../..
+    image: web-e2e:local
+    environment:
+      API_URL: http://api:8080
+      MQTT_URL: http://emqx:8083
+    ports:
+      - "127.0.0.1:${E2E_WEB_PORT:-3000}:80"
+    depends_on:
+      api: { condition: service_healthy }
+
+# $${...} are EMQX's own placeholders. The secret is the API's development default (APP_ENV=dev).
+configs:
+  emqx_conf:
+    content: |
+      node {
+        name = "emqx@127.0.0.1"
+        cookie = "web-e2e-cookie"
+        data_dir = "data"
+      }
+      cluster.discovery_strategy = manual
+      listeners.tcp.default { bind = "0.0.0.0:1883" }
+      listeners.ws.default {
+        bind = "0.0.0.0:8083"
+        websocket { mqtt_path = "/mqtt" }
+      }
+      listeners.ssl.default { enable = false }
+      listeners.wss.default { enable = false }
+      mqtt {
+        max_packet_size = "16MB"
+        max_topic_levels = 8
+        max_clientid_len = 128
+        retain_available = true
+        shared_subscription = true
+        max_inflight = 64
+        session_expiry_interval = "2h"
+      }
+      authentication = [
+        {
+          mechanism = password_based
+          backend = http
+          method = post
+          url = "http://api:8080/api/internal/mqtt/auth"
+          headers { "content-type" = "application/json", authorization = "Bearer dev-mqtt-internal-secret-change-me-0123456789" }
+          body { clientid = "$${clientid}", username = "$${username}", password = "$${password}" }
+          connect_timeout = "5s"
+          request_timeout = "5s"
+        }
+      ]
+      authorization {
+        no_match = deny
+        deny_action = ignore
+        cache { enable = true, max_size = 64, ttl = "30s" }
+        sources = [
+          {
+            type = http
+            enable = true
+            method = post
+            url = "http://api:8080/api/internal/mqtt/acl"
+            headers { "content-type" = "application/json", authorization = "Bearer dev-mqtt-internal-secret-change-me-0123456789" }
+            body { clientid = "$${clientid}", username = "$${username}", action = "$${action}", topic = "$${topic}" }
+            connect_timeout = "5s"
+            request_timeout = "5s"
+          }
+        ]
+      }

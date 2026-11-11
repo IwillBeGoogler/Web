@@ -24,6 +24,9 @@ export const en = {
   "nav.newDbDiagram": "DB diagram",
   "nav.newOodDiagram": "OOD diagram",
   "nav.topics": "Topics",
+  "nav.categories": "Categories",
+  "nav.myDiagrams": "My diagrams",
+  "nav.allTopics": "All topics",
   "nav.skip": "Skip to content",
 
   "auth.join": "Create your account",
