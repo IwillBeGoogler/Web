@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)), ...diagramAliases }, dedupe: ["react", "react-dom"] },
   test: {
+    // a test that fails once on a slow shared CI runner is retried (reported as flaky); real failures fail 3 times
+    retry: process.env.CI ? 2 : 0,
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],

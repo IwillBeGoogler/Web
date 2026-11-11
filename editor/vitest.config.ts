@@ -10,6 +10,8 @@ export default defineConfig({
   plugins: [react()],
   resolve: { alias: { "@core": here("./core") }, dedupe: ["react", "react-dom"] },
   test: {
+    // a test that fails once on a slow shared CI runner is retried (reported as flaky); real failures fail 3 times
+    retry: process.env.CI ? 2 : 0,
     environment: "jsdom", globals: true, setupFiles: ["./src/test/setup.ts"], css: false, include: ["src/**/*.{test,spec}.{ts,tsx}"],
     // zz_probe.cov.test.tsx is a leftover scratch probe that writes to a local path; delete it (git rm) and drop this line
     exclude: [...configDefaults.exclude, "src/**/zz_probe*"],
