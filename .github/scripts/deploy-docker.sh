@@ -6,6 +6,7 @@
 #        TAG            image tag (short sha); an older tag = rollback
 #        MEMORY, CPUS   limits, e.g. 64m / 0.5
 #        CONTAINER_ENV  optional, KEY=VALUE per line
+#        SKIP_PULL      1 = use the local image (no registry pull)
 # The old container is kept stopped until the new one is healthy; on failure it is started again.
 set -euo pipefail
 : "${SERVICE:?}" "${IMAGE:?}" "${TAG:?}" "${MEMORY:?}" "${CPUS:?}"
@@ -19,7 +20,9 @@ legacy=$name-1 # name the compose stack gave it
 env_args=()
 while IFS= read -r kv; do [ -n "$kv" ] && env_args+=(-e "$kv"); done <<<"${CONTAINER_ENV:-}"
 
-docker pull -q "$IMAGE:$TAG" >/dev/null
+# SKIP_PULL=1: the image was loaded on the server already (scripts/deploy-local.sh ships it over ssh)
+[ "${SKIP_PULL:-0}" = 1 ] || docker pull -q "$IMAGE:$TAG" >/dev/null
+docker image inspect "$IMAGE:$TAG" >/dev/null
 
 docker rm -f "$name-old" >/dev/null 2>&1 || true
 if docker inspect "$name" >/dev/null 2>&1; then
