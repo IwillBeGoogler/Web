@@ -7,6 +7,11 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # jsdom 31 changes CSS serialization ('none' vs 'transparent', 'left top' vs 'top left'): 9 editor tests fail. Move
+      # to 31 deliberately, with the tests updated, not through a dependabot merge.
+      - dependency-name: jsdom
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
