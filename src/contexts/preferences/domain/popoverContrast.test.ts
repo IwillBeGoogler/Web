@@ -59,7 +59,9 @@ describe("floating surfaces stay readable over any backdrop", () => {
   }
   it("css gives menus, popovers and dialogs the popover surface", () => {
     const css = readFileSync(`${process.cwd()}/src/styles.css`, "utf8");
-    expect(css).toMatch(/:is\(\.menu-pop, \.dialog-pop, \.float-surface, \[role="menu"\], \[role="listbox"\], \[role="dialog"\]\)\s*\{[^}]*var\(--glass-fill-float\)/);
+    expect(css).toMatch(
+      /:is\(\.menu-pop, \.dialog-pop, \.float-surface, \[role="menu"\], \[role="listbox"\], \[role="dialog"\]\)\s*\{[^}]*var\(--glass-fill-float\)/,
+    );
     // the floating glass fill is the palette's popover colour, kept dense enough to read over any backdrop
     expect(css).toMatch(/--glass-fill-float: color-mix\(in srgb, var\(--popover\) \d+%, transparent\)/);
     expect(css).toMatch(/--color-popover: var\(--popover\)/);
