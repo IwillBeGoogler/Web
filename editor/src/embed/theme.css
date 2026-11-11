@@ -187,13 +187,14 @@
   --uml-bg: color-mix(in srgb, var(--uml-dark-bg) 84%, transparent);
 }
 
-/* the toolbars stay on the canvas all the time: an offset edge there would frame the whole window */
+/* Editor chrome uses the host's one glass recipe (Web/src/styles.css): toolbars, panels, menus, popovers, modals */
 .sdd-root.sdd-embed .glass {
-  box-shadow: none;
-}
-/* floating surfaces get the host's control border (>= 3:1), so the hard shadow has an edge to sit on */
-.sdd-root.sdd-embed :is(.popover, .menu-pop, .ctx-list, .modal, .toast, .files-pop, .collab-pop, .audio-pop, .mention-list) {
-  border-color: var(--line-strong);
+  background: var(--glass-sheen), var(--glass-fill-dense);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  border-color: var(--glass-edge);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
 }
 /* tooltips: the host's inverse chip instead of a fixed near-black that vanished on the dark palette */
 .sdd-root.sdd-embed .tip {
@@ -209,13 +210,13 @@
   color: color-mix(in srgb, var(--on-inverse) 70%, var(--inverse));
 }
 
-/* menus over the canvas and inspector must be solid: the host's glass rule for [role="menu"] lets the panels behind show through */
-.sdd-root .ctx-list,
-.sdd-root .ctx-list[role='menu'],
-.sdd-root .popover,
-.sdd-root .menu-pop {
-  background: var(--popover, var(--surface-2)) !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+/* floating surfaces over the canvas: the host's floating glass (denser popover fill, so text reads over any diagram) */
+.sdd-root.sdd-embed :is(.ctx-list, .popover, .menu-pop, .modal, .toast, .files-pop, .collab-pop, .audio-pop, .mention-list) {
+  background: var(--glass-sheen), var(--glass-fill-float) !important;
+  -webkit-backdrop-filter: var(--glass-filter) !important;
+  backdrop-filter: var(--glass-filter) !important;
+  border-color: var(--glass-edge);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow-float);
   opacity: 1;
 }
