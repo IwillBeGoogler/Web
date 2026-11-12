@@ -35,3 +35,15 @@ DDD by context under `src/`: `domain` (pure logic, no React), `application` (hoo
 ## Good first issues
 
 Look for the [`good first issue`](../../issues?q=is%3Aopen+label%3A%22good+first+issue%22) label. Comment on the issue before starting so nobody duplicates work.
+
+## Licence and your contributions
+
+This project is **All Rights Reserved** (see [LICENSE](LICENSE)); it is not open source. By opening a pull request you confirm that:
+
+1. you wrote the change yourself, or have the right to submit it, and it contains no code copied from elsewhere without a compatible licence;
+2. you assign to IWillBeGoogler, or grant it a perpetual, worldwide, irrevocable, royalty-free, sublicensable licence to use, modify
+   and distribute, all rights in your contribution, and you keep no claim against its use;
+3. you sign off each commit (`git commit -s`, Developer Certificate of Origin 1.1: https://developercertificate.org).
+
+Pull requests without a sign-off are not merged. Report vulnerabilities as described in [SECURITY.md](SECURITY.md) and follow the
+[Code of Conduct](CODE_OF_CONDUCT.md).
