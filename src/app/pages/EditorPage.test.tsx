@@ -44,6 +44,63 @@ describe("EditorPage", () => {
     tokens.set(null);
   });
 
+  it("files the story under topics from the tree, the first picked is the main one", async () => {
+    signIn();
+    let sent: { category_ids?: number[] } = {};
+    server.use(
+      http.get(api("/me/publications"), () => HttpResponse.json({ data: [] })),
+      http.get(api("/categories"), () =>
+        HttpResponse.json({
+          data: [
+            { id: 1, parent_id: 0, slug: "sd", name: "System Design", names: {}, position: 0, count: 0 },
+            { id: 2, parent_id: 1, slug: "cache", name: "Caching", names: {}, position: 0, count: 0 },
+            { id: 3, parent_id: 2, slug: "cdn", name: "CDN", names: {}, position: 0, count: 0 },
+          ],
+        }),
+      ),
+      http.post(api("/posts"), async ({ request }) => {
+        sent = (await request.json()) as typeof sent;
+        return HttpResponse.json({ data: makePost({ id: 8, slug: "s", author: "admin", title: "S" }) }, { status: 201 });
+      }),
+    );
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await user.type(screen.getByLabelText("Title"), "S");
+    await user.type(screen.getByLabelText("Story body (Markdown)"), "text");
+    await user.click(screen.getByRole("button", { name: "Ship it" }));
+    await user.click(await screen.findByRole("button", { name: "System Design" }));
+    await user.click(await screen.findByRole("checkbox", { name: "Caching" }));
+    await user.click(screen.getByRole("checkbox", { name: "System Design" }));
+    await user.click(screen.getByRole("checkbox", { name: "CDN" }));
+    await user.click(screen.getByRole("checkbox", { name: "CDN" }));
+    await user.click(screen.getByRole("button", { name: "Remove System Design" }));
+    await user.click(screen.getByRole("button", { name: "Ship now" }));
+    await waitFor(() => expect(sent.category_ids).toEqual([2]));
+    tokens.set(null);
+  });
+
+  it("allows at most 5 topics from the tree and collapses a branch", async () => {
+    signIn();
+    const roots = Array.from({ length: 6 }, (_, i) => ({ id: i + 1, parent_id: 0, slug: `r${i}`, name: `Root ${i}`, names: {}, position: i, count: 0 }));
+    server.use(
+      http.get(api("/me/publications"), () => HttpResponse.json({ data: [] })),
+      http.get(api("/categories"), () => HttpResponse.json({ data: roots })),
+    );
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await user.type(screen.getByLabelText("Title"), "S");
+    await user.type(screen.getByLabelText("Story body (Markdown)"), "text");
+    await user.click(screen.getByRole("button", { name: "Ship it" }));
+    for (let i = 0; i < 5; i++) await user.click(await screen.findByRole("checkbox", { name: `Root ${i}` }));
+    expect(screen.getByRole("checkbox", { name: "Root 5" })).toBeDisabled();
+    await user.click(screen.getByRole("checkbox", { name: "Root 5" }));
+    expect(screen.getByRole("checkbox", { name: "Root 5" })).not.toBeChecked();
+    const toggle = screen.getByRole("button", { name: "Root 0", expanded: false });
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    tokens.set(null);
+  });
+
   it("keeps Ship it disabled until there is a title and a body", async () => {
     signIn();
     const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });

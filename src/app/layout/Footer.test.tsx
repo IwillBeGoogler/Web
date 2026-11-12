@@ -1,5 +1,6 @@
 import { screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
+import { feedbackDialog } from "@/contexts/engagement/application/feedbackDialog";
 import { readingPrefs } from "@/contexts/preferences/application/store";
 import { consent } from "@/shared/consent";
 import { i18n } from "@/shared/i18n";
@@ -23,6 +24,16 @@ describe("footer, cookie banner and legal pages", () => {
     await user.selectOptions(screen.getByRole("combobox", { name: "Mavzu" }), "nord");
     expect(readingPrefs.get().palette).toBe("nord");
     expect(document.documentElement).toHaveClass("dark");
+  });
+
+  it("links the site pages and opens the feedback dialog", async () => {
+    const { user } = await renderRouted(<Footer />);
+    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("href", "/about");
+    expect(screen.getByRole("link", { name: "Help" })).toHaveAttribute("href", "/help");
+    expect(screen.getByRole("link", { name: "Contact" })).toHaveAttribute("href", "/contact");
+    await user.click(screen.getByRole("button", { name: /feedback/i }));
+    expect(feedbackDialog.get()).not.toBeNull();
+    feedbackDialog.close();
   });
 
   it("asks for consent once and can ask again", async () => {

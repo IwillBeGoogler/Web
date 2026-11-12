@@ -31,6 +31,43 @@ describe("topics", () => {
     expect(await screen.findByText("No stories in this topic yet.")).toBeInTheDocument();
   });
 
+  it("/topics caps subtopic chips at 8 and shows the rest as a count", async () => {
+    const kids = Array.from({ length: 10 }, (_, i) => ({ id: 10 + i, parent_id: 1, slug: `k${i}`, name: `Kid ${i}`, names: {}, position: i, count: 0 }));
+    server.use(http.get(api("/categories"), () => HttpResponse.json({ data: [rows[0], ...kids] })));
+    await renderRouted(<TopicsPage />, { path: "/topics" });
+    expect(await screen.findByText("+2")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Kid 9" })).toBeNull();
+  });
+
+  it("/topics/:slug lists subtopics as links with their totals", async () => {
+    server.use(
+      http.get(api("/categories"), () => HttpResponse.json({ data: rows })),
+      http.get(api("/categories/1/posts"), () => page([])),
+    );
+    await renderRouted(<TopicPage slug="system-design" />, { path: "/topics/system-design" });
+    const sub = await screen.findByRole("link", { name: /Caching/ });
+    expect(sub).toHaveAttribute("href", "/topics/caching");
+    expect(sub).toHaveTextContent("4 stories");
+  });
+
+  const lone = { id: 7, parent_id: 0, slug: "lone", name: "Lone", names: { uz: "Yolg‘iz" }, description: "Only one.", position: 0, count: 0 };
+
+  it("a root without subtopics shows no chips", async () => {
+    server.use(http.get(api("/categories"), () => HttpResponse.json({ data: [lone] })));
+    await renderRouted(<TopicsPage />, { path: "/topics" });
+    expect(await screen.findByRole("heading", { name: "Lone" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+  });
+
+  it("a topic shows its description", async () => {
+    server.use(
+      http.get(api("/categories"), () => HttpResponse.json({ data: [lone] })),
+      http.get(api("/categories/7/posts"), () => page([])),
+    );
+    await renderRouted(<TopicPage slug="lone" />, { path: "/topics/lone" });
+    expect(await screen.findByText("Only one.")).toBeInTheDocument();
+  });
+
   it("unknown slug says so", async () => {
     server.use(http.get(api("/categories"), () => HttpResponse.json({ data: rows })));
     await renderRouted(<TopicPage slug="nope" />, { path: "/topics/nope" });
