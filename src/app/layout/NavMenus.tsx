@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronDownIcon, DatabaseIcon, FolderIcon, LayoutTemplateIcon, NetworkIcon, SearchIcon, WorkflowIcon } from "lucide-react";
+import { ChevronDownIcon, DatabaseIcon, FolderIcon, LayoutTemplateIcon, NetworkIcon, WorkflowIcon } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import type { NewDiagramKind } from "@/contexts/diagrams/domain/diagram";
 import { useStartDiagram } from "@/contexts/diagrams/ui/WriteMenu";
@@ -80,10 +80,6 @@ export function CategoriesMenu() {
               <span className="ml-auto font-mono text-[11px] text-muted tabular-nums">{root.total}</span>
             </DropdownMenu.Item>
           ))}
-          {top.length ? <DropdownMenu.Separator className="my-1 h-px bg-line" /> : null}
-          <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/topics" })}>
-            <SearchIcon aria-hidden /> {t("nav.allTopics")}
-          </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

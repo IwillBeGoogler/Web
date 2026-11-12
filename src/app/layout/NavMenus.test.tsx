@@ -93,18 +93,16 @@ describe("CategoriesMenu", () => {
       ),
     );
     const { user, router } = await renderRouted(<CategoriesMenu />);
-    let menu = await openMenu(user, "Categories");
+    const menu = await openMenu(user, "Categories");
     const first = await within(menu).findByRole("menuitem", { name: /System Design/ });
     expect(first).toHaveTextContent("12");
     expect(within(menu).getAllByRole("menuitem")[0]).toBe(first);
+    expect(within(menu).queryByRole("menuitem", { name: "All topics" })).toBeNull();
     await user.click(within(menu).getByRole("menuitem", { name: /DevOps/ }));
     await waitFor(() => expect(router.state.location.pathname).toBe("/topics/devops"));
-    menu = await openMenu(user, "Categories");
-    await user.click(within(menu).getByRole("menuitem", { name: "All topics" }));
-    await waitFor(() => expect(router.state.location.pathname).toBe("/topics"));
   });
 
-  it("shows a placeholder while loading and only all topics when there are no topics", async () => {
+  it("shows a placeholder while loading and nothing when there are no topics", async () => {
     server.use(
       http.get(api("/categories"), async () => {
         await delay(50);
@@ -115,11 +113,6 @@ describe("CategoriesMenu", () => {
     const menu = await openMenu(user, "Categories");
     expect(within(menu).getByText("…")).toBeInTheDocument();
     await waitFor(() => expect(within(menu).queryByText("…")).toBeNull());
-    expect(
-      within(menu)
-        .getAllByRole("menuitem")
-        .map((i) => i.textContent?.trim()),
-    ).toEqual(["All topics"]);
-    expect(menu.querySelector('[role="separator"]')).toBeNull();
+    expect(within(menu).queryAllByRole("menuitem")).toHaveLength(0);
   });
 });
