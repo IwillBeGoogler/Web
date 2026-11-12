@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronDownIcon, DatabaseIcon, FolderIcon, HashIcon, LayoutTemplateIcon, NetworkIcon, SearchIcon, WorkflowIcon } from "lucide-react";
+import { ChevronDownIcon, DatabaseIcon, FolderIcon, LayoutTemplateIcon, NetworkIcon, SearchIcon, WorkflowIcon } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import type { NewDiagramKind } from "@/contexts/diagrams/domain/diagram";
 import { useStartDiagram } from "@/contexts/diagrams/ui/WriteMenu";
 import { authDialog } from "@/contexts/identity/application/authDialog";
 import { useMe } from "@/contexts/identity/application/session";
-import { tagsQuery } from "@/contexts/reading/application/queries";
-import { useT } from "@/shared/i18n";
+import { topicsQuery } from "@/contexts/reading/application/queries";
+import { topicName } from "@/contexts/reading/domain/topic";
+import { useLang, useT } from "@/shared/i18n";
 
 const item =
   "flex h-9 cursor-pointer items-center gap-3 rounded-[var(--radius-xs)] px-2.5 text-[13px] text-fg outline-none data-[highlighted]:bg-inverse data-[highlighted]:text-on-inverse [&_svg]:size-4 [&_svg]:text-muted data-[highlighted]:[&_svg]:text-on-inverse";
@@ -59,27 +60,28 @@ export function DiagramsMenu() {
   );
 }
 
-/** "Categories ▾": the most used tags, then all topics. */
+/** "Categories ▾": the root topics, then all topics. */
 export function CategoriesMenu() {
   const t = useT();
+  const lang = useLang();
   const nav = useNavigate();
-  const tags = useQuery(tagsQuery());
-  const top = (tags.data ?? []).slice(0, 10);
+  const topics = useQuery(topicsQuery());
+  const top = topics.data ?? [];
   return (
     <DropdownMenu.Root>
       <Trigger label={t("nav.categories")} />
       <DropdownMenu.Portal>
         <DropdownMenu.Content align="start" sideOffset={8} className={`${content} max-h-[70vh] w-64 overflow-y-auto`}>
-          {tags.isPending ? <p className="px-2.5 py-2 text-[13px] text-muted">…</p> : null}
-          {top.map((tag) => (
-            <DropdownMenu.Item key={tag.name} className={item} onSelect={() => nav({ to: "/tag/$tag", params: { tag: tag.name } })}>
-              <HashIcon aria-hidden />
-              <span className="truncate">{tag.name}</span>
-              <span className="ml-auto font-mono text-[11px] text-muted tabular-nums">{tag.count}</span>
+          {topics.isPending ? <p className="px-2.5 py-2 text-[13px] text-muted">…</p> : null}
+          {top.map((root) => (
+            <DropdownMenu.Item key={root.id} className={item} onSelect={() => nav({ to: "/topics/$slug", params: { slug: root.slug } })}>
+              <FolderIcon aria-hidden />
+              <span className="truncate">{topicName(root, lang)}</span>
+              <span className="ml-auto font-mono text-[11px] text-muted tabular-nums">{root.total}</span>
             </DropdownMenu.Item>
           ))}
           {top.length ? <DropdownMenu.Separator className="my-1 h-px bg-line" /> : null}
-          <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/search" })}>
+          <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/topics" })}>
             <SearchIcon aria-hidden /> {t("nav.allTopics")}
           </DropdownMenu.Item>
         </DropdownMenu.Content>

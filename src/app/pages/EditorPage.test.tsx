@@ -37,6 +37,7 @@ describe("EditorPage", () => {
       status: "published",
       cover_url: "",
       tags: ["go", "devops"],
+      category_ids: [],
       publish_at: null,
       publication_id: 0,
     });

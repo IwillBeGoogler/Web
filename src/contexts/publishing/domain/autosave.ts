@@ -16,6 +16,7 @@ export function sameStory(a: StoryForm, b: StoryForm): boolean {
     a.coverUrl === b.coverUrl &&
     a.publishAt === b.publishAt &&
     a.publicationId === b.publicationId &&
+    a.categoryIds.join(",") === b.categoryIds.join(",") &&
     normTags(a.tags).join("\n") === normTags(b.tags).join("\n")
   );
 }

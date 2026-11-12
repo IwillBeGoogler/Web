@@ -37,12 +37,24 @@ export const storyFormSchema = z
     publicationId: z.number().int().min(0),
     coverUrl: z.string().trim().refine(okUrl, "Use an uploaded image or an http(s) URL"),
     tags: z.array(z.string()).refine((t) => normTags(t).length <= 5, "Up to 5 topics"),
+    /** Topic tree ids, the first is the main one. */
+    categoryIds: z.array(z.number().int().positive()).max(5, "Up to 5 topics"),
   })
   .refine((v) => v.status === "draft" || v.body.trim().length > 0, { path: ["body"], message: "Write something before publishing" })
   .refine((v) => v.status !== "scheduled" || isFuture(v.publishAt), { path: ["publishAt"], message: "Pick a time in the future" });
 export type StoryForm = z.infer<typeof storyFormSchema>;
 
-export const emptyStory = (): StoryForm => ({ title: "", subtitle: "", body: "", status: "draft", coverUrl: "", tags: [], publishAt: "", publicationId: 0 });
+export const emptyStory = (): StoryForm => ({
+  title: "",
+  subtitle: "",
+  body: "",
+  status: "draft",
+  coverUrl: "",
+  tags: [],
+  categoryIds: [],
+  publishAt: "",
+  publicationId: 0,
+});
 
 export const toDraft = (f: StoryForm) => ({
   title: f.title.trim(),
@@ -51,6 +63,7 @@ export const toDraft = (f: StoryForm) => ({
   status: f.status,
   cover_url: f.coverUrl.trim(),
   tags: normTags(f.tags),
+  category_ids: f.categoryIds,
   publish_at: f.status === "scheduled" ? toRFC3339(f.publishAt) : null,
   publication_id: f.publicationId,
 });
@@ -63,6 +76,7 @@ export const storyToForm = (p: {
   status: string;
   cover_url: string;
   tags: string[];
+  category_ids?: number[] | null | undefined;
   publish_at?: string | null | undefined;
   publication_id?: number | undefined;
 }): StoryForm => ({
@@ -72,6 +86,7 @@ export const storyToForm = (p: {
   status: p.status === "draft" ? "draft" : p.status === "scheduled" ? "scheduled" : "published",
   coverUrl: p.cover_url,
   tags: p.tags,
+  categoryIds: p.category_ids ?? [],
   publishAt: toLocalInput(p.publish_at),
   publicationId: p.publication_id ?? 0,
 });

@@ -26,6 +26,7 @@ describe("story", () => {
       status: "published",
       cover_url: "",
       tags: ["go", "devops"],
+      category_ids: [],
       publish_at: null,
       publication_id: 0,
     });
@@ -38,6 +39,7 @@ describe("story", () => {
       status: "draft",
       coverUrl: "c",
       tags: ["x"],
+      categoryIds: [],
       publishAt: "",
       publicationId: 0,
     });

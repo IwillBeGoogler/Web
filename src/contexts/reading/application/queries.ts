@@ -1,6 +1,7 @@
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import { nextPageRequest, type Page, type PageRequest } from "@/shared/http";
 import type { Post } from "../domain/post";
+import { buildTree } from "../domain/topic";
 import { type FeedSource, readingRepository } from "../infrastructure/readingRepository";
 
 export const FEED_PAGE_SIZE = 10;
@@ -38,6 +39,13 @@ export const tagsQuery = () =>
     queryKey: ["tags"],
     queryFn: async ({ signal }) => (await readingRepository.tags(signal)).sort((a, b) => b.count - a.count),
     staleTime: 5 * 60_000,
+  });
+/** The whole topic tree in one request, shared by the menu, /topics and every topic page. */
+export const topicsQuery = () =>
+  queryOptions({
+    queryKey: ["topics"],
+    queryFn: async ({ signal }) => buildTree(await readingRepository.topics(signal)),
+    staleTime: 10 * 60_000,
   });
 export const profileQuery = (username: string) =>
   queryOptions({ queryKey: ["profile", username], queryFn: ({ signal }) => readingRepository.profile(username, signal) });

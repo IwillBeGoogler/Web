@@ -193,6 +193,8 @@ const P = {
   Article: lazy(() => import("./pages/ArticlePage"), "ArticlePage"),
   Profile: lazy(() => import("./pages/ProfilePage"), "ProfilePage"),
   Tag: lazy(() => import("./pages/TagPage"), "TagPage"),
+  Topics: lazy(() => import("./pages/TopicsPage"), "TopicsPage"),
+  Topic: lazy(() => import("./pages/TopicsPage"), "TopicPage"),
   Search: lazy(() => import("./pages/SearchPage"), "SearchPage"),
   Editor: lazy(() => import("./pages/EditorPage"), "EditorPage"),
   Settings: lazy(() => import("./pages/MePages"), "SettingsPage"),
@@ -247,6 +249,12 @@ const tag = createRoute({
   getParentRoute: () => shell,
   path: "/tag/$tag",
   component: page(P.Tag, () => ({ tag: useParams({ from: "/shell/tag/$tag" }).tag })),
+});
+const topics = createRoute({ getParentRoute: () => shell, path: "/topics", component: P.Topics });
+const topic = createRoute({
+  getParentRoute: () => shell,
+  path: "/topics/$slug",
+  component: page(P.Topic, () => ({ slug: useParams({ from: "/shell/topics/$slug" }).slug })),
 });
 const search = createRoute({
   getParentRoute: () => shell,
@@ -390,6 +398,8 @@ const routeTree = root.addChildren([
     articleAnon,
     profile,
     tag,
+    topics,
+    topic,
     search,
     list,
     series,

@@ -16,6 +16,7 @@ export const postSchema = z.object({
   publication_id: z.number().default(0),
   cover_url: z.string().default(""),
   canonical_url: z.string().optional(),
+  category_ids: z.array(z.number()).nullable().optional(),
   tags: z
     .array(z.string())
     .nullable()

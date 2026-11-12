@@ -13,6 +13,7 @@ import {
   type Tag,
   tagSchema,
 } from "../domain/post";
+import { type Topic, topicSchema } from "../domain/topic";
 
 const arr = <S extends z.ZodType>(s: S) =>
   dataEnvelope(
@@ -29,6 +30,7 @@ export type FeedSource =
   | { kind: "for-you" }
   | { kind: "following" }
   | { kind: "tag"; tag: string }
+  | { kind: "topic"; id: number }
   | { kind: "search"; q: string }
   | { kind: "user"; username: string }
   | { kind: "bookmarks" }
@@ -46,6 +48,8 @@ const feedPath = (s: FeedSource): [string, Record<string, string>] => {
       return ["/me/feed", {}];
     case "tag":
       return ["/posts", { tag: s.tag }];
+    case "topic":
+      return [`/categories/${s.id}/posts`, {}];
     case "search":
       return ["/posts", { q: s.q }];
     case "user":
@@ -80,6 +84,9 @@ export const readingRepository = {
   },
   async tags(signal?: AbortSignal): Promise<Tag[]> {
     return (await http("/tags", { schema: arr(tagSchema), signal })).data;
+  },
+  async topics(signal?: AbortSignal): Promise<Topic[]> {
+    return (await http("/categories", { schema: arr(topicSchema), signal })).data;
   },
   async profile(username: string, signal?: AbortSignal): Promise<Profile> {
     return (await http(`/users/${encodeURIComponent(username)}`, { schema: dataEnvelope(profileSchema), signal })).data;

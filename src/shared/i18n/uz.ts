@@ -28,6 +28,13 @@ export const uz: Record<keyof typeof en, string> = {
   "nav.categories": "Kategoriyalar",
   "nav.myDiagrams": "Mening diagrammalarim",
   "nav.allTopics": "Barcha mavzular",
+  "topics.title": "Mavzular",
+  "topics.lead": "Mavzu bo‘yicha ko‘rish",
+  "topics.stories": "ta hikoya",
+  "topics.sub": "Ichki mavzular",
+  "topics.notFound": "Mavzu topilmadi",
+  "topics.empty": "Bu mavzuda hozircha hikoya yo‘q.",
+  "topics.pick": "Eng ko‘pi bilan 5 ta mavzu, birinchisi asosiy.",
   "nav.skip": "Asosiy qismga o‘tish",
 
   "auth.join": "Akkaunt yarating",

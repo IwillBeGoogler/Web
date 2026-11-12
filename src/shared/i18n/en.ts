@@ -27,6 +27,13 @@ export const en = {
   "nav.categories": "Categories",
   "nav.myDiagrams": "My diagrams",
   "nav.allTopics": "All topics",
+  "topics.title": "Topics",
+  "topics.lead": "Browse by topic",
+  "topics.stories": "stories",
+  "topics.sub": "Subtopics",
+  "topics.notFound": "Topic not found",
+  "topics.empty": "No stories in this topic yet.",
+  "topics.pick": "Up to 5 topics, the first is the main one.",
   "nav.skip": "Skip to content",
 
   "auth.join": "Create your account",

@@ -23,10 +23,11 @@ import { studioRepository } from "@/contexts/publishing/infrastructure/storyRepo
 import type { RichProblem } from "@/contexts/publishing/rich/markdown";
 import type { RichHandle } from "@/contexts/publishing/rich/RichEditor";
 import { StoryPreview } from "@/contexts/publishing/ui/StoryPreview";
-import { postByIdQuery } from "@/contexts/reading/application/queries";
+import { postByIdQuery, topicsQuery } from "@/contexts/reading/application/queries";
 import { postPath, readTime } from "@/contexts/reading/domain/post";
+import { type TopicNode, topicName } from "@/contexts/reading/domain/topic";
 import { ApiError, explainError } from "@/shared/http";
-import { type MessageKey, useT } from "@/shared/i18n";
+import { type MessageKey, useLang, useT } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { shortDate } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/button";
@@ -62,6 +63,84 @@ const grow = (el: HTMLTextAreaElement | null) => {
   el.style.height = "auto";
   el.style.height = `${el.scrollHeight}px`;
 };
+
+/** Pick up to 5 nodes of the topic tree; the first picked is the main one. */
+function TopicTreePicker({ value, onChange }: { value: number[]; onChange: (v: number[]) => void }) {
+  const t = useT();
+  const lang = useLang();
+  const q = useQuery(topicsQuery());
+  const [open, setOpen] = useState<number | null>(null);
+  const names = new Map<number, string>();
+  const walk = (list: TopicNode[]) => {
+    for (const n of list) {
+      names.set(n.id, topicName(n, lang));
+      walk(n.children);
+    }
+  };
+  walk(q.data ?? []);
+  const toggle = (id: number) => onChange(value.includes(id) ? value.filter((x) => x !== id) : value.length < 5 ? [...value, id] : value);
+  const row = (n: TopicNode, depth: number) => (
+    <label key={n.id} className="flex cursor-pointer items-center gap-2 py-1 text-sm" style={{ paddingLeft: depth * 16 }}>
+      <input type="checkbox" checked={value.includes(n.id)} disabled={!value.includes(n.id) && value.length >= 5} onChange={() => toggle(n.id)} />
+      <span className="truncate">{topicName(n, lang)}</span>
+    </label>
+  );
+  return (
+    <div>
+      <ul className="flex flex-wrap gap-2" aria-label={t("topics.pick")}>
+        {value.map((id, i) => (
+          <li key={id} className="tag">
+            <span className="min-w-0 truncate">
+              {i === 0 ? "★ " : ""}
+              {names.get(id) ?? id}
+            </span>
+            <button
+              type="button"
+              aria-label={`Remove ${names.get(id) ?? id}`}
+              className="grid size-5 place-items-center rounded-[2px] hover:bg-inverse hover:text-on-inverse"
+              onClick={() => toggle(id)}
+            >
+              <XIcon className="size-3" aria-hidden />
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 max-h-64 overflow-y-auto rounded-[var(--radius-sm)] border border-line-strong bg-card p-2">
+        {(q.data ?? []).map((root) => (
+          <div key={root.id}>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                aria-expanded={open === root.id}
+                aria-label={topicName(root, lang)}
+                className="grid size-6 place-items-center text-muted hover:text-fg"
+                onClick={() => setOpen(open === root.id ? null : root.id)}
+              >
+                {open === root.id ? "−" : "+"}
+              </button>
+              {row(root, 0)}
+            </div>
+            {open === root.id ? (
+              <div className="ml-6">
+                {root.children.map((c) => (
+                  <div key={c.id}>
+                    {row(c, 0)}
+                    {c.children.length ? (
+                      <details>
+                        <summary className="cursor-pointer pl-4 font-mono text-[11px] text-muted">{c.children.length}</summary>
+                        {c.children.map((g) => row(g, 1))}
+                      </details>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function TopicsInput({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
   const [draft, setDraft] = useState("");
@@ -121,6 +200,7 @@ function PublishDialog({
   onPublish: (when: "now" | "later") => void;
   pending: boolean;
 }) {
+  const t = useT();
   const { me } = useMe();
   const pubs = useQuery({ ...myPublicationsQuery(), enabled: open });
   const publicationId = useWatch({ control: form.control, name: "publicationId" });
@@ -128,6 +208,7 @@ function PublishDialog({
   const [later, setLater] = useState(!!publishAt);
   const cover = useWatch({ control: form.control, name: "coverUrl" });
   const tags = useWatch({ control: form.control, name: "tags" });
+  const categoryIds = useWatch({ control: form.control, name: "categoryIds" });
   const title = useWatch({ control: form.control, name: "title" });
   const [err, setErr] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -220,6 +301,10 @@ function PublishDialog({
                 <p className="font-mono text-[11px] text-muted">Up to 5 topics.</p>
                 <div className="mt-2">
                   <TopicsInput value={tags} onChange={(v) => form.setValue("tags", v, { shouldDirty: true })} />
+                </div>
+                <p className="mt-4 font-mono text-[11px] text-muted">{t("topics.pick")}</p>
+                <div className="mt-2">
+                  <TopicTreePicker value={categoryIds} onChange={(v) => form.setValue("categoryIds", v, { shouldDirty: true })} />
                 </div>
               </div>
             </li>

@@ -28,6 +28,13 @@ export const ru: Record<keyof typeof en, string> = {
   "nav.categories": "Категории",
   "nav.myDiagrams": "Мои диаграммы",
   "nav.allTopics": "Все темы",
+  "topics.title": "Темы",
+  "topics.lead": "Обзор по темам",
+  "topics.stories": "историй",
+  "topics.sub": "Подтемы",
+  "topics.notFound": "Тема не найдена",
+  "topics.empty": "В этой теме пока нет историй.",
+  "topics.pick": "До 5 тем, первая — основная.",
   "nav.skip": "Перейти к содержимому",
 
   "auth.join": "Создайте аккаунт",

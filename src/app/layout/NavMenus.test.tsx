@@ -80,32 +80,33 @@ describe("DiagramsMenu", () => {
 });
 
 describe("CategoriesMenu", () => {
-  it("lists the top tags with counts and links them, then all topics", async () => {
+  it("lists root topics with story totals and links them, then all topics", async () => {
     server.use(
-      http.get(api("/tags"), () =>
+      http.get(api("/categories"), () =>
         HttpResponse.json({
           data: [
-            { name: "go", count: 3 },
-            { name: "system-design", count: 12 },
+            { id: 1, parent_id: 0, slug: "system-design", name: "System Design", names: {}, position: 0, count: 2 },
+            { id: 2, parent_id: 1, slug: "caching", name: "Caching", names: {}, position: 0, count: 10 },
+            { id: 3, parent_id: 0, slug: "devops", name: "DevOps", names: {}, position: 1, count: 3 },
           ],
         }),
       ),
     );
     const { user, router } = await renderRouted(<CategoriesMenu />);
     let menu = await openMenu(user, "Categories");
-    const first = await within(menu).findByRole("menuitem", { name: /system-design/ });
+    const first = await within(menu).findByRole("menuitem", { name: /System Design/ });
     expect(first).toHaveTextContent("12");
     expect(within(menu).getAllByRole("menuitem")[0]).toBe(first);
-    await user.click(within(menu).getByRole("menuitem", { name: /go/ }));
-    await waitFor(() => expect(router.state.location.pathname).toBe("/tag/go"));
+    await user.click(within(menu).getByRole("menuitem", { name: /DevOps/ }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/topics/devops"));
     menu = await openMenu(user, "Categories");
     await user.click(within(menu).getByRole("menuitem", { name: "All topics" }));
-    await waitFor(() => expect(router.state.location.pathname).toBe("/search"));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/topics"));
   });
 
-  it("shows a placeholder while loading and only all topics when there are no tags", async () => {
+  it("shows a placeholder while loading and only all topics when there are no topics", async () => {
     server.use(
-      http.get(api("/tags"), async () => {
+      http.get(api("/categories"), async () => {
         await delay(50);
         return HttpResponse.json({ data: [] });
       }),
