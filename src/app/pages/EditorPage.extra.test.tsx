@@ -94,6 +94,17 @@ describe("EditorPage visual mode", () => {
     expect(rich.handle.insertLive).toHaveBeenCalled();
   });
 
+  it("shows a topic id the tree does not know and lets it be removed", async () => {
+    signedIn();
+    existing({ category_ids: [99] });
+    const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    await screen.findByText("rich:old body");
+    await user.click(screen.getByRole("button", { name: /Ship it|Update|Publish/ }));
+    expect(await screen.findByText("★ 99")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Remove 99" }));
+    expect(screen.queryByText("★ 99")).toBeNull();
+  });
+
   it("opens in Markdown with a notice when the text can't round-trip, and refuses to go visual", async () => {
     signedIn();
     existing();

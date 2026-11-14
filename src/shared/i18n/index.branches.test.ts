@@ -34,6 +34,13 @@ describe("i18n module edges", () => {
     expect(m.i18n.get()).toBe("en");
   });
 
+  it("detects no language without navigator, and falls back to English for a missing message", async () => {
+    vi.stubGlobal("navigator", undefined);
+    const m = await fresh();
+    expect(m.i18n.get()).toBe("uz");
+    expect(m.translate("uz", "no.such.key" as never)).toBeUndefined();
+  });
+
   it("subscribe returns an unsubscribe", async () => {
     const { i18n } = await fresh();
     const fn = vi.fn();

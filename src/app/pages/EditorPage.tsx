@@ -80,7 +80,7 @@ function TopicTreePicker({ value, onChange }: { value: number[]; onChange: (v: n
     }
   };
   walk(q.data ?? []);
-  const toggle = (id: number) => onChange(value.includes(id) ? value.filter((x) => x !== id) : value.length < 5 ? [...value, id] : value);
+  const toggle = (id: number) => onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]); // the checkbox is disabled at 5
   const row = (n: TopicNode, depth: number) => (
     <label key={n.id} className="flex cursor-pointer items-center gap-2 py-1 text-sm" style={{ paddingLeft: depth * 16 }}>
       <input type="checkbox" checked={value.includes(n.id)} disabled={!value.includes(n.id) && value.length >= 5} onChange={() => toggle(n.id)} />
@@ -479,6 +479,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const existing = useQuery({ ...postByIdQuery(id ?? 0), enabled: !!id });
   const [postId, setPostId] = useState(id);
   const form = useForm<StoryForm>({ resolver: zodResolver(storyFormSchema), defaultValues: emptyStory() });
+  const bodyNow = () => form.getValues("body") ?? "";
   // what the server holds; "unsaved" is values vs this, never the form's own dirty flag (a save must not reset typed text)
   const [saved, setSaved] = useState<StoryForm>(emptyStory);
   const [ready, setReady] = useState(!id);
@@ -703,7 +704,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
     if (mode === "rich") return;
     try {
       const [m] = await Promise.all([loadRichMarkdown(), loadRichEditor()]);
-      const r = m.canRoundTrip(form.getValues("body") ?? "");
+      const r = m.canRoundTrip(bodyNow());
       if (!r.ok) {
         setRefused(r.problem);
         setProblem(r.problem);
@@ -733,13 +734,13 @@ export function EditorPage({ id: routeId }: { id?: number }) {
     };
     void uploadImages(files, engagementRepository.upload, {
       place: (_id, ph) => {
-        const next = insertBlock(form.getValues("body") ?? "", ph, at);
+        const next = insertBlock(bodyNow(), ph, at);
         const end = next.indexOf(ph) + ph.length;
         at = { start: end, end };
         setBody(next, end + 2);
       },
       settle: (uid, md) => {
-        const cur = form.getValues("body") ?? "";
+        const cur = bodyNow();
         const next = settlePlaceholder(cur, uid, md);
         if (next === cur) return;
         const ph = `![Uploading…](#upload-${uid})`;
@@ -810,7 +811,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                 if (mode === "rich" && !preview) return richRef.current?.insertLive();
                 const el = bodyRef.current;
                 const sel = el ? { start: el.selectionStart, end: el.selectionEnd } : null;
-                form.setValue("body", insertBlock(form.getValues("body") ?? "", LIVE_STARTER, sel), { shouldDirty: true });
+                form.setValue("body", insertBlock(bodyNow(), LIVE_STARTER, sel), { shouldDirty: true });
               }}
             >
               <SparklesIcon className="size-3.5" aria-hidden /> {t("live.insert")}
@@ -1007,7 +1008,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
         onOpenChange={setDiagramPicker}
         onPick={(line) => {
           if (mode === "rich") return richRef.current?.insertDiagram(line);
-          const cur = form.getValues("body") ?? "";
+          const cur = bodyNow();
           form.setValue("body", insertBlock(cur, line, caret.current), { shouldDirty: true });
           caret.current = null;
         }}

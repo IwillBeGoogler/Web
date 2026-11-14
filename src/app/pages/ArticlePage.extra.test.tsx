@@ -47,6 +47,12 @@ describe("ArticlePage extras", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Recovered" })).toBeInTheDocument();
   });
 
+  it("dates an unpublished story by its creation time", async () => {
+    await mount(makePost({ slug: "undated", title: "Undated", published_at: null, created_at: "2026-09-02T00:00:00Z" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Undated" })).toBeInTheDocument();
+    expect(document.querySelector("time")?.getAttribute("datetime")).toBe("2026-09-02T00:00:00Z");
+  });
+
   it("shows no-access on 403", async () => {
     server.use(http.get(api("/slug/priv"), () => HttpResponse.json({ status: 403, detail: "no" }, { status: 403 })));
     await renderRouted(<ArticlePage slug="priv" />);

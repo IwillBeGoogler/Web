@@ -53,7 +53,7 @@ export function mergeTerms(article: readonly GlossaryEntry[], globals: readonly 
       continue;
     }
     for (const n of names) taken.add(fold(n));
-    theirs.push({ id: `g:${g.id}`, term: names[0] ?? "", aliases: names.slice(1), definition: g.definition });
+    theirs.push({ id: `g:${g.id}`, term: g.term.trim(), aliases: names.slice(1), definition: g.definition });
   }
   return [...mine, ...theirs];
 }
@@ -115,7 +115,7 @@ export const TERM_CLASS = "glossary-term";
 /** Puts the wrapping back to plain text (before marking again, or when the article goes away). */
 export function clearTerms(root: Element): void {
   for (const span of Array.from(root.querySelectorAll(`.${TERM_CLASS}`))) {
-    span.replaceWith(document.createTextNode(span.textContent ?? ""));
+    span.replaceWith(document.createTextNode(span.textContent as string));
   }
   root.normalize();
 }

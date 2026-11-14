@@ -139,4 +139,46 @@ describe("TermTooltip", () => {
     fireEvent.keyDown(pod, { key: "Enter" });
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
+
+  it("ignores events outside terms, in the wrong input mode, and terms the glossary does not know", async () => {
+    const { pod, node, container } = setup();
+    const outside = container.querySelectorAll("p")[1] as HTMLElement;
+    fireEvent.pointerDown(outside, { pointerType: "mouse" });
+    fireEvent.mouseOver(outside); // not a term
+    fireEvent.mouseOut(outside); // not a term
+    fireEvent.focusIn(outside);
+    fireEvent.focusOut(outside);
+    fireEvent.click(outside);
+    fireEvent.keyDown(outside, { key: "Enter" }); // switches to key mode
+    fireEvent.pointerDown(outside, { pointerType: "mouse" });
+    advance();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    fireEvent.click(pod); // mouse mode: a click does nothing
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    pod.dataset.termId = "missing";
+    fireEvent.mouseOver(pod);
+    advance();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    pod.dataset.termId = "a:0";
+    fireEvent.mouseOver(pod);
+    advance();
+    await flush();
+    fireEvent.mouseOver(node); // switching terms while open is immediate
+    advance(1);
+    await flush();
+    expect(screen.getByRole("tooltip").textContent).toContain("A machine");
+    fireEvent.mouseOut(node, { relatedTarget: node }); // moving within the same term keeps it
+    advance();
+    expect(screen.queryByRole("tooltip")).not.toBeNull();
+    fireEvent.mouseOut(node, { relatedTarget: null });
+    advance();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    fireEvent.keyDown(document, { key: "Tab" });
+    fireEvent.mouseOver(pod); // key mode ignores hover
+    advance();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    fireEvent.pointerDown(pod, { pointerType: "pen" });
+    fireEvent.focusIn(pod); // touch mode ignores focus
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
 });
