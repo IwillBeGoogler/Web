@@ -15,7 +15,7 @@
     if (f && f.load) {
       root.classList.add("fonts-wait");
       var show = function () { root.classList.remove("fonts-wait"); };
-      Promise.all(["400 1em Geist", "700 1em \"Inter Tight\"", "400 1em \"Source Serif 4\"", "700 1em \"Source Serif 4\"", "400 1em \"Geist Mono\""].map(function (s) { return f.load(s); })).then(show, show);
+      Promise.all(["400 1em \"Geist Variable\"", "700 1em \"Inter Tight Variable\"", "400 1em \"Source Serif 4 Variable\"", "700 1em \"Source Serif 4 Variable\"", "400 1em \"Geist Mono Variable\""].map(function (s) { return f.load(s); })).then(show, show);
       setTimeout(show, 1200);
     }
     return;

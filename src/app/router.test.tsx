@@ -102,6 +102,9 @@ describe("router", () => {
     expect(await screen.findByTestId("home")).toHaveTextContent("{}");
     expect(screen.getByText("topbar")).toBeInTheDocument();
     expect(screen.getByText("footer")).toBeInTheDocument();
+    // the Earth waits for the first interaction (or idle time after load)
+    expect(screen.queryByTestId("earth")).toBeNull();
+    dispatchEvent(new Event("pointermove"));
     expect(await screen.findByTestId("earth")).toHaveTextContent("true");
     expect(screen.getByTestId("galaxy")).toHaveTextContent("true");
     expect(screen.getByTestId("dock")).toBeInTheDocument();

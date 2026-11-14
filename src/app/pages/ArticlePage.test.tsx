@@ -34,4 +34,34 @@ describe("ArticlePage", () => {
     await renderRouted(<ArticlePage slug="nope" />);
     expect(await screen.findByText("This story doesn't exist or was removed.")).toBeInTheDocument();
   });
+
+  it("underlines glossary terms: the article's own win over site-wide ones, in the reader's language", async () => {
+    let lang: string | null = null;
+    server.use(
+      http.get(api("/slug/hello-iwillbegoogler"), () =>
+        HttpResponse.json({
+          data: makePost({
+            body_html: "<p>A Pod runs on a Node.</p>",
+            glossary: [{ term: "Pod", aliases: [], definition: "from the article" }],
+          }),
+        }),
+      ),
+      http.get(api("/glossary"), ({ request }) => {
+        lang = new URL(request.url).searchParams.get("lang");
+        return HttpResponse.json({
+          data: [
+            { id: 1, term: "pod", aliases: [], definition: "site pod", lang: "" },
+            { id: 2, term: "Node", aliases: [], definition: "site node", lang: "" },
+          ],
+        });
+      }),
+      http.get(api("/users/ali"), () => HttpResponse.json({ data: profile })),
+      http.get(api("/posts/1/related"), () => HttpResponse.json({ data: [] })),
+      http.post(api("/posts/1/view"), () => new HttpResponse(null, { status: 204 })),
+    );
+    const { container } = await renderRouted(<ArticlePage slug="hello-iwillbegoogler" />);
+    await waitFor(() => expect(container.querySelectorAll(".glossary-term")).toHaveLength(2));
+    expect([...container.querySelectorAll(".glossary-term")].map((e) => (e as HTMLElement).dataset.termId)).toEqual(["a:0", "g:2"]);
+    expect(lang).toMatch(/^(uz|ru|en)$/);
+  });
 });

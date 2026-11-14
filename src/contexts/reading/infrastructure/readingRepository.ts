@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { http } from "@/shared/api";
 import { dataEnvelope, type Page, type PageRequest, pageEnvelope } from "@/shared/http";
+import { type GlobalTerm, globalTermSchema } from "../domain/glossary";
 import {
   type Post,
   type Profile,
@@ -93,6 +94,10 @@ export const readingRepository = {
   },
   async suggestions(signal?: AbortSignal): Promise<Suggestion[]> {
     return (await http("/me/suggestions/users", { query: { limit: 3 }, schema: arr(suggestionSchema), signal })).data;
+  },
+  /** Site-wide terms for one UI language (plus the ones that apply to every language). */
+  async glossary(lang: string, signal?: AbortSignal): Promise<GlobalTerm[]> {
+    return (await http("/glossary", { query: { lang }, schema: arr(globalTermSchema), signal })).data;
   },
   async siteStats(signal?: AbortSignal): Promise<SiteStats> {
     return (await http("/stats/site", { schema: dataEnvelope(siteStatsSchema), signal })).data;

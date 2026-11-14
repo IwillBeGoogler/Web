@@ -11,17 +11,14 @@ import {
   useSearch,
 } from "@tanstack/react-router";
 import { FileQuestionIcon } from "lucide-react";
-import { lazy as reactLazy, Suspense, useEffect, useRef } from "react";
+import { lazy as reactLazy, Suspense, useEffect, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { z } from "zod";
 import { feedbackDialog } from "@/contexts/engagement/application/feedbackDialog";
 import { useLiveNotifications } from "@/contexts/engagement/application/realtime";
 import { errorDetails } from "@/contexts/engagement/domain/feedback";
-import { FeedbackDialog } from "@/contexts/engagement/ui/FeedbackDialog";
-import { ReadingDock } from "@/contexts/preferences/ui/ReadingPanel";
 import { adopted } from "@/contexts/publishing/application/adopted";
 import "@/contexts/preferences/application/store";
-import { AuthDialog } from "@/contexts/identity/ui/AuthDialog";
 import { track } from "@/shared/analytics";
 import { tokens } from "@/shared/api";
 import { reportError } from "@/shared/errorReporting";
@@ -31,6 +28,25 @@ import { Button } from "@/shared/ui/button";
 import { Galaxy } from "@/shared/ui/galaxy";
 
 const EarthHorizon = reactLazy(() => import("@/shared/ui/EarthHorizon"));
+// Dialogs and the reading dock are not needed for the first paint: their code (forms, schemas, motion) loads in its own chunks.
+const LazyAuthDialog = reactLazy(() => import("@/contexts/identity/ui/AuthDialog").then((m) => ({ default: m.AuthDialog })));
+const LazyFeedbackDialog = reactLazy(() => import("@/contexts/engagement/ui/FeedbackDialog").then((m) => ({ default: m.FeedbackDialog })));
+const LazyReadingDock = reactLazy(() => import("@/contexts/preferences/ui/ReadingPanel").then((m) => ({ default: m.ReadingDock })));
+const AuthDialog = () => (
+  <Suspense fallback={null}>
+    <LazyAuthDialog />
+  </Suspense>
+);
+const FeedbackDialog = () => (
+  <Suspense fallback={null}>
+    <LazyFeedbackDialog />
+  </Suspense>
+);
+const ReadingDock = () => (
+  <Suspense fallback={null}>
+    <LazyReadingDock />
+  </Suspense>
+);
 
 import { EmptyState } from "@/shared/ui/states";
 import { CookieBanner } from "./layout/CookieBanner";
@@ -60,14 +76,38 @@ const isReading = (path: string) => /^\/(@[^/]+|p|posts)\/[^/]+\/?$/.test(path) 
 /** The diagram editor fills the window under the top bar: its own calm backdrop (embed/theme.css), no footer. */
 const isEditor = (path: string) => /^\/d\/(f|s|v)\/[^/]+\/?$/.test(path);
 
+/** True once the visitor interacts, or a few seconds after load: the 3D Earth (three.js + ~800 KB of textures) waits for it so the page itself loads first. */
+function useDeferred(ms = 4000) {
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    if (on) return;
+    const go = () => setOn(true);
+    const events = ["pointerdown", "pointermove", "keydown", "scroll", "touchstart", "wheel"] as const;
+    for (const e of events) addEventListener(e, go, { once: true, passive: true });
+    let timer = 0;
+    const arm = () => {
+      timer = window.setTimeout(() => ("requestIdleCallback" in window ? requestIdleCallback(go, { timeout: 2000 }) : go()), ms);
+    };
+    if (document.readyState === "complete") arm();
+    else addEventListener("load", arm, { once: true });
+    return () => {
+      for (const e of events) removeEventListener(e, go);
+      removeEventListener("load", arm);
+      clearTimeout(timer);
+    };
+  }, [on, ms]);
+  return on;
+}
+
 function Shell() {
   const t = useT();
+  const earthOn = useDeferred();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const editor = isEditor(path);
   return (
     <div className="min-h-dvh text-fg">
       {editor ? null : <Galaxy planet={!isReading(path)} />}
-      {isReading(path) || editor ? null : (
+      {isReading(path) || editor || !earthOn ? null : (
         <Suspense fallback={null}>
           <EarthHorizon satellite={path === "/"} brand={BRAND} />
         </Suspense>
@@ -76,9 +116,12 @@ function Shell() {
         {t("nav.skip")}
       </a>
       <TopBar />
-      <Suspense fallback={null}>
-        <Outlet />
-      </Suspense>
+      {/* min height keeps the footer below the fold while the page's data loads (no layout shift) */}
+      <div className={editor ? "contents" : "min-h-dvh"}>
+        <Suspense fallback={null}>
+          <Outlet />
+        </Suspense>
+      </div>
       {editor ? null : <Footer />}
     </div>
   );

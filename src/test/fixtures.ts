@@ -19,6 +19,7 @@ export const makePost = (o: Record<string, unknown> = {}) => ({
   publication_id: 0,
   cover_url: "",
   tags: ["go"],
+  glossary: [],
   likes: 0,
   claps: 10,
   my_claps: 0,

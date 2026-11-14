@@ -15,6 +15,7 @@ const copySchema = z.object({
     coverUrl: z.string(),
     tags: z.array(z.string()),
     categoryIds: z.array(z.number()).default([]),
+    glossary: z.array(z.object({ term: z.string(), aliases: z.array(z.string()).default([]), definition: z.string() })).default([]),
   }),
 });
 export type LocalCopy = z.infer<typeof copySchema>;

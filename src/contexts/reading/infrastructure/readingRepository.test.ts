@@ -73,4 +73,17 @@ describe("readingRepository", () => {
     await readingRepository.view(1);
     await readingRepository.read(1, 0.5);
   });
+  it("glossary sends the language and tolerates null", async () => {
+    let lang: string | null = null;
+    server.use(
+      http.get(api("/glossary"), ({ request }) => {
+        lang = new URL(request.url).searchParams.get("lang");
+        return HttpResponse.json({ data: [{ id: 1, term: "Pod", aliases: null, definition: "d", lang: "" }] });
+      }),
+    );
+    expect(await readingRepository.glossary("uz")).toEqual([{ id: 1, term: "Pod", aliases: [], definition: "d", lang: "" }]);
+    expect(lang).toBe("uz");
+    server.use(http.get(api("/glossary"), () => HttpResponse.json({ data: null })));
+    expect(await readingRepository.glossary("en")).toEqual([]);
+  });
 });

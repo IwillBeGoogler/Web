@@ -1,3 +1,4 @@
+import { sameGlossary } from "./glossary";
 import { normTags, type StoryForm } from "./story";
 
 /** Autosave waits this long after the last keystroke, and never longer than MAX since the edits began. */
@@ -17,6 +18,7 @@ export function sameStory(a: StoryForm, b: StoryForm): boolean {
     a.publishAt === b.publishAt &&
     a.publicationId === b.publicationId &&
     a.categoryIds.join(",") === b.categoryIds.join(",") &&
+    sameGlossary(a.glossary, b.glossary) &&
     normTags(a.tags).join("\n") === normTags(b.tags).join("\n")
   );
 }

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CloudOffIcon, FileQuestionIcon, LinkIcon, MessageSquareIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Highlighter, HighlightsPanel } from "@/contexts/collections/ui/Highlights";
 import { SaveToList } from "@/contexts/collections/ui/Lists";
 import { SeriesNav } from "@/contexts/collections/ui/Series";
@@ -12,7 +12,8 @@ import { useMe } from "@/contexts/identity/application/session";
 import { useReadingPrefs } from "@/contexts/preferences/application/store";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
 import { bionicHtml } from "@/contexts/preferences/ui/bionic";
-import { postQuery, profileQuery, relatedQuery } from "@/contexts/reading/application/queries";
+import { glossaryQuery, postQuery, profileQuery, relatedQuery } from "@/contexts/reading/application/queries";
+import { mergeTerms } from "@/contexts/reading/domain/glossary";
 import { excerpt, type Post, postPath, readTime } from "@/contexts/reading/domain/post";
 import { safeHtml } from "@/contexts/reading/domain/sanitize";
 import { readingRepository } from "@/contexts/reading/infrastructure/readingRepository";
@@ -21,6 +22,7 @@ import { TopicChips } from "@/contexts/reading/ui/TopicChips";
 import { useReadTime } from "@/shared/analytics";
 import { useHead } from "@/shared/head";
 import { isApiError } from "@/shared/http";
+import { useLang } from "@/shared/i18n";
 import { compact, shortDate } from "@/shared/lib/format";
 import { ease, motion, ReadingProgress, useReducedMotion } from "@/shared/motion";
 import { Avatar } from "@/shared/ui/avatar";
@@ -125,6 +127,9 @@ export function ArticlePage({ slug }: { slug: string }) {
   const nav = useNavigate();
   const bodyRef = useRef<HTMLDivElement>(null);
   const prefs = useReadingPrefs();
+  const lang = useLang();
+  const globalTerms = useQuery({ ...glossaryQuery(lang), enabled: !!post?.body_html });
+  const terms = useMemo(() => mergeTerms(post?.glossary ?? [], globalTerms.data ?? []), [post?.glossary, globalTerms.data]);
   const articleRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   useReadTracking(post?.id);
@@ -276,7 +281,7 @@ export function ArticlePage({ slug }: { slug: string }) {
               </figure>
             ) : null}
             {post.body_html ? (
-              <ArticleBody html={prefs.bionic ? bionicHtml(safeHtml(post.body_html)) : safeHtml(post.body_html)} bodyRef={bodyRef} />
+              <ArticleBody html={prefs.bionic ? bionicHtml(safeHtml(post.body_html)) : safeHtml(post.body_html)} bodyRef={bodyRef} terms={terms} />
             ) : (
               <div ref={bodyRef} className="prose-article mt-10 whitespace-pre-wrap">
                 {post.body}

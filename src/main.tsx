@@ -1,3 +1,8 @@
+import "@fontsource-variable/inter-tight/wght.css";
+import "@fontsource-variable/geist/wght.css";
+import "@fontsource-variable/geist-mono/wght.css";
+import "@fontsource-variable/source-serif-4/opsz.css";
+import "@fontsource-variable/source-serif-4/opsz-italic.css";
 import "./styles.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
@@ -9,6 +14,16 @@ import { keepSplash } from "./shared/splash";
 
 installErrorReporting();
 
+// Router view transitions reject when the viewport changes mid-transition (rotation, mobile URL bar); that is harmless, so keep it out of the console.
+if (document.startViewTransition) {
+  const start = document.startViewTransition.bind(document);
+  document.startViewTransition = ((arg?: Parameters<typeof start>[0]) => {
+    const vt = start(arg);
+    for (const p of [vt.ready, vt.finished, vt.updateCallbackDone]) p.catch(() => {});
+    return vt;
+  }) as typeof document.startViewTransition;
+}
+
 createRoot(document.getElementById("root") as HTMLElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
@@ -17,18 +32,15 @@ createRoot(document.getElementById("root") as HTMLElement).render(
   </StrictMode>,
 );
 
-// Lift the pre-JS loading screen once the shell, fonts and (where it is shown) the 3D Earth are ready:
-// held for at least 5s (stories: no hold, readers want the text) so the splash scene plays out, and longer while the Earth is still loading;
-// a 30s safety cap keeps a broken WebGL path from trapping the user.
+// Lift the pre-JS loading screen once the shell and fonts are ready. The 3D Earth loads later (see router Shell), so it no longer holds the splash;
+// a 3s safety cap keeps a stuck font load from trapping the user.
 const splash = document.getElementById("splash");
 const parked = (window as { __splash?: HTMLElement }).__splash;
 if (parked) keepSplash(parked);
 else if (splash) keepSplash(splash);
 if (splash) {
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  const story = /^\/(@[^/]+|p|posts)\/[^/]+\/?$/.test(location.pathname);
-  const earth = story ? Promise.resolve() : new Promise((r) => addEventListener("iwillbegoogler:earth-ready", r, { once: true }));
-  Promise.race([Promise.all([document.fonts?.ready, earth, wait(story ? 0 : 5000)]), wait(30000)]).then(() => {
+  Promise.race([document.fonts?.ready ?? Promise.resolve(), wait(3000)]).then(() => {
     requestAnimationFrame(() => {
       splash.classList.add("out");
       setTimeout(() => splash.remove(), 600);

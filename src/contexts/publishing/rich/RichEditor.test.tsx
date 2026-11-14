@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createRef } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import RichEditor, { type RichHandle } from "./RichEditor";
@@ -106,5 +106,15 @@ describe("RichEditor", () => {
     expect(bold?.getAttribute("aria-keyshortcuts")).toBe("Control+B Meta+B");
     expect(bold?.getAttribute("aria-pressed")).toBe("false");
     expect(bar.querySelector('button[aria-label="Link"]')?.getAttribute("aria-keyshortcuts")).toBe("Control+K Meta+K");
+  });
+
+  it("getSelection returns the selected text (select all), empty for a caret", async () => {
+    const { ref } = setup("Hello brave world");
+    const box = await screen.findByRole("textbox", { name: "Story body" });
+    expect(ref.current?.getSelection()).toBe("");
+    box.focus();
+    fireEvent.keyDown(box, { key: "a", ctrlKey: true });
+    fireEvent.keyDown(box, { key: "a", metaKey: true });
+    await waitFor(() => expect(ref.current?.getSelection()).toBe("Hello brave world"));
   });
 });

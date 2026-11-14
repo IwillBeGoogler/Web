@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { ArrowLeftIcon, HistoryIcon, ImageIcon, MaximizeIcon, SaveIcon, ShapesIcon, SparklesIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, BookOpenTextIcon, HistoryIcon, ImageIcon, MaximizeIcon, SaveIcon, ShapesIcon, SparklesIcon, XIcon } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -14,6 +14,7 @@ import { displayName } from "@/contexts/identity/domain/account";
 import { adopted } from "@/contexts/publishing/application/adopted";
 import { useStorySaver } from "@/contexts/publishing/application/useStorySaver";
 import { canAutosave, clockTime, type ServerStatus, sameStory } from "@/contexts/publishing/domain/autosave";
+import type { GlossaryEntry } from "@/contexts/publishing/domain/glossary";
 import { insertBlock, LIVE_STARTER } from "@/contexts/publishing/domain/insert";
 import { type LocalCopy, localDraft, shouldOfferRestore } from "@/contexts/publishing/domain/localDraft";
 import { diffStats } from "@/contexts/publishing/domain/revision";
@@ -22,6 +23,7 @@ import { type ImageResult, imageFiles, settlePlaceholder, shiftCaret, uploadImag
 import { studioRepository } from "@/contexts/publishing/infrastructure/storyRepository";
 import type { RichProblem } from "@/contexts/publishing/rich/markdown";
 import type { RichHandle } from "@/contexts/publishing/rich/RichEditor";
+import { GlossaryDialog, type GlossaryDraft, GlossaryPanel } from "@/contexts/publishing/ui/StoryGlossary";
 import { StoryPreview } from "@/contexts/publishing/ui/StoryPreview";
 import { postByIdQuery, topicsQuery } from "@/contexts/reading/application/queries";
 import { postPath, readTime } from "@/contexts/reading/domain/post";
@@ -485,6 +487,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const [preview, setPreview] = useState(false);
   const [history, setHistory] = useState(false);
   const [diagramPicker, setDiagramPicker] = useState(false);
+  const [glossaryDraft, setGlossaryDraft] = useState<GlossaryDraft | null>(null);
   // why the visual editor's text is not exactly what the author sees (null: it is); while set, nothing is sent to the server on its own
   const [lossy, setLossy] = useState<RichProblem | null>(null);
   const t = useT();
@@ -621,6 +624,14 @@ export function EditorPage({ id: routeId }: { id?: number }) {
     onSuccess: () => toast.ok(t("editor.verify.sent")),
     onError: toast.error,
   });
+  const glossary: GlossaryEntry[] = values.glossary ?? [];
+  const setGlossary = (next: GlossaryEntry[]) => form.setValue("glossary", next, { shouldDirty: true });
+  /** The text selected in whichever editor is showing: the term to prefill. */
+  const selectedText = () => {
+    if (mode === "rich" && !preview) return richRef.current?.getSelection().trim() ?? "";
+    const el = bodyRef.current;
+    return el ? el.value.slice(el.selectionStart, el.selectionEnd).trim() : "";
+  };
   const words = body.trim() ? body.trim().split(/\s+/).length : 0;
   // the form is read after flushing the visual editor: an edit typed a moment ago still counts
   const unsaved = () => !sameStory(getLatest(), saved);
@@ -804,6 +815,9 @@ export function EditorPage({ id: routeId }: { id?: number }) {
             >
               <SparklesIcon className="size-3.5" aria-hidden /> {t("live.insert")}
             </Button>
+            <Button variant="ghost" size="sm" onClick={() => setGlossaryDraft({ index: -1, term: selectedText() })} aria-haspopup="dialog">
+              <BookOpenTextIcon className="size-3.5" aria-hidden /> {t("glossary.add")}
+            </Button>
             <span className="seg">
               <button
                 type="button"
@@ -917,7 +931,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
               </Button>
             </section>
           ) : null}
-          {preview ? <StoryPreview body={body} /> : null}
+          {preview ? <StoryPreview body={body} glossary={glossary} /> : null}
           {mode === "rich" ? (
             checking || !ready ? (
               <Bone className="mt-6 h-64 w-full" />
@@ -972,8 +986,22 @@ export function EditorPage({ id: routeId }: { id?: number }) {
               ))}
             </p>
           ) : null}
+          <GlossaryPanel
+            terms={glossary}
+            onEdit={(i) => setGlossaryDraft({ index: i, term: "" })}
+            onRemove={(i) => setGlossary(glossary.filter((_, k) => k !== i))}
+          />
         </main>
       </div>
+      <GlossaryDialog
+        draft={glossaryDraft}
+        terms={glossary}
+        onClose={() => setGlossaryDraft(null)}
+        onSave={(i, entry) => {
+          setGlossary(i < 0 ? [...glossary, entry] : glossary.map((g, k) => (k === i ? entry : g)));
+          setGlossaryDraft(null);
+        }}
+      />
       <DiagramPicker
         open={diagramPicker}
         onOpenChange={setDiagramPicker}

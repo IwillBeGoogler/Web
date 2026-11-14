@@ -16,7 +16,7 @@ export interface Typeface {
 }
 
 export const TYPEFACES: Typeface[] = [
-  { id: "source-serif", label: "Source Serif", group: "Serif", stack: '"Source Serif 4", Georgia, serif' },
+  { id: "source-serif", label: "Source Serif", group: "Serif", stack: '"Source Serif 4 Variable", "Source Serif 4", Georgia, serif' },
   {
     id: "newsreader",
     label: "Newsreader",

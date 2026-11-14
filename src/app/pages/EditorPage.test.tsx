@@ -40,6 +40,7 @@ describe("EditorPage", () => {
       category_ids: [],
       publish_at: null,
       publication_id: 0,
+      glossary: [],
     });
     tokens.set(null);
   });

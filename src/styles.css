@@ -4,10 +4,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-serif: "Source Serif 4", Georgia, Cambria, "Times New Roman", serif;
-  --font-display: "Inter Tight", "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, Menlo, monospace;
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", Georgia, Cambria, "Times New Roman", serif;
+  --font-display: "Inter Tight Variable", "Inter Tight", "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist Variable", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", "Geist Mono", ui-monospace, Menlo, monospace;
 
   /* semantic colors -> resolve to runtime vars so .dark can swap them */
   --color-fg: var(--fg);
@@ -155,6 +155,53 @@
       font-size: var(--article-size, 1.25rem);
       line-height: 1.6;
     } /* 20/32 */
+  }
+  /* glossary: the first mention of a term, explained by a tooltip */
+  .glossary-term {
+    cursor: help;
+    text-decoration: underline dotted;
+    text-decoration-color: var(--muted);
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.25em;
+    border-radius: var(--radius-xs);
+  }
+  .glossary-term:hover,
+  .glossary-term:focus-visible {
+    text-decoration-color: var(--accent);
+  }
+  .term-tip {
+    z-index: 60;
+    display: grid;
+    gap: 0.25rem;
+    max-width: min(20rem, calc(100vw - 1rem));
+    padding: 0.625rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    color: var(--fg);
+    box-shadow: 2px 2px 0 0 var(--fg);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.45;
+    letter-spacing: 0;
+    animation: term-tip-in 120ms ease-out;
+  }
+  .term-tip-name {
+    font-weight: 700;
+  }
+  .term-tip-def {
+    color: var(--muted);
+    white-space: pre-line;
+  }
+  @keyframes term-tip-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .term-tip {
+      animation: none;
+    }
   }
   .prose-article :where(p) {
     margin-top: 2em;

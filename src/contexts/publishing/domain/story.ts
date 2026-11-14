@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { cleanEntry, entriesProblem } from "./glossary";
 
 const bytes = (s: string) => new TextEncoder().encode(s).length;
 const okUrl = (u: string) => !u || u.startsWith("/api/uploads/") || /^https?:\/\//i.test(u);
@@ -39,7 +40,10 @@ export const storyFormSchema = z
     tags: z.array(z.string()).refine((t) => normTags(t).length <= 5, "Up to 5 topics"),
     /** Topic tree ids, the first is the main one. */
     categoryIds: z.array(z.number().int().positive()).max(5, "Up to 5 topics"),
+    /** Terms explained in a tooltip while reading this story. */
+    glossary: z.array(z.object({ term: z.string(), aliases: z.array(z.string()), definition: z.string() })),
   })
+  .refine((v) => !entriesProblem(v.glossary), { path: ["glossary"], message: "Check the glossary terms" })
   .refine((v) => v.status === "draft" || v.body.trim().length > 0, { path: ["body"], message: "Write something before publishing" })
   .refine((v) => v.status !== "scheduled" || isFuture(v.publishAt), { path: ["publishAt"], message: "Pick a time in the future" });
 export type StoryForm = z.infer<typeof storyFormSchema>;
@@ -54,6 +58,7 @@ export const emptyStory = (): StoryForm => ({
   categoryIds: [],
   publishAt: "",
   publicationId: 0,
+  glossary: [],
 });
 
 export const toDraft = (f: StoryForm) => ({
@@ -66,6 +71,7 @@ export const toDraft = (f: StoryForm) => ({
   category_ids: f.categoryIds,
   publish_at: f.status === "scheduled" ? toRFC3339(f.publishAt) : null,
   publication_id: f.publicationId,
+  glossary: f.glossary.map(cleanEntry),
 });
 export type DraftPayload = ReturnType<typeof toDraft>;
 
@@ -79,6 +85,7 @@ export const storyToForm = (p: {
   category_ids?: number[] | null | undefined;
   publish_at?: string | null | undefined;
   publication_id?: number | undefined;
+  glossary?: StoryForm["glossary"] | null | undefined;
 }): StoryForm => ({
   title: p.title,
   subtitle: p.subtitle,
@@ -89,4 +96,5 @@ export const storyToForm = (p: {
   categoryIds: p.category_ids ?? [],
   publishAt: toLocalInput(p.publish_at),
   publicationId: p.publication_id ?? 0,
+  glossary: (p.glossary ?? []).map((g) => ({ term: g.term, aliases: [...g.aliases], definition: g.definition })),
 });

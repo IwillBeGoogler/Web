@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+/** A term the author explained for this article. */
+export const glossaryEntrySchema = z.object({
+  term: z.string(),
+  aliases: z
+    .array(z.string())
+    .nullable()
+    .default([])
+    .transform((a) => a ?? []),
+  definition: z.string(),
+});
+export type GlossaryEntry = z.infer<typeof glossaryEntrySchema>;
+
 export const postSchema = z.object({
   id: z.number(),
   title: z.string(),
@@ -22,6 +34,11 @@ export const postSchema = z.object({
     .nullable()
     .default([])
     .transform((t) => t ?? []),
+  glossary: z
+    .array(glossaryEntrySchema)
+    .nullable()
+    .default([])
+    .transform((g) => g ?? []),
   likes: z.number().default(0),
   claps: z.number().default(0),
   my_claps: z.number().default(0),

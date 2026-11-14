@@ -29,6 +29,7 @@ describe("story", () => {
       category_ids: [],
       publish_at: null,
       publication_id: 0,
+      glossary: [],
     });
   });
   it("maps a post back to the form", () => {
@@ -42,7 +43,18 @@ describe("story", () => {
       categoryIds: [],
       publishAt: "",
       publicationId: 0,
+      glossary: [],
     });
+  });
+  it("round-trips glossary terms and cleans them for the API", () => {
+    const g = [{ term: " Pod ", aliases: ["pods", "pods", " "], definition: " Unit " }];
+    const f = storyFormSchema.parse({ ...ok, glossary: g });
+    expect(toDraft(f).glossary).toEqual([{ term: "Pod", aliases: ["pods"], definition: "Unit" }]);
+    expect(
+      storyToForm({ title: "T", subtitle: "", body: "", status: "draft", cover_url: "", tags: [], glossary: [{ term: "A", aliases: ["b"], definition: "d" }] })
+        .glossary,
+    ).toEqual([{ term: "A", aliases: ["b"], definition: "d" }]);
+    expect(storyFormSchema.safeParse({ ...ok, glossary: [g[0], { ...g[0], term: "POD" }] }).success).toBe(false);
   });
 });
 

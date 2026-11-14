@@ -15,7 +15,7 @@ import { EditorPage } from "./EditorPage";
 const rich = vi.hoisted(() => ({
   problem: null as string | null,
   boom: false,
-  handle: { flush: vi.fn(), insertDiagram: vi.fn(), insertLive: vi.fn(), focus: vi.fn() },
+  handle: { flush: vi.fn(), insertDiagram: vi.fn(), insertLive: vi.fn(), focus: vi.fn(), getSelection: vi.fn(() => "") },
 }));
 
 vi.mock("@/contexts/publishing/rich/RichEditor", () => ({
@@ -195,6 +195,61 @@ describe("EditorPage markdown mode", () => {
     await waitFor(() => expect(sent).toContain("put"));
     fireEvent.keyDown(window, { key: "s" }); // no modifier: ignored
     expect(await screen.findByRole("button", { name: "Revision history" })).toBeInTheDocument();
+  });
+
+  it("adds, edits and removes a glossary term from the selection and sends it with the draft", async () => {
+    signedIn();
+    let body: Record<string, unknown> | undefined;
+    server.use(
+      http.post(api("/posts"), async ({ request }) => {
+        body = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({ data: makePost({ id: 11, title: "T", slug: "t" }) }, { status: 201 });
+      }),
+    );
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await user.type(screen.getByLabelText("Title"), "T");
+    const ta = screen.getByLabelText("Story body (Markdown)") as HTMLTextAreaElement;
+    await user.type(ta, "learn Kubernetes now");
+    ta.setSelectionRange(6, 16);
+    await user.click(screen.getByRole("button", { name: "Add to glossary" }));
+    const dlg = await screen.findByRole("dialog");
+    expect(within(dlg).getByLabelText("Term")).toHaveValue("Kubernetes");
+    await user.type(within(dlg).getByLabelText("Other forms"), "k8s");
+    await user.click(within(dlg).getByRole("button", { name: "Save term" }));
+    expect(await within(dlg).findByText("Enter a term and a definition")).toBeInTheDocument();
+    await user.type(within(dlg).getByLabelText("Definition"), "Orchestrator");
+    await user.click(within(dlg).getByRole("button", { name: "Save term" }));
+    expect(await screen.findByText("Orchestrator")).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    // edit
+    await user.click(screen.getByRole("button", { name: "Edit term: Kubernetes" }));
+    const d2 = await screen.findByRole("dialog");
+    expect(within(d2).getByLabelText("Other forms")).toHaveValue("k8s");
+    await user.clear(within(d2).getByLabelText("Definition"));
+    await user.type(within(d2).getByLabelText("Definition"), "Runs containers");
+    await user.click(within(d2).getByRole("button", { name: "Save term" }));
+    expect(await screen.findByText("Runs containers")).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    // duplicate
+    await user.click(screen.getByRole("button", { name: "Add to glossary" }));
+    const d3 = await screen.findByRole("dialog");
+    await user.clear(within(d3).getByLabelText("Term"));
+    await user.type(within(d3).getByLabelText("Term"), "K8S");
+    await user.type(within(d3).getByLabelText("Definition"), "x");
+    await user.click(within(d3).getByRole("button", { name: "Save term" }));
+    expect(await within(d3).findByText("This term or form is already in the story")).toBeInTheDocument();
+    await user.click(within(d3).getByRole("button", { name: "Close" }));
+    await user.click(screen.getByRole("button", { name: /save draft/i }));
+    await waitFor(() => expect(body?.glossary).toEqual([{ term: "Kubernetes", aliases: ["k8s"], definition: "Runs containers" }]));
+    await user.click(screen.getByRole("button", { name: "Remove term: Kubernetes" }));
+    expect(screen.getByText(/No terms yet/)).toBeInTheDocument();
+  });
+
+  it("loads the story's glossary from the server", async () => {
+    signedIn();
+    existing({ glossary: [{ term: "Pod", aliases: [], definition: "Unit" }] });
+    await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    expect(await screen.findByText("Unit")).toBeInTheDocument();
   });
 
   it("shows words, topics editing, preview and focus toggles", async () => {

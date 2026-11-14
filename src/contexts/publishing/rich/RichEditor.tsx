@@ -40,6 +40,8 @@ export type RichHandle = {
   insertDiagram: (line: string) => void;
   insertLive: () => void;
   focus: () => void;
+  /** The text currently selected in the document (empty when the selection is a caret). */
+  getSelection: () => string;
 };
 
 type Props = {
@@ -455,6 +457,12 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
       flush,
       focus: () => editorRef.current?.commands.focus(),
       insertLive,
+      getSelection: () => {
+        const ed = editorRef.current;
+        if (!ed) return "";
+        const { from, to } = ed.state.selection;
+        return from === to ? "" : ed.state.doc.textBetween(from, to, " ");
+      },
       insertDiagram: (line: string) => {
         editorRef.current?.chain().focus().insertContent({ type: "diagramEmbed", attrs: { line } }).run();
       },
