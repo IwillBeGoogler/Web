@@ -30,7 +30,19 @@ export function detectLang(stored: string | null, browser: readonly string[]): L
   return "uz";
 }
 
+/** `?lang=xx` in the URL (the hreflang variants search engines index) wins over the stored choice. */
+const fromUrl = (): Lang | undefined => {
+  try {
+    const v = new URLSearchParams(location.search).get("lang");
+    return isLang(v) ? v : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 const load = (): Lang => {
+  const fromQuery = fromUrl();
+  if (fromQuery) return fromQuery;
   try {
     return detectLang(localStorage.getItem(KEY), typeof navigator === "undefined" ? [] : (navigator.languages ?? [navigator.language]));
   } catch {

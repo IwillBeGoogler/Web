@@ -13,6 +13,8 @@ export interface Head {
 }
 
 const SITE = "IWillBeGoogler";
+/** Link-preview image for pages without a cover. */
+const DEFAULT_IMAGE = "/og-default.png";
 
 function meta(attr: "name" | "property", key: string, content: string | undefined) {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
@@ -40,16 +42,35 @@ export function applyHead(h: Head) {
   meta("property", "og:description", description);
   meta("property", "og:type", h.type ?? "website");
   meta("property", "og:url", abs(h.canonical ?? location.pathname));
-  meta("property", "og:image", h.image ? abs(h.image) : undefined);
-  meta("name", "twitter:card", h.image ? "summary_large_image" : "summary");
+  const image = abs(h.image || DEFAULT_IMAGE);
+  meta("property", "og:image", image);
+  meta("name", "twitter:card", "summary_large_image");
+  meta("name", "twitter:title", title);
+  meta("name", "twitter:description", description);
+  meta("name", "twitter:image", image);
   meta("name", "robots", h.noindex ? "noindex" : undefined);
-  let link = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  if (!link) {
-    link = document.createElement("link");
-    link.rel = "canonical";
-    document.head.append(link);
+  const url = abs(h.canonical ?? location.pathname);
+  // A ?lang= variant is its own canonical URL; hreflang alternates pair the variants (indexable pages only).
+  const variant = new URLSearchParams(location.search).get("lang");
+  const langs = ["uz", "ru", "en"];
+  const own = !url.includes("?") && variant && langs.includes(variant) ? `${url}?lang=${variant}` : url;
+  link("canonical", own);
+  for (const el of document.head.querySelectorAll('link[rel="alternate"][hreflang]')) el.remove();
+  if (!h.noindex && !url.includes("?")) {
+    link("alternate", url, "x-default");
+    for (const l of langs) link("alternate", `${url}?lang=${l}`, l);
   }
-  link.href = abs(h.canonical ?? location.pathname);
+}
+
+function link(rel: string, href: string, hreflang?: string) {
+  let el = hreflang ? null : document.head.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+  if (!el) {
+    el = document.createElement("link");
+    el.rel = rel;
+    if (hreflang) el.hreflang = hreflang;
+    document.head.append(el);
+  }
+  el.href = href;
 }
 
 /** Sets the document head while the page is shown. */
