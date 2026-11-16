@@ -73,4 +73,25 @@ describe("ArticleBody", () => {
     rerender(<ArticleBody html={html} terms={terms} bionic={false} />);
     unmount();
   });
+
+  it("drops stale live and code portals when new markup has fewer blocks", () => {
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(private cb: (e: { isIntersecting: boolean }[]) => void) {}
+        observe() {
+          this.cb([{ isIntersecting: true }]);
+        }
+        disconnect() {}
+      },
+    );
+    const html = safeHtml(
+      '<p>intro</p><pre><code class="language-html-live-120">&lt;b&gt;hi&lt;/b&gt;</code></pre><pre><code class="language-js">const x = 1;</code></pre>',
+    );
+    const { container, rerender } = render(<ArticleBody html={html} />);
+    expect(container.querySelector("iframe")).not.toBeNull();
+    rerender(<ArticleBody html={safeHtml("<p>plain</p>")} />);
+    expect(container.querySelector("iframe")).toBeNull();
+    expect(container.querySelector("p")?.textContent).toBe("plain");
+  });
 });

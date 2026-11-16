@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Term } from "../domain/glossary";
 import { ArticleBody } from "./ArticleBody";
+import { TermTooltip } from "./TermTooltip";
 
 const terms: Term[] = [
   { id: "a:0", term: "Pod", aliases: [], definition: "Smallest <b>unit</b>" },
@@ -204,5 +205,84 @@ describe("TermTooltip", () => {
     const tip = screen.getByRole("tooltip");
     fireEvent.focusOut(pod, { relatedTarget: tip });
     expect(screen.queryByRole("tooltip")).not.toBeNull();
+  });
+
+  it("handles null container, missing data-term-id, re-showing active term, scroll below viewport, and preserved term on glossary update", async () => {
+    // null container ref
+    const nullRef = { current: null };
+    const { unmount: unmountNull } = render(<TermTooltip container={nullRef} terms={terms} tipId="tip-null" />);
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    unmountNull();
+
+    // missing data-term-id + re-showing already active term + scroll below viewport
+    const { pod } = setup();
+    delete pod.dataset.termId;
+    fireEvent.keyDown(pod, { key: "Enter" });
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    pod.dataset.termId = "a:0";
+    fireEvent.keyDown(pod, { key: "Enter" });
+    await flush();
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    // re-hovering the same active term keeps it open (a?.el === el)
+    fireEvent.pointerDown(pod, { pointerType: "mouse" });
+    fireEvent.mouseOver(pod);
+    advance();
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    // mouseOut in non-mouse mode is ignored
+    fireEvent.keyDown(document, { key: "Tab" });
+    fireEvent.mouseOut(pod, { relatedTarget: document.body });
+    advance();
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    // scrolling below the viewport (r.top > window.innerHeight) closes it
+    pod.getBoundingClientRect = () => ({
+      top: window.innerHeight + 100,
+      bottom: window.innerHeight + 200,
+      left: 0,
+      right: 10,
+      width: 10,
+      height: 100,
+      x: 0,
+      y: window.innerHeight + 100,
+      toJSON: () => ({}),
+    });
+    fireEvent.scroll(window);
+    await flush();
+    await flush();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+  });
+
+  it("preserves active tooltip when terms update with the same term id and closes if term id is removed", async () => {
+    const host = document.createElement("div");
+    const span = document.createElement("span");
+    span.className = "glossary-term";
+    span.dataset.termId = "a:0";
+    span.tabIndex = 0;
+    span.textContent = "Pod";
+    host.appendChild(span);
+    document.body.appendChild(host);
+    const ref = { current: host };
+
+    const { rerender, unmount } = render(<TermTooltip container={ref} terms={terms} tipId="tip-direct" />);
+    fireEvent.keyDown(span, { key: "Enter" });
+    await flush();
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    // terms array changes, but still includes a:0 and span is still in container
+    rerender(<TermTooltip container={ref} terms={[terms[0] as Term]} tipId="tip-direct" />);
+    await flush();
+    expect(screen.getByRole("tooltip")).toBeInTheDocument();
+
+    // removing data-term-id before terms update exercises the ?? "" fallback in the cleanup effect
+    delete span.dataset.termId;
+    rerender(<TermTooltip container={ref} terms={[...terms]} tipId="tip-direct" />);
+    await flush();
+    expect(screen.queryByRole("tooltip")).toBeNull();
+
+    unmount();
+    host.remove();
   });
 });

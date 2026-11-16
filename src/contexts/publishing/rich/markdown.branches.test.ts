@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { canRoundTrip, cleanDoc, escapeLineStart, parseMarkdown, serializeDoc, splitInfo } from "./markdown";
 
 const problem = (md: string) => {
@@ -238,5 +238,160 @@ describe("markdown helpers", () => {
     const ed = engine();
     ed.commands.setContent('<p><img src="/api/uploads/no-alt.png" /></p>');
     expect(JSON.stringify(ed.getJSON())).toContain("/api/uploads/no-alt.png");
+  });
+
+  it("covers remaining markdown and propertyDocs branches", async () => {
+    const { engine } = await import("./markdown");
+    const ed = engine();
+
+    // RichLink with missing href
+    expect(
+      serializeDoc({
+        type: "doc",
+        content: [{ type: "paragraph", content: [{ type: "text", text: "x", marks: [{ type: "link", attrs: {} }] }] }],
+      }),
+    ).toBe("[x]()");
+
+    // codeGroupMarks "solo" decoration
+    ed.commands.setContent(parseMarkdown("```js group=solo\nconst x = 1;\n```", ed));
+    expect(ed.getJSON().type).toBe("doc");
+
+    // RichCodeBlock without content
+    expect(serializeDoc({ type: "doc", content: [{ type: "codeBlock", attrs: { language: "js" } }] })).toContain("```js");
+
+    // srcEdge on non-text node (diagramEmbed) next to emphasized text
+    expect(
+      cleanDoc({
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "diagramEmbed", attrs: { line: "::diagram{}" } },
+              { type: "text", text: "a", marks: [{ type: "bold" }] },
+            ],
+          },
+        ],
+      }).type,
+    ).toBe("doc");
+
+    // uncrossLinks: bold + link overlapping without code
+    expect(
+      cleanDoc({
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "a", marks: [{ type: "bold" }] },
+              { type: "text", text: "b", marks: [{ type: "bold" }, { type: "link", attrs: { href: "https://example.com" } }] },
+              { type: "text", text: "c", marks: [{ type: "link", attrs: { href: "https://example.com" } }] },
+            ],
+          },
+        ],
+      }).type,
+    ).toBe("doc");
+
+    // orderMarks: link longer than emphasis with trailing non-emphasis mark (code)
+    expect(
+      cleanDoc({
+        type: "doc",
+        content: [
+          {
+            type: "paragraph",
+            content: [
+              { type: "text", text: "prefix", marks: [{ type: "link", attrs: { href: "https://example.com" } }] },
+              {
+                type: "text",
+                text: "bold",
+                marks: [{ type: "bold" }, { type: "code" }, { type: "link", attrs: { href: "https://example.com" } }],
+              },
+            ],
+          },
+        ],
+      }).type,
+    ).toBe("doc");
+
+    // joinLists, attachAfterLists, tidy edge shapes
+    expect(
+      cleanDoc({
+        type: "doc",
+        content: [
+          { type: "bulletList" },
+          { type: "bulletList" },
+          {
+            type: "bulletList",
+            content: [
+              {
+                type: "listItem",
+                content: [
+                  { type: "bulletList", content: [{ type: "listItem" }] },
+                  { type: "paragraph", content: [{ type: "text", text: "after" }] },
+                ],
+              },
+              {
+                type: "listItem",
+                content: [
+                  { type: "paragraph", content: [{ type: "text", text: "first" }] },
+                  { type: "blockquote" },
+                  { type: "blockquote" },
+                ],
+              },
+              {
+                type: "listItem",
+                content: [{ type: "blockquote" }, { type: "paragraph", content: [{ type: "text", text: "tail" }] }],
+              },
+            ],
+          },
+          { type: "codeBlock", attrs: { language: "js" }, content: [{ type: "text" }] },
+          {} as never,
+        ],
+      }).type,
+    ).toBe("doc");
+
+    // isCode / patchEditor with string mark
+    expect(
+      serializeDoc({
+        type: "doc",
+        content: [{ type: "paragraph", content: [{ type: "text", text: "x", marks: ["bold" as never] }] }],
+      }),
+    ).toBe("x");
+
+    // scan default/fallback branches & canRoundTrip catch
+    const mdMgr = ed.markdown as { instance?: { lexer?: unknown } } | undefined;
+    const origLexer = mdMgr?.instance?.lexer;
+    try {
+      if (mdMgr?.instance) {
+        mdMgr.instance.lexer = () => [{ type: "mystery" }];
+        expect(canRoundTrip("x")).toEqual({ ok: false, problem: "unknown" });
+
+        mdMgr.instance.lexer = () => [{ type: "text" }, { type: "table" }, { type: "table", header: [{}] }, { type: "link" }];
+        expect(canRoundTrip("x").ok).toBe(true);
+
+        mdMgr.instance.lexer = () => [{ type: "code", raw: "plain", text: "plain", lang: "" }];
+        expect(parseMarkdown("x", ed).type).toBe("doc");
+
+        mdMgr.instance.lexer = () => {
+          throw new Error("boom");
+        };
+        expect(canRoundTrip("x")).toEqual({ ok: false, problem: "error" });
+      }
+    } finally {
+      if (mdMgr?.instance) mdMgr.instance.lexer = origLexer;
+    }
+
+    // propertyDocs: check() Markdown mode needed & SMALL=1
+    const { check } = await import("./propertyDocs");
+    const needMd = check({
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "a", marks: [{ type: "link", attrs: { href: "javascript:alert(1)" } }] }] }],
+    });
+    expect(needMd).toContain("Markdown mode needed");
+
+    vi.stubEnv("SMALL", "1");
+    vi.resetModules();
+    const smallProp = await import("./propertyDocs");
+    expect(smallProp.randomDoc(1).type).toBe("doc");
+    vi.unstubAllEnvs();
   });
 });

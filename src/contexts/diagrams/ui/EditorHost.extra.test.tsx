@@ -71,6 +71,39 @@ describe("EditorHost extras", () => {
     expect(actions({ fileId: "f1", role: "editor" })).toBeNull();
     expect(actions({ fileId: "f1", role: "owner" })).not.toBeNull();
     tokens.set(null);
+    expect((p.getAuthHeaders as unknown as () => Record<string, string>)()).toEqual({});
+  });
+
+  it("opens the sign-in dialog when clicking the sign-in CTA without a session", async () => {
+    const { authDialog } = await import("@/contexts/identity/application/authDialog");
+    authDialog.close();
+    const { user } = await renderRouted(<EditorHost fileId="f1" />, { path: "/d/f/f1" });
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(authDialog.get()).toBe("signin");
+    authDialog.close();
+  });
+
+  it("omits email when the user has none and forwards dark theme", async () => {
+    signIn();
+    server.use(
+      http.get(api("/me"), () =>
+        HttpResponse.json({
+          data: { id: 3, username: "a", email: "", display_name: "A", bio: "", avatar_url: "", roles: [], created_at: "2026-01-01T00:00:00Z" },
+        }),
+      ),
+    );
+    document.documentElement.classList.add("dark");
+    let unmount: (() => void) | undefined;
+    try {
+      ({ unmount } = await renderRouted(<EditorHost fileId="f1" />, { path: "/d/f/f1" }));
+      await screen.findByTestId("editor");
+      await waitFor(() => expect(last().user).toEqual({ id: "3", name: "A" }));
+      expect(last().theme).toBe("dark");
+    } finally {
+      unmount?.();
+      document.documentElement.classList.remove("dark");
+      tokens.set(null);
+    }
   });
 
   it("share link with a stale session sends no auth headers", async () => {

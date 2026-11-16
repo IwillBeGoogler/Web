@@ -61,17 +61,21 @@ describe("landing", () => {
       id: `t${i}`,
       title: `Tpl ${i}`,
       kind: i < 7 ? "system" : "db",
-      description: "d",
-      thumbnail_url: null,
-      page_count: 1,
+      description: i === 7 ? "" : "d",
+      thumbnail_url: i === 0 ? "/thumb.png" : null,
+      page_count: i === 7 ? 3 : 1,
     }));
     server.use(http.get(api("/diagrams/templates"), () => HttpResponse.json({ data: tpls })));
     await renderRouted(<HomePage tab={undefined} />);
     expect(await screen.findByRole("heading", { name: "Start from a template" })).toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: /^Tpl \d$/ })).toHaveLength(6);
     expect(screen.getAllByRole("link", { name: /^Tpl \d$/ })[0]).toHaveAttribute("href", "/templates");
+    expect(document.querySelector('img[src="/thumb.png"]')).not.toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "DB" }));
     expect(screen.getAllByRole("link", { name: /^Tpl \d$/ })).toHaveLength(1);
+    expect(screen.getByText("3 pages")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "OOD" }));
+    expect(screen.getByText("No templates here yet.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Browse all templates/ })).toHaveAttribute("href", "/templates");
   });
   it("shows recent public diagrams", async () => {

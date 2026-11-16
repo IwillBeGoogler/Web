@@ -89,4 +89,12 @@ describe("WriteMenu", () => {
     await waitFor(() => expect(router.state.location.pathname).toBe("/d/f/nf"));
     expect(kind).toEqual({ kind: "erd" });
   });
+
+  it("creating a system design diagram opens the new file", async () => {
+    signIn();
+    server.use(http.post(api("/diagrams/projects"), () => HttpResponse.json({ project: proj, file }, { status: 201 })));
+    const { user, menu, router } = await open();
+    await user.click(menu.getByRole("menuitem", { name: "System design diagram" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/d/f/nf"));
+  });
 });
