@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CloudOffIcon, FileQuestionIcon, LinkIcon, MessageSquareIcon } from "lucide-react";
+import { CloudOffIcon, FileQuestionIcon, LinkIcon, MessageSquareIcon, PencilIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Highlighter, HighlightsPanel } from "@/contexts/collections/ui/Highlights";
 import { SaveToList } from "@/contexts/collections/ui/Lists";
@@ -32,6 +32,7 @@ import { toast } from "@/shared/ui/toast";
 
 /** "ActionDeck": one segmented toolbar of labelled keys with counts. Rides the bottom edge while reading, docks at the end. */
 function ActionDeck({ post, onResponses }: { post: Post; onResponses: () => void }) {
+  const { me } = useMe();
   return (
     <div
       role="toolbar"
@@ -51,6 +52,14 @@ function ActionDeck({ post, onResponses }: { post: Post; onResponses: () => void
       </button>
       <BookmarkButton post={post} />
       <SaveToList postId={post.id} />
+      {me && me.id === post.user_id ? (
+        <Link to="/p/$id/edit" params={{ id: String(post.id) }} className="key" aria-label="Edit story">
+          <PencilIcon className="size-4" aria-hidden strokeWidth={1.5} />
+          <span aria-hidden className="hidden tracking-[0.08em] uppercase sm:inline">
+            Edit
+          </span>
+        </Link>
+      ) : null}
       <button
         type="button"
         className="key"

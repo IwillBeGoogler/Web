@@ -263,6 +263,24 @@ describe("EditorPage markdown mode", () => {
     expect(await screen.findByText("Unit")).toBeInTheDocument();
   });
 
+  it("editor and preview each keep their own scroll position", async () => {
+    signedIn();
+    noPubs();
+    const to = vi.fn();
+    vi.spyOn(window, "scrollTo").mockImplementation(to as never);
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await user.type(screen.getByLabelText("Story body (Markdown)"), "one two three");
+    to.mockClear();
+    Object.defineProperty(window, "scrollY", { value: 420, configurable: true });
+    await user.click(screen.getByRole("button", { name: /preview/i }));
+    expect(to).toHaveBeenLastCalledWith(expect.objectContaining({ top: 0 })); // the preview has not been scrolled yet
+    Object.defineProperty(window, "scrollY", { value: 90, configurable: true });
+    await user.click(screen.getByRole("button", { name: /edit/i }));
+    expect(to).toHaveBeenLastCalledWith(expect.objectContaining({ top: 420 })); // back to where the editor was
+    await user.click(screen.getByRole("button", { name: /preview/i }));
+    expect(to).toHaveBeenLastCalledWith(expect.objectContaining({ top: 90 }));
+  });
+
   it("shows words, topics editing, preview and focus toggles", async () => {
     signedIn();
     noPubs();

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { ArrowLeftIcon, BookOpenTextIcon, HistoryIcon, ImageIcon, MaximizeIcon, SaveIcon, ShapesIcon, SparklesIcon, XIcon } from "lucide-react";
 import { Dialog } from "radix-ui";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { accountSecurityRepository } from "@/contexts/account/infrastructure/accountSecurityRepository";
 import { myPublicationsQuery } from "@/contexts/collections/application/hooks";
@@ -513,6 +513,21 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const [banner, setBanner] = useState<LocalCopy | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [preview, setPreview] = useState(false);
+  // Each view keeps its own scroll position: swapping editor and preview changes the page height, and the browser
+  // would otherwise clamp the scroll (usually to the top) when the taller one goes away.
+  const scrollAt = useRef({ edit: 0, preview: 0 });
+  const toggleView = () => {
+    scrollAt.current[preview ? "preview" : "edit"] = window.scrollY;
+    setPreview(!preview);
+  };
+  const firstView = useRef(true);
+  useLayoutEffect(() => {
+    if (firstView.current) {
+      firstView.current = false; // opening the editor keeps the browser's own scroll restoration
+      return;
+    }
+    window.scrollTo({ top: scrollAt.current[preview ? "preview" : "edit"], behavior: "instant" });
+  }, [preview]);
   const [history, setHistory] = useState(false);
   const [diagramPicker, setDiagramPicker] = useState(false);
   const [glossaryDraft, setGlossaryDraft] = useState<GlossaryDraft | null>(null);
@@ -878,7 +893,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                 className="seg-item h-7"
                 onClick={() => {
                   richRef.current?.flush();
-                  setPreview(!preview);
+                  toggleView();
                 }}
                 aria-pressed={preview}
               >

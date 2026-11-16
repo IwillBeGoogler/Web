@@ -91,6 +91,8 @@ describe("ArticlePage extras", () => {
       related: [makePost({ id: 9, title: "Next story", slug: "next" })],
     });
     expect(await screen.findByRole("link", { name: "Edit" })).toHaveAttribute("href", "/p/9/edit".replace("9", "1"));
+    // the action deck has its own Edit key for the owner
+    expect(await screen.findByRole("link", { name: "Edit story" })).toHaveAttribute("href", "/p/1/edit");
     expect(await screen.findByText(/1\.5K readers/)).toBeInTheDocument();
     expect(await screen.findByText("I write")).toBeInTheDocument();
     expect(await screen.findByText("Next story")).toBeInTheDocument();
