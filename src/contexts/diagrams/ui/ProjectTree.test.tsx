@@ -81,6 +81,22 @@ describe("ProjectTree states", () => {
     expect(await screen.findByText("This project has no files yet.")).toBeInTheDocument();
   });
 
+  it("shows missing state for 404 load failure", async () => {
+    server.use(http.get(api("/diagrams/projects/p1/tree"), () => HttpResponse.json({ error: { code: "NOT_FOUND", message: "missing" } }, { status: 404 })));
+    await render();
+    expect(await screen.findByText("404 · not found")).toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/d");
+  });
+
+  it("filters matching files when searching", async () => {
+    tree();
+    const { user } = await render();
+    await screen.findByRole("link", { name: "Checkout" });
+    await user.type(screen.getByRole("searchbox"), "inner");
+    expect(screen.getByRole("link", { name: "Inner" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Checkout" })).toBeNull();
+  });
+
   it("shows the empty state for no files and a no-match message when searching", async () => {
     tree({ files: [], folders: [] });
     const { user } = await render();

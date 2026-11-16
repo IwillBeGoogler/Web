@@ -124,6 +124,23 @@ describe("Settings profile", () => {
     tokens.set(null);
   });
 
+  it("seeds profile form when /me resolves after initial mount", async () => {
+    signIn();
+    server.use(
+      http.get(api("/me"), () =>
+        json({ id: 3, username: "admin", email: "a@x.dev", display_name: "Late", bio: "late bio", avatar_url: "http://x/late.png", created_at: "x" }),
+      ),
+    );
+    await renderRouted(<Settings tab="profile" onTab={() => {}} />);
+    expect(await screen.findByDisplayValue("Late")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("late bio")).toBeInTheDocument();
+
+    server.use(http.get(api("/me"), () => json({ id: 3, username: "admin", email: "a@x.dev", created_at: "x" })));
+    await renderRouted(<Settings tab="profile" onTab={() => {}} />);
+    await waitFor(() => expect(screen.getAllByLabelText("Display name")[1]).toHaveValue(""));
+    tokens.set(null);
+  });
+
   it("resend failure toasts error", async () => {
     signIn();
     server.use(http.post(api("/me/verify-email"), () => HttpResponse.json({ status: 500, detail: "boom" }, { status: 500 })));

@@ -601,7 +601,7 @@ describe("EditorPage markdown mode", () => {
     getSpy.mockRestore();
   });
 
-  it("topic tree grandchildren, >5 tags guard, and unlisted visibility toggle/publish", async () => {
+  it("topic tree leaf child, >5 tags guard, and unlisted visibility toggle/publish", async () => {
     signedIn();
     noPubs();
     let sentStatus: unknown;
@@ -609,19 +609,8 @@ describe("EditorPage markdown mode", () => {
       http.get(api("/categories"), () =>
         HttpResponse.json({
           data: [
-            {
-              id: 1,
-              name: "Systems",
-              slug: "systems",
-              children: [
-                {
-                  id: 2,
-                  name: "Storage",
-                  slug: "storage",
-                  children: [{ id: 3, name: "LSM", slug: "lsm", children: [] }],
-                },
-              ],
-            },
+            { id: 1, parent_id: 0, slug: "systems", name: "Systems", names: {}, position: 0, count: 0 },
+            { id: 2, parent_id: 1, slug: "storage", name: "Storage", names: {}, position: 0, count: 0 },
           ],
         }),
       ),
@@ -631,32 +620,28 @@ describe("EditorPage markdown mode", () => {
         return HttpResponse.json({ data: makePost({ id: 9, slug: "unlisted-story", status: "unlisted" }) }, { status: 201 });
       }),
     );
-    localStorage.setItem("iwillbegoogler.editor.mode", "md");
     const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
     await user.type(await screen.findByLabelText("Title"), "Unlisted Story");
     await user.type(screen.getByLabelText("Story body (Markdown)"), "Some body text");
     await user.click(screen.getByRole("button", { name: /Ship it/i }));
 
-    // Expand topic tree to grandchild
-    const systemsBtn = await screen.findByRole("button", { name: "Systems" });
-    await user.click(systemsBtn);
-    const summary = await screen.findByText("1");
-    await user.click(summary);
-    expect(await screen.findByText("LSM")).toBeInTheDocument();
+    // Expand topic tree to leaf child (covers c.children.length === 0 branch)
+    await user.click(await screen.findByRole("button", { name: "Systems" }));
+    expect(await screen.findByRole("checkbox", { name: "Storage" })).toBeInTheDocument();
 
     // TopicsInput > 5 tags guard
-    const tagInput = screen.getByPlaceholderText(/Add a tag/i);
+    const tagInput = screen.getByLabelText("Add a topic");
     for (const tag of ["t1", "t2", "t3", "t4", "t5", "t6"]) {
       await user.type(tagInput, `${tag}{Enter}`);
     }
-    expect(screen.getByText("#t5")).toBeInTheDocument();
-    expect(screen.queryByText("#t6")).toBeNull();
+    expect(screen.getByRole("button", { name: "Remove t5" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Remove t6" })).toBeNull();
 
     // Toggle visibility Public -> Unlisted -> Public -> Unlisted and publish
-    await user.click(screen.getByRole("button", { name: "Unlisted" }));
+    await user.click(screen.getByText("Unlisted"));
     expect(screen.getByText(/Only people with the link can read it/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Public" }));
-    await user.click(screen.getByRole("button", { name: "Unlisted" }));
+    await user.click(screen.getByText("Public"));
+    await user.click(screen.getByText("Unlisted"));
     await user.click(screen.getByRole("button", { name: "Publish unlisted" }));
     await waitFor(() => expect(sentStatus).toBe("unlisted"));
   });
@@ -667,7 +652,7 @@ describe("EditorPage markdown mode", () => {
     existing({ status: "scheduled", publish_at: "2099-01-01T12:00:00Z" });
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
-    expect(await screen.findByText("rich:old body")).toBeInTheDocument();
+    expect(await screen.findByDisplayValue("old body")).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Title"), " edited");
     expect(await screen.findByText(/Saved on this device/i)).toBeInTheDocument();
@@ -687,20 +672,17 @@ describe("EditorPage markdown mode", () => {
     noPubs();
     existing({
       glossary: [
-        { term: "Alpha", definition: "First" },
-        { term: "Beta", definition: "Second" },
+        { term: "Alpha", aliases: [], definition: "First" },
+        { term: "Beta", aliases: [], definition: "Second" },
       ],
     });
-    localStorage.setItem("iwillbegoogler.editor.mode", "md");
     const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
-    expect(await screen.findByLabelText("Story body (Markdown)")).toBeInTheDocument();
-
-    const editBtns = screen.getAllByRole("button", { name: /Edit/i });
-    await user.click(editBtns[1]);
+    const editBeta = await screen.findByRole("button", { name: "Edit term: Beta" });
+    await user.click(editBeta);
     const defInput = await screen.findByDisplayValue("Second");
     await user.clear(defInput);
     await user.type(defInput, "Updated");
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(screen.getByRole("button", { name: "Save term" }));
     expect(await screen.findByText("Updated")).toBeInTheDocument();
 
     // Toggle preview so bodyRef.current is null when Add to glossary is clicked

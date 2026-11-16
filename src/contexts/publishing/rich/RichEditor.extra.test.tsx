@@ -417,7 +417,9 @@ describe("RichEditor node views", () => {
       target: { value: "999999" },
     });
     await waitFor(() => expect(screen.getByLabelText("Height (px)")).toHaveValue(99999));
-    await new Promise((r) => setTimeout(r, 700)); // the preview frame settles
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 700)); // the preview frame settles
+    });
     act(() => ref.current?.flush());
     expect(md(onChange)).toContain("changed");
     await userEvent.setup().click(screen.getByRole("button", { name: "Remove animation" }));
@@ -434,5 +436,197 @@ describe("RichEditor node views", () => {
     const user = userEvent.setup();
     await user.click(tb("Undo"));
     await waitFor(() => expect((screen.queryByLabelText("HTML source") as HTMLTextAreaElement | null)?.value ?? original).not.toBe("<b>x</b>"));
+  });
+});
+
+describe("RichEditor edge cases", () => {
+  it("runs /bullet from the slash menu and handles keyDown on an option", async () => {
+    const { onChange, ref } = setup("/bullet");
+    const el = await body();
+    act(() => el.focus());
+    const sel = window.getSelection() as Selection;
+    const range = document.createRange();
+    const node = el.querySelector("p")?.firstChild as Node;
+    range.setStart(node, node.textContent?.length ?? 0);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    act(() => {
+      document.dispatchEvent(new Event("selectionchange"));
+    });
+    const list = await screen.findByRole("listbox");
+    const opt = within(list).getByRole("option", { name: "Bulleted list" });
+    fireEvent.keyDown(opt, { key: "Enter" });
+    fireEvent.mouseDown(opt);
+    await waitFor(() => expect(document.querySelector(".rich-body ul")).not.toBeNull());
+    act(() => ref.current?.flush());
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it("keeps slash menu dismissed on subsequent selection updates in the same slash block", async () => {
+    setup("/h");
+    const el = await body();
+    act(() => el.focus());
+    const sel = window.getSelection() as Selection;
+    const node = el.querySelector("p")?.firstChild as Node;
+    const setCaret = (offset: number) => {
+      const range = document.createRange();
+      range.setStart(node, offset);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      act(() => {
+        document.dispatchEvent(new Event("selectionchange"));
+      });
+    };
+    setCaret(2);
+    await screen.findByRole("listbox");
+    fireEvent.keyDown(el, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByRole("listbox")).toBeNull());
+    setCaret(1);
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("applies link to selected link text and removes it via Remove link", async () => {
+    const { onChange, ref } = setup("[docs](https://old.example)");
+    const el = await body();
+    const user = userEvent.setup();
+    act(() => el.focus());
+    fireEvent.keyDown(el, { key: "a", ctrlKey: true });
+    await waitFor(() => expect(ref.current?.getSelection()).toBe("docs"));
+
+    await user.click(tb("Link"));
+    const input = await screen.findByLabelText("Link address");
+    await user.clear(input);
+    await user.type(input, "https://updated.example{Enter}");
+    await waitFor(() => expect(screen.queryByLabelText("Link address")).toBeNull());
+    act(() => ref.current?.flush());
+    expect(md(onChange)).toContain("https://updated.example");
+
+    fireEvent.keyDown(el, { key: "a", ctrlKey: true });
+    await user.click(tb("Link"));
+    const removeBtn = await screen.findByRole("button", { name: "Remove link" });
+    await user.click(removeBtn);
+    await waitFor(() => expect(document.querySelector(".rich-body a")).toBeNull());
+  });
+
+  it("clicks every BubbleMenu formatting button when text is selected", async () => {
+    setup("hello world");
+    const el = await body();
+    const user = userEvent.setup();
+    act(() => el.focus());
+    fireEvent.keyDown(el, { key: "a", ctrlKey: true });
+    await waitFor(() => expect(screen.getAllByRole("toolbar", { name: "Formatting" }).length).toBeGreaterThan(1));
+    const bubble = screen.getAllByRole("toolbar", { name: "Formatting" })[1] as HTMLElement;
+    for (const label of ["Bold", "Italic", "Inline code", "Heading", "Quote", "Link"]) {
+      const btn = within(bubble).getByRole("button", { name: new RegExp(`^${label}`, "i") });
+      await user.click(btn);
+    }
+    const closeBtn = screen.queryByRole("button", { name: "Close link bar" });
+    if (closeBtn) await user.click(closeBtn);
+  });
+
+  it("adds a plain code tab when all GROUP_LANGS are used and handles groupless language", async () => {
+    const langs = ["javascript", "python", "go", "java", "typescript", "rust", "bash", "csharp"];
+    const mdIn = [...langs.map((l) => `\`\`\`${l} group=g1\nx\n\`\`\``), "``` group=g1\ny\n```"].join("\n\n");
+    const { ref, onChange } = setup(mdIn);
+    await body();
+    const user = userEvent.setup();
+    await waitFor(() => expect(document.querySelectorAll(".rich-body pre code").length).toBe(9));
+    const firstCode = document.querySelector(".rich-body pre code") as HTMLElement;
+    act(() => ref.current?.focus());
+    const sel = window.getSelection() as Selection;
+    const range = document.createRange();
+    range.setStart(firstCode.firstChild as Node, 0);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    act(() => {
+      document.dispatchEvent(new Event("selectionchange"));
+    });
+    await user.click(await screen.findByRole("button", { name: "Add language" }));
+    act(() => ref.current?.flush());
+    expect(document.querySelectorAll(".rich-body pre").length).toBe(10);
+    expect(md(onChange)).toContain("group=g1");
+  });
+
+  it("resets recent history after 50 flushes, ignores echoed recent values, and guards flush after unmount", async () => {
+    const onChange = vi.fn();
+    const onLossy = vi.fn();
+    const ref = createRef<RichHandle>();
+    const ui = (v: string) => <RichEditor ref={ref} value={v} epoch={0} onChange={onChange} onLossy={onLossy} onDiagram={vi.fn()} />;
+    const r = render(ui("start"));
+    await body();
+
+    for (let i = 0; i < 52; i++) {
+      act(() => ref.current?.insertDiagram(`::diagram{slug=s-${i}}`));
+      act(() => ref.current?.flush());
+    }
+    const firstEmitted = onChange.mock.calls[0]?.[0] as string;
+    const latestEmitted = onChange.mock.calls.at(-1)?.[0] as string;
+    expect(latestEmitted).toContain("s-51");
+
+    // Re-rendering with a recent value does not reset or emit
+    const callsBefore = onChange.mock.calls.length;
+    r.rerender(ui(firstEmitted));
+    expect(onChange.mock.calls.length).toBe(callsBefore);
+
+    const handle = ref.current;
+    r.unmount();
+    act(() => handle?.flush());
+  });
+
+  it("handles unnamed image upload failure, cancelled placeholder before settle, and non-image / out-of-bounds drops", async () => {
+    let resolveUpload!: (url: string) => void;
+    const deferred = new Promise<string>((res) => {
+      resolveUpload = res;
+    });
+    const up = vi
+      .spyOn(engagementRepository, "upload")
+      .mockReturnValueOnce(deferred)
+      .mockRejectedValueOnce(new Error("fail"))
+      .mockResolvedValueOnce("https://cdn.example/oob.png");
+    const { ref } = setup("hi");
+    const el = await body();
+    const input = screen.getAllByLabelText("Image").find((e) => e.tagName === "INPUT") as HTMLInputElement;
+
+    // 1) Upload starts, placeholder is removed via Undo before settle
+    const png1 = new File(["x"], "first.png", { type: "image/png" });
+    fireEvent.change(input, { target: { files: [png1] } });
+    await waitFor(() => expect(tb("Undo")).toBeEnabled());
+    await userEvent.setup().click(tb("Undo"));
+    await act(async () => {
+      resolveUpload("https://cdn.example/late.png");
+      await Promise.resolve();
+    });
+    expect(document.querySelector(".rich-body img")).toBeNull();
+
+    // 2) Unnamed file fails upload (hits file.name || "image")
+    const unnamed = new File(["x"], "", { type: "image/png" });
+    fireEvent.change(input, { target: { files: [unnamed] } });
+    await waitFor(() => expect(up).toHaveBeenCalledTimes(2));
+
+    // 3) Drop non-image file (hits !files.length in handleDrop)
+    const txt = new File(["x"], "note.txt", { type: "text/plain" });
+    fireEvent.drop(el, {
+      dataTransfer: { files: [txt], getData: () => "" },
+      clientX: 1,
+      clientY: 1,
+    });
+
+    // 4) Drop image when posAtCoords returns null
+    const prevCaret = (document as unknown as { caretRangeFromPoint?: unknown }).caretRangeFromPoint;
+    (document as unknown as { caretRangeFromPoint: undefined }).caretRangeFromPoint = undefined;
+    document.elementFromPoint = () => el;
+    fireEvent.drop(el, {
+      dataTransfer: { files: [new File(["x"], "oob.png", { type: "image/png" })], getData: () => "" },
+      clientX: 1,
+      clientY: 1,
+    });
+    await waitFor(() => expect(up).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(document.querySelector(".rich-body img")).not.toBeNull());
+    (document as unknown as { caretRangeFromPoint?: unknown }).caretRangeFromPoint = prevCaret;
+    document.elementFromPoint = () => null;
+    act(() => ref.current?.flush());
   });
 });

@@ -3,6 +3,7 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
+import { authDialog } from "@/contexts/identity/application/authDialog";
 import { ForgotPasswordPage, ResetPasswordPage, UnsubscribePage, VerifyEmailPage } from "./AuthPages";
 
 describe("auth link pages", () => {
@@ -28,6 +29,14 @@ describe("auth link pages", () => {
     await user.type(screen.getByLabelText("Confirm password"), "newpass12");
     await user.click(screen.getByRole("button", { name: "Set password" }));
     expect(await screen.findByText("Password changed")).toBeInTheDocument();
+    const openSpy = vi.spyOn(authDialog, "open").mockImplementation(() => {});
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+    expect(openSpy).toHaveBeenCalledWith("signin");
+    openSpy.mockRestore();
+  });
+  it("reset shows incomplete link when token is empty", async () => {
+    await renderRouted(<ResetPasswordPage token="" />);
+    expect(screen.getByText("Link is incomplete")).toBeInTheDocument();
   });
   it("verifies email from the link", async () => {
     server.use(http.post(api("/auth/verify-email"), () => new HttpResponse(null, { status: 204 })));
@@ -43,5 +52,9 @@ describe("auth link pages", () => {
     server.use(http.post(api("/unsubscribe"), () => new HttpResponse(null, { status: 204 })));
     await renderRouted(<UnsubscribePage s="1" a="2" sig="x" />);
     expect(await screen.findByText("You're unsubscribed")).toBeInTheDocument();
+  });
+  it("reports an incomplete unsubscribe link", async () => {
+    await renderRouted(<UnsubscribePage s="" a="" sig="" />);
+    expect(screen.getByText("This link doesn't work")).toBeInTheDocument();
   });
 });
