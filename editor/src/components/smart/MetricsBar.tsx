@@ -35,7 +35,7 @@ export function MetricsBar() {
     setSettings(v && v > 0 ? { ...rest, monthlyBudgetUsd: v } : rest);
   };
   return (
-    <div className="metrics-bar" role="region" aria-label={t('Metrics')} data-testid="metrics-bar">
+    <div className="metrics-bar glass" role="region" aria-label={t('Metrics')} data-testid="metrics-bar">
       <span className="m"><span>{t('RPS in')}</span><b data-testid="m-rps">{tot ? rps(tot.rpsIn) : '–'}</b></span>
       <span className="m"><span title={t('Upper bound: sum of the per-hop p99')}>p99</span><b data-testid="m-p99">{tot && tot.p99Ms > 0 ? `${rps(tot.p99Ms)} ms` : '–'}</b></span>
       <span className={`m ${availCls}`}><span>{t('Availability')}</span><b data-testid="m-avail">{tot ? pct(tot.availability) : '–'}</b></span>

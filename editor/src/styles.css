@@ -456,12 +456,20 @@ input[type=checkbox] { accent-color: var(--accent); }
 .empty-canvas h3 { margin: 6px 0 0; font-size: 18px; }
 .empty-canvas p { margin: 0 0 8px; font-size: 13px; }
 .empty-actions, .empty-templates { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.empty-templates { flex-direction: column; align-items: stretch; flex-wrap: nowrap; justify-content: flex-start; }
+.empty-picker { display: flex; flex-direction: column; gap: 8px; width: min(340px, calc(100vw - 32px)); min-height: 0; flex: 1; }
+.empty-search { border-radius: var(--r-pill); padding: 7px 14px; }
+.empty-templates { flex-direction: column; align-items: stretch; flex-wrap: nowrap; justify-content: flex-start; gap: 14px; text-align: left; }
 /* the 35-item template list scrolls inside, below the top bar and above the bottom toolbar, at any viewport height */
-.empty-canvas.picking { top: 84px; transform: translateX(-50%); max-height: calc(100% - 84px - 84px); min-height: 0; }
+.empty-canvas.picking { top: 84px; transform: translateX(-50%); max-height: calc(100% - 84px - 84px); min-height: 0; max-width: none; }
 .empty-canvas.picking .empty-ill { display: none; }
-.empty-canvas.picking .empty-templates { min-height: 0; overflow-y: auto; overscroll-behavior: contain; width: min(320px, calc(100vw - 32px)); padding-right: 4px; }
-.empty-canvas.picking .empty-templates .btn { flex: none; }
+.empty-canvas.picking .empty-templates { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 2px 4px 2px 0; }
+.empty-group { display: flex; flex-direction: column; gap: 4px; }
+.empty-group h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 2px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--g); position: sticky; top: 0; z-index: 1; padding: 4px 2px; background: color-mix(in srgb, var(--panel, var(--elevated)) 92%, transparent); backdrop-filter: blur(8px); }
+.empty-group h4 .badge { color: var(--g); background: color-mix(in srgb, var(--g) 16%, transparent); }
+.empty-tpl { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 8px 12px; border-radius: var(--r-md); border: 1px solid color-mix(in srgb, var(--g) 22%, var(--border)); background: linear-gradient(90deg, color-mix(in srgb, var(--g) 10%, var(--elevated)), var(--elevated) 70%); flex: none; }
+.empty-tpl:hover { border-color: var(--g); background: linear-gradient(90deg, color-mix(in srgb, var(--g) 22%, var(--elevated)), var(--elevated) 85%); transform: translateX(3px); box-shadow: 0 6px 18px -10px var(--g); }
+.empty-tpl-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--g); box-shadow: 0 0 10px var(--g); flex: none; }
+.empty-tpl-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ---- home redesign ---- */
 .home-inner { max-width: 1120px; }

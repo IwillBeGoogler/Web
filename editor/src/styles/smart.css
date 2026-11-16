@@ -106,16 +106,18 @@
 .cap-box.cap-down { border-color: #e5484d; border-style: dashed; background: color-mix(in srgb, #6b7280 38%, transparent); }
 .cap-down .cap-tag { background: #4b5563; color: #fff; border-color: transparent; }
 .cap-box.cap-slow-chaos { box-shadow: 0 0 0 calc(3px / var(--z, 1)) color-mix(in srgb, var(--warn) 55%, transparent); }
-.metrics-bar { position: absolute; bottom: 72px; left: calc((var(--inset-l, 72px) + 100% - var(--inset-r, 12px)) / 2); translate: -50% 0; z-index: 30; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; max-width: calc(100% - var(--inset-l, 72px) - var(--inset-r, 12px) - 24px); padding: 5px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--panel); color: var(--text); font-size: var(--fs-sm); backdrop-filter: blur(10px); }
+.metrics-bar { position: absolute; bottom: calc(var(--s-4) + 52px + var(--s-2)); left: 50%; translate: -50% 0; z-index: 15; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 18px; width: max-content; max-width: min(720px, calc(100% - var(--inset-l, 72px) - var(--inset-r, 12px) - 24px)); padding: 8px 40px 8px 18px; border-radius: var(--r-xl); color: var(--text); font-size: var(--fs-sm); }
 .metrics-bar .m { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
 .metrics-bar .m span { color: var(--muted); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em; }
 .metrics-bar .m b { font-variant-numeric: tabular-nums; }
 .metrics-bar .m.bad b { color: var(--danger); } .metrics-bar .m.warn b { color: var(--warn); } .metrics-bar .m.good b { color: var(--success); }
 .metrics-bar .m-budget input { width: 64px; border: 1px solid var(--border); border-radius: var(--r-md); background: transparent; color: inherit; padding: 1px 4px; font-size: var(--fs-xs); }
-.metrics-bar .m-chaos { display: inline-flex; align-items: center; gap: 3px; padding-left: 12px; border-left: 1px solid var(--border); }
-.metrics-bar .m-chaos button { border: 1px solid var(--border); border-radius: 999px; background: transparent; color: inherit; padding: 1px 8px; font-size: var(--fs-xs); }
+.metrics-bar .m-chaos { display: inline-flex; flex-basis: 100%; justify-content: center; align-items: center; gap: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+.metrics-bar .m-chaos button { border: 1px solid var(--border); border-radius: 999px; background: transparent; color: var(--text-2); height: 26px; padding: 0 10px; font-size: var(--fs-xs); }
+.metrics-bar .m-chaos button:hover:not([aria-pressed="true"]) { background: var(--hover); color: var(--text); }
 .metrics-bar .m-chaos button[aria-pressed="true"] { background: var(--danger-subtle); border-color: var(--danger); color: var(--danger); }
-.metrics-bar .m-x { border: 0; background: transparent; color: var(--muted); padding: 0 2px; }
+.metrics-bar .m-x { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); padding: 0; }
+.metrics-bar .m-x:hover { background: var(--hover); color: var(--text); }
 
 /* one-click simulation */
 .app .sim-btn, .sim-btn { position: absolute; bottom: 16px; left: calc(var(--inset-l, 72px) + 12px); z-index: 31; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border: 0; border-radius: 999px; background: var(--accent, #3b6cff); color: #fff; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.2); }

@@ -1,9 +1,13 @@
 name: CD
 
-# main -> production: CI -> image (short sha) -> Trivy -> GHCR -> deploy on the server (self-hosted runner).
-# dev runs CI only (ci.yml).
+# main -> production: starts when CI (ci.yml) has succeeded on main, so CI is not run again here:
+# image (short sha) -> Trivy -> GHCR -> deploy on the server (self-hosted runner). A manual run (workflow_dispatch)
+# skips the CI check. dev runs CI only (ci.yml).
+# workflow_run always uses this file from the default branch; every checkout pins the commit CI tested.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -15,11 +19,8 @@ permissions:
   contents: read
 
 jobs:
-  ci:
-    uses: ./.github/workflows/ci.yml
-
   publish:
-    needs: ci
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
     runs-on: ubuntu-latest
@@ -32,6 +33,8 @@ jobs:
       IMAGE: ghcr.io/iwillbegoogler/iwillbegoogler-web
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Short SHA
         id: tag
@@ -82,6 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           sparse-checkout: .github/scripts
           sparse-checkout-cone-mode: false
 
@@ -110,8 +114,8 @@ jobs:
   # One Telegram message with the result (never fails the run). Needs TELEGRAM_CHAT_ID / TELEGRAM_TOPIC_ID vars and the
   # TELEGRAM_BOT_TOKEN secret in the `production` environment of this repo.
   notify:
-    needs: [ci, publish, deploy]
-    if: always()
+    needs: [publish, deploy]
+    if: always() && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     permissions:
       contents: read
       actions: read # _notify reads job results and logs
@@ -121,6 +125,7 @@ jobs:
       mode: cd
       results: ${{ toJSON(needs) }}
       tag: ${{ needs.publish.outputs.tag }}
+      title: ${{ github.event.workflow_run.head_commit.message || '' }}
       health-url: https://iwillbegoogler.uz
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

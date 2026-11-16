@@ -58,6 +58,19 @@ describe('empty state', () => {
     expect(useDiagramStore.getState().nodes.length).toBeGreaterThan(10);
     expect(screen.queryByTestId('empty-canvas')).toBeNull();
   });
+  it('the picker groups templates, filters by search and says when nothing matches', async () => {
+    open();
+    await act(async () => void fireEvent.click(screen.getByText('Start from template')));
+    const menu = screen.getByRole('menu');
+    expect(menu.querySelectorAll('.empty-group').length).toBe(6);
+    expect(within(menu).getByText('Strategy')).toBeTruthy(); // "UML — " is dropped, the group says UML
+    const search = screen.getByLabelText('Search templates');
+    await act(async () => void fireEvent.change(search, { target: { value: 'observer' } }));
+    expect(within(screen.getByRole('menu')).getAllByRole('menuitem')).toHaveLength(1);
+    await act(async () => void fireEvent.change(search, { target: { value: 'zzzz-no-such' } }));
+    expect(screen.getByText('No templates match')).toBeTruthy();
+    expect(screen.queryAllByRole('menuitem')).toHaveLength(0);
+  });
 });
 
 describe('scrub inputs', () => {
