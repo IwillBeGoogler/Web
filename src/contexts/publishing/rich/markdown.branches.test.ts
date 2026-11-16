@@ -189,13 +189,13 @@ describe("markdown helpers", () => {
     }
   });
 
-  it("propertyDocs check reports reads-back-differently and Markdown-mode-needed", async () => {
+  it("propertyDocs check reports a doc that does not read back as itself", async () => {
     const { check } = await import("./propertyDocs");
     const h1 = check({
       type: "doc",
       content: [{ type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "H1" }] }],
     });
-    expect(h1).toContain("Markdown mode needed");
+    expect(h1).toContain("reads back differently");
     const html = check({
       type: "doc",
       content: [{ type: "paragraph", content: [{ type: "text", text: "<b>x</b>" }] }],

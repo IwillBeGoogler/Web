@@ -914,23 +914,23 @@ html.dark {
 /* Whole UI in glass: every surface over the sky is frosted, sheened and edge-lit.
    :where() keeps this at low specificity so hover:/focus: utilities still win. */
 html
-:where(
-  .tile,
-  .panel,
-  .bg-card,
-  [class*="bg-card/"],
-  .bg-surface-2,
-  .seg,
-  .tag,
-  .glass,
-  [role="dialog"],
-  [role="menu"],
-  [role="listbox"],
-  .sticky.bg-surface,
-  input:not(.bg-transparent):not(label input):not(div > input),
-  select,
-  textarea
-) {
+  :where(
+    .tile,
+    .panel,
+    .bg-card,
+    [class*="bg-card/"],
+    .bg-surface-2,
+    .seg,
+    .tag,
+    .glass,
+    [role="dialog"],
+    [role="menu"],
+    [role="listbox"],
+    .sticky.bg-surface,
+    input:not(.bg-transparent):not(label input):not(div > input),
+    select,
+    textarea
+  ) {
   background-image: var(--glass-sheen);
   background-color: var(--glass-fill);
   -webkit-backdrop-filter: var(--glass-filter);

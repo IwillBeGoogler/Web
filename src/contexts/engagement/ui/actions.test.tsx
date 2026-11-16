@@ -43,6 +43,7 @@ describe("ClapButton", () => {
       pages: [{ items: [makePost()], meta: { page: 1, limit: 10, total: 1, hasMore: false, nextCursor: undefined } }],
       pageParams: [{}],
     });
+    // biome-ignore lint/correctness/noComponentHookFactories: test-local component reading the test query client
     const Probe = () => {
       const d = qc.getQueryData(feedQuery(source).queryKey);
       const p = d?.pages[0]?.items[0];

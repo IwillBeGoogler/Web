@@ -6,6 +6,7 @@ Owner constraints: very modern, **must not read as Medium**, three.js 3D element
 Decision: **fully monochrome**. `--accent` is ink (near-black in light mode, near-white in dark mode). I considered and rejected a cool-steel accent (`#4b5563`-ish). It reads as "disabled" next to gray body text, and it adds a hue the owner did not ask for.
 
 How we avoid looking like Medium. Medium uses a white page, a centred serif column, a green accent, pill buttons and no imagery chrome. Graphite is the opposite on every one of those:
+
 - Tight grotesk display type (Inter Tight).
 - Monospace metadata and index numbers.
 - Square-ish 10-16 px radii.
@@ -18,16 +19,16 @@ How we avoid looking like Medium. Medium uses a white page, a centred serif colu
 
 ## 0. Ground truth read before writing (current state)
 
-| Fact | Source |
-|---|---|
-| Tokens are runtime vars, swapped by `.dark` and by inline `paletteVars` on `:root` | `src/styles.css:62-97`, `src/contexts/preferences/domain/reading.ts:191-203` |
-| `paletteVars` **overrides** `--surface, --surface-2, --line, --subtle, --muted, --fg, --accent, --accent-hover, --on-accent, --inverse, --on-inverse` at runtime. `--surface-2` is computed as `color-mix(lightgray 55%, light)`. `--card`, `--danger`, `--overlay` and `--glow` are **not** overridden | `reading.ts:191-203` |
-| Pink sources today: `--brand-2` mixes `#ff4fa3`, `--brand-3` mixes `#ff9d3d`, and `--grad-brand` is used by the Logo tile, drop cap, `hr`, `.text-gradient`, `.ring-grad`, landing CTA band and feature icons | `styles.css:300-303`, `Logo.tsx:13`, `LandingPage.tsx:247,259` |
-| Violet accent `#5b3df5` / `#a495ff` | `styles.css:69,87`, `reading.ts:119,128` |
-| Palettes `dawn` (`#fbf3f0` rose page, `#9c4a52` accent) and `dracula` (`#bd93f9`) are pink/violet-adjacent and visible in the dock swatches (`PALETTES.slice(0,12)`) | `reading.ts:126,131`, `ReadingPanel.tsx:154` |
-| Fonts load from one Google Fonts URL | `index.html:11` |
-| `three` is **not** a dependency | `package.json:16-32` |
-| ReadingDock is mounted in the root route, outside `Shell`, and has no `data-chrome`, so focus mode does not hide it | `src/app/router.tsx:93`, `styles.css:238` |
+| Fact                                                                                                                                                                                                                                                                                                    | Source                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Tokens are runtime vars, swapped by `.dark` and by inline `paletteVars` on `:root`                                                                                                                                                                                                                      | `src/styles.css:62-97`, `src/contexts/preferences/domain/reading.ts:191-203` |
+| `paletteVars` **overrides** `--surface, --surface-2, --line, --subtle, --muted, --fg, --accent, --accent-hover, --on-accent, --inverse, --on-inverse` at runtime. `--surface-2` is computed as `color-mix(lightgray 55%, light)`. `--card`, `--danger`, `--overlay` and `--glow` are **not** overridden | `reading.ts:191-203`                                                         |
+| Pink sources today: `--brand-2` mixes `#ff4fa3`, `--brand-3` mixes `#ff9d3d`, and `--grad-brand` is used by the Logo tile, drop cap, `hr`, `.text-gradient`, `.ring-grad`, landing CTA band and feature icons                                                                                           | `styles.css:300-303`, `Logo.tsx:13`, `LandingPage.tsx:247,259`               |
+| Violet accent `#5b3df5` / `#a495ff`                                                                                                                                                                                                                                                                     | `styles.css:69,87`, `reading.ts:119,128`                                     |
+| Palettes `dawn` (`#fbf3f0` rose page, `#9c4a52` accent) and `dracula` (`#bd93f9`) are pink/violet-adjacent and visible in the dock swatches (`PALETTES.slice(0,12)`)                                                                                                                                    | `reading.ts:126,131`, `ReadingPanel.tsx:154`                                 |
+| Fonts load from one Google Fonts URL                                                                                                                                                                                                                                                                    | `index.html:11`                                                              |
+| `three` is **not** a dependency                                                                                                                                                                                                                                                                         | `package.json:16-32`                                                         |
+| ReadingDock is mounted in the root route, outside `Shell`, and has no `data-chrome`, so focus mode does not hide it                                                                                                                                                                                     | `src/app/router.tsx:93`, `styles.css:238`                                    |
 
 ---
 
@@ -41,11 +42,11 @@ All neutrals are pure grays (R = G = B). No hue anywhere except `--danger`, whic
 :root {
   --fg: #0a0a0a;
   --muted: #525252;
-  --subtle: #d4d4d4;        /* decorative only */
+  --subtle: #d4d4d4; /* decorative only */
   --surface: #f5f5f5;
-  --surface-2: #e3e3e3;     /* = runtime value paletteVars computes for "paper" */
-  --line: #d4d4d4;          /* decorative hairlines */
-  --line-strong: #8a8a8a;   /* NEW: input/control borders that must meet 3:1 */
+  --surface-2: #e3e3e3; /* = runtime value paletteVars computes for "paper" */
+  --line: #d4d4d4; /* decorative hairlines */
+  --line-strong: #8a8a8a; /* NEW: input/control borders that must meet 3:1 */
   --accent: #171717;
   --accent-hover: #404040;
   --on-accent: #fafafa;
@@ -67,7 +68,7 @@ All neutrals are pure grays (R = G = B). No hue anywhere except `--danger`, whic
   --muted: #a3a3a3;
   --subtle: #2e2e2e;
   --surface: #0a0a0a;
-  --surface-2: #1e1e1e;     /* = runtime value for "ink" */
+  --surface-2: #1e1e1e; /* = runtime value for "ink" */
   --line: #2e2e2e;
   --line-strong: #6b6b6b;
   --accent: #f5f5f5;
@@ -93,11 +94,13 @@ Add to the first `@theme` block: `--color-line-strong: var(--line-strong);`. Thi
 ```
 
 What these produce at runtime, derived from `paletteVars`:
+
 - `--surface-2`: paper `#e3e3e3`, ink `#1e1e1e`.
 - `--accent-hover = mix(secondary 85%, dark)`: paper ≈ `#101010`, ink ≈ `#f4f4f4`. That is visually the same as `--accent`. **So hover must never be signalled by colour alone.** Every accent hover in this spec also changes translate, underline or background.
 - Optional follow-up, not required for this pass: change `paletteVars` to `color-mix(in srgb, ${p.secondary} 80%, ${p.light})` to restore a visible hover tint.
 
 Other palettes:
+
 - **Replace `dawn`** with `{ id: "graphite", label: "Graphite", mode: "light", light: "#e5e5e5", lightgray: "#c4c4c4", gray: "#4a4a4a", dark: "#0a0a0a", secondary: "#262626" }`. Reason: its page `#fbf3f0` and accent `#9c4a52` are rose.
 - **Replace `dracula`** with `{ id: "carbon", label: "Carbon", mode: "dark", light: "#171717", lightgray: "#333333", gray: "#a8a8a8", dark: "#f5f5f5", secondary: "#e5e5e5" }`. Reason: its accent `#bd93f9` is violet-pink.
 - `normalizePrefs` already falls back to paper/ink for unknown stored ids (`reading.ts:177`), so users who stored `dawn`/`dracula` degrade safely.
@@ -131,21 +134,21 @@ body {
 
 ### 1.5 Contrast (WCAG 2.x relative luminance, computed by hand from the hex values above)
 
-| Pair | Light | Dark | Requirement |
-|---|---|---|---|
-| fg on surface | 18.2:1 (`#0a0a0a`/`#f5f5f5`) | 16.9:1 (`#ededed`/`#0a0a0a`) | 4.5 ✓ |
-| fg on card | 19.8:1 (`/#fff`) | 15.7:1 (`/#141414`) | 4.5 ✓ |
-| fg on surface-2 | 15.4:1 (`/#e3e3e3`) | 14.1:1 (`/#1e1e1e`) | 4.5 ✓ |
-| muted on surface | 7.2:1 (`#525252`) | 7.9:1 (`#a3a3a3`) | 4.5 ✓ |
-| muted on card | 7.8:1 | 7.3:1 | 4.5 ✓ |
-| muted on surface-2 | 6.1:1 | 6.5:1 | 4.5 ✓ |
-| on-accent on accent | 17.2:1 (`#fafafa`/`#171717`) | 18.2:1 (`#0a0a0a`/`#f5f5f5`) | 4.5 ✓ |
-| on-accent on accent-hover (static CSS) | 9.9:1 (`/#404040`) | 13.4:1 (`/#d4d4d4`) | 4.5 ✓ |
-| accent (focus ring) on surface | 16.5:1 | 18.2:1 | 3 ✓ |
-| line-strong on surface / card | 3.2:1 / 3.5:1 | 3.7:1 / 3.5:1 | 3 (non-text UI) ✓ |
-| danger on surface | 5.9:1 (`#b91c1c`) | 7.2:1 (`#f87171`) | 4.5 ✓ |
-| grad lightest stop on surface (large text) | 4.4:1 (`#737373`) | 5.7:1 (`#8a8a8a`) | 3 ✓ |
-| `--line` on surface | 1.4:1 | 1.3:1 | decorative only. **Never use it as the only border of an input, switch or tab** |
+| Pair                                       | Light                        | Dark                         | Requirement                                                                     |
+| ------------------------------------------ | ---------------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
+| fg on surface                              | 18.2:1 (`#0a0a0a`/`#f5f5f5`) | 16.9:1 (`#ededed`/`#0a0a0a`) | 4.5 ✓                                                                           |
+| fg on card                                 | 19.8:1 (`/#fff`)             | 15.7:1 (`/#141414`)          | 4.5 ✓                                                                           |
+| fg on surface-2                            | 15.4:1 (`/#e3e3e3`)          | 14.1:1 (`/#1e1e1e`)          | 4.5 ✓                                                                           |
+| muted on surface                           | 7.2:1 (`#525252`)            | 7.9:1 (`#a3a3a3`)            | 4.5 ✓                                                                           |
+| muted on card                              | 7.8:1                        | 7.3:1                        | 4.5 ✓                                                                           |
+| muted on surface-2                         | 6.1:1                        | 6.5:1                        | 4.5 ✓                                                                           |
+| on-accent on accent                        | 17.2:1 (`#fafafa`/`#171717`) | 18.2:1 (`#0a0a0a`/`#f5f5f5`) | 4.5 ✓                                                                           |
+| on-accent on accent-hover (static CSS)     | 9.9:1 (`/#404040`)           | 13.4:1 (`/#d4d4d4`)          | 4.5 ✓                                                                           |
+| accent (focus ring) on surface             | 16.5:1                       | 18.2:1                       | 3 ✓                                                                             |
+| line-strong on surface / card              | 3.2:1 / 3.5:1                | 3.7:1 / 3.5:1                | 3 (non-text UI) ✓                                                               |
+| danger on surface                          | 5.9:1 (`#b91c1c`)            | 7.2:1 (`#f87171`)            | 4.5 ✓                                                                           |
+| grad lightest stop on surface (large text) | 4.4:1 (`#737373`)            | 5.7:1 (`#8a8a8a`)            | 3 ✓                                                                             |
+| `--line` on surface                        | 1.4:1                        | 1.3:1                        | decorative only. **Never use it as the only border of an input, switch or tab** |
 
 Method: L = 0.2126R + 0.7152G + 0.0722B on linearised sRGB, and ratio = (L1 + 0.05) / (L2 + 0.05). These figures are not tool-measured. Design QA should re-run them in a contrast checker; any discrepancy above ±0.1 means a typo in this file.
 
@@ -159,18 +162,19 @@ Replace `index.html:11` with:
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet" />
 ```
 
-| Role | Token | Stack | Use |
-|---|---|---|---|
+| Role    | Token            | Stack                                                          | Use                                                                                   |
+| ------- | ---------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | Display | `--font-display` | `"Inter Tight", "Geist", ui-sans-serif, system-ui, sans-serif` | h1-h3, card titles. Weight 700-800, tracking `-0.04em` at ≥ 48 px and `-0.02em` below |
-| UI | `--font-sans` | `"Geist", ui-sans-serif, system-ui, sans-serif` | body chrome, buttons |
-| Mono | `--font-mono` | `"Geist Mono", ui-monospace, Menlo, monospace` | kickers, dates, counts, index numbers, `kbd` |
-| Article | `--font-serif` | unchanged, `"Source Serif 4"` | default `prose-article`. The user can switch it via the dock |
+| UI      | `--font-sans`    | `"Geist", ui-sans-serif, system-ui, sans-serif`                | body chrome, buttons                                                                  |
+| Mono    | `--font-mono`    | `"Geist Mono", ui-monospace, Menlo, monospace`                 | kickers, dates, counts, index numbers, `kbd`                                          |
+| Article | `--font-serif`   | unchanged, `"Source Serif 4"`                                  | default `prose-article`. The user can switch it via the dock                          |
 
 Removed: Bricolage Grotesque and Instrument Serif. The italic-serif accent words are a Medium-adjacent editorial cue. Remove every `font-italic font-normal italic` span in `LandingPage.tsx:32,241` and `HomePage.tsx:54,58` and render those words in display weight 800 instead. Delete the `--font-italic` token.
 
 JetBrains Mono stays as a reader typeface option (`reading.ts:96`). Because it is no longer preloaded, add an `href` to it: `${GF}JetBrains+Mono:wght@400;600&display=swap`.
 
 Type scale (px, line-height):
+
 - Hero: `clamp(3.5rem, 9vw, 8rem)`, 0.88.
 - Page h1: 40/44 desktop, 32/36 mobile.
 - Article h1: 56/60 desktop, 34/38 mobile.
@@ -242,9 +246,14 @@ The wordmark is `IWillBeGoogler` with a solid square mark. There is no gradient 
 
 ```tsx
 <span className="inline-flex items-center gap-2 font-display text-[22px] font-extrabold tracking-[-0.05em]">
-  <span aria-hidden className="relative grid size-7 place-items-center rounded-[var(--radius-sm)] bg-inverse font-mono text-[15px] font-medium text-on-inverse transition-transform duration-500 [transition-timing-function:var(--ease-out)] group-hover:rotate-90">i</span>
+  <span
+    aria-hidden
+    className="relative grid size-7 place-items-center rounded-[var(--radius-sm)] bg-inverse font-mono text-[15px] font-medium text-on-inverse transition-transform duration-500 [transition-timing-function:var(--ease-out)] group-hover:rotate-90"
+  >
+    i
+  </span>
   <span>Blog</span>
-</span>
+</span>;
 ```
 
 - Remove `<span className="text-accent">.</span>`.
@@ -254,6 +263,7 @@ The wordmark is `IWillBeGoogler` with a solid square mark. There is no gradient 
 ### 4.3 Landing hero (`src/app/pages/LandingPage.tsx`)
 
 Layout:
+
 - Section: `relative isolate overflow-hidden border-b border-line`.
 - Grid: `mx-auto grid max-w-shell items-center gap-10 px-4 pt-14 pb-16 md:px-6 md:pt-20 md:pb-24 lg:grid-cols-[1.1fr_1fr]`.
 - The `aside` scene slot: `relative aspect-square w-full max-w-[36rem] justify-self-center lg:justify-self-end`. **On mobile it shows above the headline at `max-w-[20rem]`** via `order-first lg:order-none`. Mobile gets the 3D element too, under the reduced budget in 4.3.3.
@@ -276,23 +286,23 @@ Layout:
 
 The scene is one faceted metal polyhedron, wrapped by a wire cage and orbited by a sparse particle shell. Everything is grayscale and tinted from runtime tokens.
 
-| Aspect | Spec |
-|---|---|
-| Dependency | `bun add three` and `bun add -d @types/three` (latest) |
-| File | `src/app/pages/landing/HeroScene.tsx` (default export), lazy-loaded |
-| Renderer | `WebGLRenderer({ antialias: dpr < 2, alpha: true, powerPreference: "low-power" })`, `setClearColor(0x000000, 0)`, `outputColorSpace = SRGBColorSpace`, `toneMapping = ACESFilmicToneMapping`, `toneMappingExposure = 1.0` |
-| Camera | `PerspectiveCamera(35, aspect, 0.1, 50)` at `(0, 0, 6.5)`, looking at the origin |
-| Core mesh | `IcosahedronGeometry(1.35, 0)` (20 faces, flat facets) + `MeshStandardMaterial({ color: muted, metalness: 0.85, roughness: 0.32, flatShading: true })` |
-| Cage | `EdgesGeometry(IcosahedronGeometry(1.9, 1))` + `LineBasicMaterial({ color: fg, transparent: true, opacity: 0.18 })` |
-| Particles | 900 points (420 on mobile) uniformly on a spherical shell r ∈ [2.6, 4.2] + `PointsMaterial({ color: fg, size: 0.018, sizeAttenuation: true, transparent: true, opacity: 0.55, depthWrite: false })` |
-| Environment | `scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture` (`three/addons/environments/RoomEnvironment.js`). It is generated locally, so there is **no network fetch**. Dispose `pmrem` right after |
-| Lights | `AmbientLight(0xffffff, 0.25)` + key `DirectionalLight(0xffffff, 2.2)` at `(3, 4, 5)` + rim `DirectionalLight(0xffffff, 0.9)` at `(-4, -2, -3)`. All white, so they add no hue |
-| Colour source | Read `getComputedStyle(document.documentElement).getPropertyValue("--fg" / "--muted")` on mount, then re-read through a `MutationObserver` on `<html>` (`attributes: true, attributeFilter: ["class","style"]`), because a palette change sets inline vars and `.dark`. Apply with `material.color.set(value)`. Any palette, including sepia, therefore tints the object to that palette |
-| Idle motion | Core `rotation.y += 0.12·dt`, `rotation.x += 0.04·dt`. Cage counter-rotates `rotation.y -= 0.05·dt`. Particles `rotation.y += 0.015·dt`. Group `position.y = 0.08·sin(t·0.6)`. `dt` comes from `Clock.getDelta()`, clamped to `≤ 0.05` s so resuming from a pause does not jump |
+| Aspect         | Spec                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Dependency     | `bun add three` and `bun add -d @types/three` (latest)                                                                                                                                                                                                                                                                                                                                              |
+| File           | `src/app/pages/landing/HeroScene.tsx` (default export), lazy-loaded                                                                                                                                                                                                                                                                                                                                 |
+| Renderer       | `WebGLRenderer({ antialias: dpr < 2, alpha: true, powerPreference: "low-power" })`, `setClearColor(0x000000, 0)`, `outputColorSpace = SRGBColorSpace`, `toneMapping = ACESFilmicToneMapping`, `toneMappingExposure = 1.0`                                                                                                                                                                           |
+| Camera         | `PerspectiveCamera(35, aspect, 0.1, 50)` at `(0, 0, 6.5)`, looking at the origin                                                                                                                                                                                                                                                                                                                    |
+| Core mesh      | `IcosahedronGeometry(1.35, 0)` (20 faces, flat facets) + `MeshStandardMaterial({ color: muted, metalness: 0.85, roughness: 0.32, flatShading: true })`                                                                                                                                                                                                                                              |
+| Cage           | `EdgesGeometry(IcosahedronGeometry(1.9, 1))` + `LineBasicMaterial({ color: fg, transparent: true, opacity: 0.18 })`                                                                                                                                                                                                                                                                                 |
+| Particles      | 900 points (420 on mobile) uniformly on a spherical shell r ∈ [2.6, 4.2] + `PointsMaterial({ color: fg, size: 0.018, sizeAttenuation: true, transparent: true, opacity: 0.55, depthWrite: false })`                                                                                                                                                                                                 |
+| Environment    | `scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture` (`three/addons/environments/RoomEnvironment.js`). It is generated locally, so there is **no network fetch**. Dispose `pmrem` right after                                                                                                                                                                                 |
+| Lights         | `AmbientLight(0xffffff, 0.25)` + key `DirectionalLight(0xffffff, 2.2)` at `(3, 4, 5)` + rim `DirectionalLight(0xffffff, 0.9)` at `(-4, -2, -3)`. All white, so they add no hue                                                                                                                                                                                                                      |
+| Colour source  | Read `getComputedStyle(document.documentElement).getPropertyValue("--fg" / "--muted")` on mount, then re-read through a `MutationObserver` on `<html>` (`attributes: true, attributeFilter: ["class","style"]`), because a palette change sets inline vars and `.dark`. Apply with `material.color.set(value)`. Any palette, including sepia, therefore tints the object to that palette            |
+| Idle motion    | Core `rotation.y += 0.12·dt`, `rotation.x += 0.04·dt`. Cage counter-rotates `rotation.y -= 0.05·dt`. Particles `rotation.y += 0.015·dt`. Group `position.y = 0.08·sin(t·0.6)`. `dt` comes from `Clock.getDelta()`, clamped to `≤ 0.05` s so resuming from a pause does not jump                                                                                                                     |
 | Mouse parallax | `pointermove` on `window` (passive) maps `nx, ny ∈ [-1, 1]` from the canvas rect. Targets: `group.rotation.x = ny·0.25`, `group.rotation.y = nx·0.35`, `camera.position.x = nx·0.35`, `camera.position.y = -ny·0.25`. Ease each frame with `v += (target - v)·0.06`. Then `camera.lookAt(0,0,0)`. On touch there is no parallax, only `deviceorientation`. **Do not** request iOS motion permission |
-| Hover/click | None. The canvas is `aria-hidden` and `pointer-events-none`; it is decoration |
-| Entry | Scale the group 0.85 → 1 and fade the canvas `opacity` 0 → 1 over 900 ms with `var(--ease-out)` after the first rendered frame |
-| Resize | `ResizeObserver` on the container calls `renderer.setSize(w, h, false)` and `camera.aspect` → `updateProjectionMatrix()` |
+| Hover/click    | None. The canvas is `aria-hidden` and `pointer-events-none`; it is decoration                                                                                                                                                                                                                                                                                                                       |
+| Entry          | Scale the group 0.85 → 1 and fade the canvas `opacity` 0 → 1 over 900 ms with `var(--ease-out)` after the first rendered frame                                                                                                                                                                                                                                                                      |
+| Resize         | `ResizeObserver` on the container calls `renderer.setSize(w, h, false)` and `camera.aspect` → `updateProjectionMatrix()`                                                                                                                                                                                                                                                                            |
 
 #### 4.3.2 Reduced motion and fallbacks
 
@@ -302,16 +312,16 @@ The scene is one faceted metal polyhedron, wrapped by a wire cage and orbited by
 
 #### 4.3.3 Performance budget
 
-| Item | Budget / rule |
-|---|---|
+| Item       | Budget / rule                                                                                                                                                                                                                                                                                |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Code split | `const HeroScene = lazy(() => import("./landing/HeroScene"))`. Start the import from `requestIdleCallback` (falling back to `setTimeout(…, 200)`) after the hero text paints, so three is never in the entry chunk. Import only the named pieces: `import { WebGLRenderer, … } from "three"` |
-| Chunk size | Target ≤ 160 KB gzip for the HeroScene chunk including three. This is a **budget, not a measurement**. Verify with `bunx --bun vite build` output, and fail review if it is over |
-| DPR | `renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75))`. On viewports < 768 px, cap at `1.5` |
-| Frame | Target ≤ 4 ms CPU per frame on a mid-range laptop. Validate in a Chrome Performance trace. Draw calls: 3. Triangles: 20 core + 0 for lines and points |
-| Offscreen | An `IntersectionObserver` (threshold 0) on the container stops the rAF loop when it is not intersecting |
-| Tab hidden | `document.visibilitychange` stops the loop on `hidden` and resumes on `visible` (call `clock.getDelta()` once to discard the gap) |
-| Cleanup | On unmount: cancel rAF, disconnect observers, `geometry.dispose()`, `material.dispose()`, `scene.environment.dispose()`, `renderer.dispose()`, `renderer.forceContextLoss()`, and remove listeners |
-| Contexts | Only **one** WebGL context exists site-wide |
+| Chunk size | Target ≤ 160 KB gzip for the HeroScene chunk including three. This is a **budget, not a measurement**. Verify with `bunx --bun vite build` output, and fail review if it is over                                                                                                             |
+| DPR        | `renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75))`. On viewports < 768 px, cap at `1.5`                                                                                                                                                                                              |
+| Frame      | Target ≤ 4 ms CPU per frame on a mid-range laptop. Validate in a Chrome Performance trace. Draw calls: 3. Triangles: 20 core + 0 for lines and points                                                                                                                                        |
+| Offscreen  | An `IntersectionObserver` (threshold 0) on the container stops the rAF loop when it is not intersecting                                                                                                                                                                                      |
+| Tab hidden | `document.visibilitychange` stops the loop on `hidden` and resumes on `visible` (call `clock.getDelta()` once to discard the gap)                                                                                                                                                            |
+| Cleanup    | On unmount: cancel rAF, disconnect observers, `geometry.dispose()`, `material.dispose()`, `scene.environment.dispose()`, `renderer.dispose()`, `renderer.forceContextLoss()`, and remove listeners                                                                                           |
+| Contexts   | Only **one** WebGL context exists site-wide                                                                                                                                                                                                                                                  |
 
 Ambient background, the owner's "maybe": **rejected** as a global three.js layer. A second always-on WebGL context behind long-form reading costs battery on every article. It competes with text at the contrast levels in 1.5, and it would also have to obey focus mode. Replacement: the existing body radial `--glow` at 5-6 % plus `.grain` on the Landing hero only. This needs zero JS.
 
@@ -402,20 +412,21 @@ This replaces the rounded floating card with a ruled row. That is the biggest si
 
 - `base`: replace `rounded-xl` with `rounded-[var(--radius-md)]`. Keep the rest. The focus outline stays `outline-accent`, which is now ink: 16.5:1 or better.
 
-| Variant | Classes |
-|---|---|
-| `primary` | `bg-inverse text-on-inverse hover:-translate-y-px hover:shadow-[var(--shadow-lift)] shadow-[var(--shadow-soft)]` |
-| `accent` | alias of `primary`. Keep the key for call sites, and **remove** the coloured glow |
-| `outline` | `border border-line-strong bg-card text-fg hover:border-fg hover:bg-surface-2` |
-| `outline-accent` | `border border-fg text-fg hover:bg-inverse hover:text-on-inverse` |
-| `link` | `h-auto px-0 text-fg underline-offset-4 hover:underline decoration-1 rounded-none` |
-| `ghost` | `text-muted hover:text-fg hover:bg-surface-2` |
-| `ghost-icon` | `size-10 rounded-[var(--radius-md)] text-muted hover:text-fg hover:bg-surface-2 [&_svg]:size-5` (was size-6, which looked heavy at 1.5 stroke) |
-| `danger` (**new**) | `bg-danger text-surface hover:opacity-90`. Destructive confirms currently borrow `primary` |
+| Variant            | Classes                                                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `primary`          | `bg-inverse text-on-inverse hover:-translate-y-px hover:shadow-[var(--shadow-lift)] shadow-[var(--shadow-soft)]`                               |
+| `accent`           | alias of `primary`. Keep the key for call sites, and **remove** the coloured glow                                                              |
+| `outline`          | `border border-line-strong bg-card text-fg hover:border-fg hover:bg-surface-2`                                                                 |
+| `outline-accent`   | `border border-fg text-fg hover:bg-inverse hover:text-on-inverse`                                                                              |
+| `link`             | `h-auto px-0 text-fg underline-offset-4 hover:underline decoration-1 rounded-none`                                                             |
+| `ghost`            | `text-muted hover:text-fg hover:bg-surface-2`                                                                                                  |
+| `ghost-icon`       | `size-10 rounded-[var(--radius-md)] text-muted hover:text-fg hover:bg-surface-2 [&_svg]:size-5` (was size-6, which looked heavy at 1.5 stroke) |
+| `danger` (**new**) | `bg-danger text-surface hover:opacity-90`. Destructive confirms currently borrow `primary`                                                     |
 
 Sizes: unchanged (`sm` h-9 = 36 px, `md` 40, `lg` 44). All targets are ≥ 24 px for WCAG 2.2 AA (2.5.8).
 
 States:
+
 - Disabled: `disabled:opacity-50` exists. Muted at 50 % falls below 4.5:1. That is allowed, because WCAG exempts inactive components.
 - Loading: spinner plus `aria-busy` (exists).
 

@@ -54,6 +54,7 @@ export function EmptyState({
   body,
   action,
   code,
+  heading: Heading = "h2",
 }: {
   icon: LucideIcon;
   title: string;
@@ -61,6 +62,8 @@ export function EmptyState({
   action?: ReactNode;
   /** Mono status line above the title (decorative, aria-hidden). */
   code?: string;
+  /** Heading level of the title; a page with nothing else on it should use h1. */
+  heading?: "h1" | "h2";
 }) {
   return (
     <div className="mx-auto my-10 max-w-md rounded-[var(--radius-md)] border border-dashed border-line-strong bg-card px-6 py-12 text-center">
@@ -70,7 +73,7 @@ export function EmptyState({
       <p className="kicker mt-5" aria-hidden>
         {code ?? "0 · nothing here"}
       </p>
-      <h2 className="mt-2 font-display text-xl font-bold tracking-[-0.02em]">{title}</h2>
+      <Heading className="mt-2 font-display text-xl font-bold tracking-[-0.02em]">{title}</Heading>
       {body ? <p className="mt-2 text-sm leading-6 text-muted">{body}</p> : null}
       {action ? <div className="mt-6 flex justify-center gap-2">{action}</div> : null}
     </div>

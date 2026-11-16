@@ -56,6 +56,7 @@ describe("DiagramList", () => {
     const q = query("empty", async () => ({ items: [], meta: meta(false) }));
     await renderRouted(<DiagramList query={q} empty={{ title: "Nothing yet" }} />);
     expect(await screen.findByText("Nothing yet")).toBeInTheDocument();
+    // biome-ignore lint/correctness/noComponentHookFactories: test-local component
     const Icon = () => <svg data-testid="custom-icon" />;
     await renderRouted(<DiagramList query={query("empty2", async () => ({ items: [], meta: meta(false) }))} empty={{ title: "Zip", icon: Icon as never }} />);
     expect(await screen.findByText("Zip")).toBeInTheDocument();

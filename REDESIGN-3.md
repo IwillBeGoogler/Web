@@ -12,18 +12,18 @@ Verified source of every "current" claim: the files listed per section, read 202
 
 ### Medium DNA to Console replacement (checklist)
 
-| Medium signature (current location) | Console replacement |
-|---|---|
-| Hairline-ruled list rows: `PostCard.tsx:30` `border-b py-6` | Bento tile grid, `.tile` with header strip |
-| Round avatars: `avatar.tsx:43` `rounded-full` | Square monogram, `rounded-[var(--radius-xs|sm)]` |
-| Pill/black lifted button: `button.tsx:9` shadow-soft + `-translate-y-px` | Flat "key" button, inset bottom edge, mono caps label |
-| Ghost icon row bookmark/…/share: `ArticlePage.tsx:35-77`, `PostCard.tsx:105` | `ActionDeck`: segmented toolbar, each key = icon + label + count |
-| Underline tabs: `modal.tsx:51-90` `Tabs` | `Tabs` restyled as segmented with inverted fill (role=tab kept) |
-| Centered auth modal + big serif greeting: `AuthDialog.tsx:153-161` | Split-panel sheet: left spec panel (inverse), right form |
-| Right-drawer / quiet comment list: `Responses.tsx:105` ruled `li` | Threaded "log" tiles with line numbers, square monograms, labelled action keys |
-| Plain text topic pills: `TopicChips.tsx:4` | Bracketed hash tags with count well: `#devops 12` |
-| Sparse white chrome: `TopBar.tsx:185` transparent header | Framed top bar with segmented nav + ⌘K command field + status rail |
-| Soft-shadow cards `.card-premium`, `.panel` | `.tile` + `.tile-hover` (hard offset) |
+| Medium signature (current location)                                          | Console replacement                                                            |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Hairline-ruled list rows: `PostCard.tsx:30` `border-b py-6`                  | Bento tile grid, `.tile` with header strip                                     |
+| Round avatars: `avatar.tsx:43` `rounded-full`                                | Square monogram, `rounded-[var(--radius-xs                                     | sm)]` |
+| Pill/black lifted button: `button.tsx:9` shadow-soft + `-translate-y-px`     | Flat "key" button, inset bottom edge, mono caps label                          |
+| Ghost icon row bookmark/…/share: `ArticlePage.tsx:35-77`, `PostCard.tsx:105` | `ActionDeck`: segmented toolbar, each key = icon + label + count               |
+| Underline tabs: `modal.tsx:51-90` `Tabs`                                     | `Tabs` restyled as segmented with inverted fill (role=tab kept)                |
+| Centered auth modal + big serif greeting: `AuthDialog.tsx:153-161`           | Split-panel sheet: left spec panel (inverse), right form                       |
+| Right-drawer / quiet comment list: `Responses.tsx:105` ruled `li`            | Threaded "log" tiles with line numbers, square monograms, labelled action keys |
+| Plain text topic pills: `TopicChips.tsx:4`                                   | Bracketed hash tags with count well: `#devops 12`                              |
+| Sparse white chrome: `TopBar.tsx:185` transparent header                     | Framed top bar with segmented nav + ⌘K command field + status rail             |
+| Soft-shadow cards `.card-premium`, `.panel`                                  | `.tile` + `.tile-hover` (hard offset)                                          |
 
 ---
 
@@ -33,11 +33,11 @@ Verified source of every "current" claim: the files listed per section, read 202
 
 Use only existing vars; stop using `--radius-lg` (16) and `--radius-xl` (20) in components.
 
-| Use | Var | px |
-|---|---|---|
-| kbd, tags, avatar xs/sm, count wells | `--radius-xs` | 4 |
-| buttons, inputs, menu items, segmented items, avatar md/lg | `--radius-sm` | 8 |
-| tiles, menus, modals, sheets, toasts, avatar xl/2xl | `--radius-md` | 10 |
+| Use                                                        | Var           | px  |
+| ---------------------------------------------------------- | ------------- | --- |
+| kbd, tags, avatar xs/sm, count wells                       | `--radius-xs` | 4   |
+| buttons, inputs, menu items, segmented items, avatar md/lg | `--radius-sm` | 8   |
+| tiles, menus, modals, sheets, toasts, avatar xl/2xl        | `--radius-md` | 10  |
 
 One variable reassignment (flagged, not a new value): in the `:root` block at `styles.css:302` change `--radius-card: var(--radius-lg)` to `--radius-card: var(--radius-md)`. That moves every `.panel` / `.card-premium` user to 10 px.
 
@@ -48,56 +48,180 @@ They only combine existing tokens. **NEW (flag for design system):** `.tile`, `.
 ```css
 @layer components {
   /* Bordered surface. Replaces .panel / .card-premium in components. */
-  .tile { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-md); }
+  .tile {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+  }
   /* Hover = border goes solid + 2px hard offset, no blur. */
-  .tile-hover { transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out), border-color 160ms; }
-  .tile-hover:hover, .tile-hover:focus-within { border-color: var(--fg); transform: translate(-2px, -2px); box-shadow: 2px 2px 0 0 var(--fg); }
-  @media (prefers-reduced-motion: reduce) { .tile-hover:hover, .tile-hover:focus-within { transform: none; } }
+  .tile-hover {
+    transition:
+      transform 160ms var(--ease-out),
+      box-shadow 160ms var(--ease-out),
+      border-color 160ms;
+  }
+  .tile-hover:hover,
+  .tile-hover:focus-within {
+    border-color: var(--fg);
+    transform: translate(-2px, -2px);
+    box-shadow: 2px 2px 0 0 var(--fg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tile-hover:hover,
+    .tile-hover:focus-within {
+      transform: none;
+    }
+  }
   /* Mono header strip inside a tile. */
   .tile-head {
-    display: flex; align-items: center; gap: 0.75rem; min-height: 2.25rem; padding: 0 0.75rem;
-    border-bottom: 1px solid var(--line); background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.25rem;
+    padding: 0 0.75rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-2);
     border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0;
-    font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
   /* Zero-padded index numerals: 01, 02 … */
-  .idx { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--muted); }
+  .idx {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
   /* Keyboard hint. Decorative: always aria-hidden. */
   .kbd {
-    display: inline-grid; place-items: center; height: 1.25rem; min-width: 1.25rem; padding: 0 0.25rem;
-    border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: var(--radius-xs);
-    background: var(--card); font-family: var(--font-mono); font-size: 0.6875rem; line-height: 1; color: var(--muted);
+    display: inline-grid;
+    place-items: center;
+    height: 1.25rem;
+    min-width: 1.25rem;
+    padding: 0 0.25rem;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--card);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    color: var(--muted);
   }
   /* Hash tag with count well. */
   .tag {
-    display: inline-flex; align-items: center; gap: 0.375rem; height: 1.75rem; max-width: 14rem; padding: 0 0.25rem 0 0.5rem;
-    border: 1px solid var(--line-strong); border-radius: var(--radius-xs); background: var(--card);
-    font-family: var(--font-mono); font-size: 0.75rem; color: var(--fg); white-space: nowrap; transition: background-color 120ms, border-color 120ms, color 120ms;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    height: 1.75rem;
+    max-width: 14rem;
+    padding: 0 0.25rem 0 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    background: var(--card);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--fg);
+    white-space: nowrap;
+    transition:
+      background-color 120ms,
+      border-color 120ms,
+      color 120ms;
   }
-  .tag:hover { border-color: var(--fg); background: var(--surface-2); }
-  .tag[aria-current="page"] { background: var(--inverse); color: var(--on-inverse); border-color: var(--inverse); }
-  .tag-count { border-radius: 2px; background: var(--surface-2); padding: 0 0.25rem; font-size: 0.6875rem; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .tag[aria-current="page"] .tag-count { background: color-mix(in srgb, var(--on-inverse) 18%, transparent); color: var(--on-inverse); }
+  .tag:hover {
+    border-color: var(--fg);
+    background: var(--surface-2);
+  }
+  .tag[aria-current="page"] {
+    background: var(--inverse);
+    color: var(--on-inverse);
+    border-color: var(--inverse);
+  }
+  .tag-count {
+    border-radius: 2px;
+    background: var(--surface-2);
+    padding: 0 0.25rem;
+    font-size: 0.6875rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .tag[aria-current="page"] .tag-count {
+    background: color-mix(in srgb, var(--on-inverse) 18%, transparent);
+    color: var(--on-inverse);
+  }
   /* Segmented control shell + item (used by Lens, Tabs, ActionDeck, ReadingPanel). */
-  .seg { display: inline-flex; align-items: stretch; gap: 2px; padding: 2px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); background: var(--surface-2); }
-  .seg-item {
-    display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; height: 2rem; padding: 0 0.75rem;
-    border-radius: calc(var(--radius-sm) - 3px); font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--muted); transition: background-color 120ms, color 120ms; cursor: pointer;
+  .seg {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
   }
-  .seg-item:hover { color: var(--fg); background: var(--card); }
-  .seg-item[aria-checked="true"], .seg-item[aria-selected="true"], .seg-item[aria-pressed="true"] { background: var(--inverse); color: var(--on-inverse); }
+  .seg-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: calc(var(--radius-sm) - 3px);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    transition:
+      background-color 120ms,
+      color 120ms;
+    cursor: pointer;
+  }
+  .seg-item:hover {
+    color: var(--fg);
+    background: var(--card);
+  }
+  .seg-item[aria-checked="true"],
+  .seg-item[aria-selected="true"],
+  .seg-item[aria-pressed="true"] {
+    background: var(--inverse);
+    color: var(--on-inverse);
+  }
   /* "Key" = one labelled cell in an action toolbar. */
   .key {
-    display: inline-flex; align-items: center; gap: 0.5rem; height: 2.5rem; padding: 0 0.75rem;
-    font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums;
-    transition: background-color 120ms, color 120ms; cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.5rem;
+    padding: 0 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    transition:
+      background-color 120ms,
+      color 120ms;
+    cursor: pointer;
   }
-  .key:hover { background: var(--surface-2); color: var(--fg); }
-  .key[aria-pressed="true"] { color: var(--fg); }
-  .key:disabled, .key[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+  .key:hover {
+    background: var(--surface-2);
+    color: var(--fg);
+  }
+  .key[aria-pressed="true"] {
+    color: var(--fg);
+  }
+  .key:disabled,
+  .key[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
   /* Diagonal hatch for empty media / placeholders (replaces giant letter). */
-  .hatch { background: repeating-linear-gradient(-45deg, var(--surface-2) 0 6px, var(--card) 6px 12px); }
+  .hatch {
+    background: repeating-linear-gradient(-45deg, var(--surface-2) 0 6px, var(--card) 6px 12px);
+  }
 }
 ```
 
@@ -105,13 +229,13 @@ Delete from components (keep CSS definitions until a later cleanup pass so nothi
 
 ### 1.3 Contrast evidence (computed from token hex, WCAG relative luminance)
 
-| Pair | Light | Dark | Requirement |
-|---|---|---|---|
-| `text-muted` on `bg-surface-2` (tile-head, tag-count) | #525252/#e3e3e3 ≈ 6.1:1 | #a3a3a3/#1e1e1e ≈ 6.6:1 | 4.5:1 text |
-| `text-muted` on `bg-card` | #525252/#fff ≈ 7.8:1 | #a3a3a3/#141414 ≈ 7.6:1 | 4.5:1 |
-| `on-inverse` on `inverse` (selected seg, primary) | #f5f5f5/#0a0a0a ≈ 18:1 | #0a0a0a/#ededed ≈ 17:1 | 4.5:1 |
-| `border-line-strong` vs `bg-card` (control edges) | #8a8a8a/#fff ≈ 3.5:1 | #6b6b6b/#141414 ≈ 3.4:1 | 3:1 non-text |
-| `border-line` | ≈ 1.5:1 | ≈ 1.4:1 | decorative only; never the sole state cue |
+| Pair                                                  | Light                   | Dark                    | Requirement                               |
+| ----------------------------------------------------- | ----------------------- | ----------------------- | ----------------------------------------- |
+| `text-muted` on `bg-surface-2` (tile-head, tag-count) | #525252/#e3e3e3 ≈ 6.1:1 | #a3a3a3/#1e1e1e ≈ 6.6:1 | 4.5:1 text                                |
+| `text-muted` on `bg-card`                             | #525252/#fff ≈ 7.8:1    | #a3a3a3/#141414 ≈ 7.6:1 | 4.5:1                                     |
+| `on-inverse` on `inverse` (selected seg, primary)     | #f5f5f5/#0a0a0a ≈ 18:1  | #0a0a0a/#ededed ≈ 17:1  | 4.5:1                                     |
+| `border-line-strong` vs `bg-card` (control edges)     | #8a8a8a/#fff ≈ 3.5:1    | #6b6b6b/#141414 ≈ 3.4:1 | 3:1 non-text                              |
+| `border-line`                                         | ≈ 1.5:1                 | ≈ 1.4:1                 | decorative only; never the sole state cue |
 
 Rule: any control whose boundary conveys "this is clickable" uses `border-line-strong`. `border-line` only on tiles whose content is itself a link with visible text.
 
@@ -144,18 +268,19 @@ const variants = {
   "outline-accent": "border border-fg bg-card text-fg hover:bg-inverse hover:text-on-inverse",
   link: "h-auto px-0 font-sans text-[15px] normal-case tracking-normal font-medium text-fg underline decoration-line-strong decoration-1 underline-offset-4 hover:decoration-fg rounded-[var(--radius-xs)]",
   ghost: "text-muted hover:text-fg hover:bg-surface-2",
-  "ghost-icon": "size-10 rounded-[var(--radius-sm)] border border-transparent text-muted hover:text-fg hover:border-line-strong hover:bg-surface-2 [&_svg]:size-[18px]",
+  "ghost-icon":
+    "size-10 rounded-[var(--radius-sm)] border border-transparent text-muted hover:text-fg hover:border-line-strong hover:bg-surface-2 [&_svg]:size-[18px]",
   danger: "bg-danger text-surface hover:opacity-90 shadow-[inset_0_-2px_0_0_rgb(0_0_0/0.2)]",
 };
 ```
 
-| State | Treatment |
-|---|---|
-| hover | filled: `bg-accent-hover`; outline: border to `fg`, bg `surface-2`. No lift. |
-| focus-visible | 2 px `outline-accent`, 2 px offset (unchanged). |
-| active | filled: inset edge removed + 1 px down = key press. |
-| disabled | `opacity-40`, `cursor-not-allowed`. |
-| loading | **Behavior change (a11y fix):** keep children in the DOM so the accessible name survives; overlay the spinner. Render `<span className={loading ? "invisible" : "contents"}>{children}</span>` plus, when loading, `<Loader2Icon className="absolute size-4 animate-spin" aria-hidden />`. Width no longer jumps. `aria-busy` kept. |
+| State         | Treatment                                                                                                                                                                                                                                                                                                                           |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| hover         | filled: `bg-accent-hover`; outline: border to `fg`, bg `surface-2`. No lift.                                                                                                                                                                                                                                                        |
+| focus-visible | 2 px `outline-accent`, 2 px offset (unchanged).                                                                                                                                                                                                                                                                                     |
+| active        | filled: inset edge removed + 1 px down = key press.                                                                                                                                                                                                                                                                                 |
+| disabled      | `opacity-40`, `cursor-not-allowed`.                                                                                                                                                                                                                                                                                                 |
+| loading       | **Behavior change (a11y fix):** keep children in the DOM so the accessible name survives; overlay the spinner. Render `<span className={loading ? "invisible" : "contents"}>{children}</span>` plus, when loading, `<Loader2Icon className="absolute size-4 animate-spin" aria-hidden />`. Width no longer jumps. `aria-busy` kept. |
 
 Removed: `active:scale-[0.97]`, `hover:-translate-y-px`, `shadow-[var(--shadow-soft|lift)]`.
 
@@ -175,11 +300,11 @@ const sizes = {
   "2xl": "size-30 text-3xl rounded-[var(--radius-md)]",
 };
 // Root
-"relative inline-flex shrink-0 overflow-hidden bg-surface-2 ring-1 ring-inset ring-line-strong"
+("relative inline-flex shrink-0 overflow-hidden bg-surface-2 ring-1 ring-inset ring-line-strong");
 // Image
-"size-full object-cover grayscale contrast-[1.05]"
+("size-full object-cover grayscale contrast-[1.05]");
 // Fallback (replace hueFor(name) + text-white)
-"flex size-full items-center justify-center bg-surface-2 font-mono font-medium tracking-tight text-fg after:absolute after:right-0 after:bottom-0 after:size-[3px] after:bg-fg"
+("flex size-full items-center justify-center bg-surface-2 font-mono font-medium tracking-tight text-fg after:absolute after:right-0 after:bottom-0 after:size-[3px] after:bg-fg");
 ```
 
 - `hueFor` stays exported (other files may import it; grep shows it only in `avatar.tsx` today) but is no longer applied. Safe to delete in cleanup.
@@ -233,13 +358,25 @@ Add roving arrow-key handling identical to `Lens.move` (currently missing on Tab
 
 ```tsx
 <div className="tile overflow-hidden">
-  <div className="tile-head"><Bone className="h-2.5 w-8" /><Bone className="h-2.5 w-20" /><Bone className="ml-auto h-2.5 w-12" /></div>
+  <div className="tile-head">
+    <Bone className="h-2.5 w-8" />
+    <Bone className="h-2.5 w-20" />
+    <Bone className="ml-auto h-2.5 w-12" />
+  </div>
   <div className="grid gap-4 p-4 sm:grid-cols-[1fr_9rem]">
-    <div className="space-y-2"><Bone className="h-5 w-11/12" /><Bone className="h-5 w-2/3" /><Bone className="h-3.5 w-full" /></div>
+    <div className="space-y-2">
+      <Bone className="h-5 w-11/12" />
+      <Bone className="h-5 w-2/3" />
+      <Bone className="h-3.5 w-full" />
+    </div>
     <Bone className="hidden aspect-[4/3] w-full sm:block" />
   </div>
-  <div className="flex gap-2 border-t border-line p-2"><Bone className="h-7 w-20" /><Bone className="h-7 w-16" /><Bone className="ml-auto h-7 w-24" /></div>
-</div>
+  <div className="flex gap-2 border-t border-line p-2">
+    <Bone className="h-7 w-20" />
+    <Bone className="h-7 w-16" />
+    <Bone className="ml-auto h-7 w-24" />
+  </div>
+</div>;
 ```
 Remove the round `Bone size-5 rounded-full` (`states.tsx:35`).
 
@@ -247,12 +384,16 @@ Remove the round `Bone size-5 rounded-full` (`states.tsx:35`).
 
 ```tsx
 <div className="mx-auto my-10 max-w-md rounded-[var(--radius-md)] border border-dashed border-line-strong bg-card px-6 py-12 text-center">
-  <span className="mx-auto grid size-12 place-items-center rounded-[var(--radius-sm)] border border-line-strong hatch"><Icon className="size-5 text-fg" aria-hidden /></span>
-  <p className="kicker mt-5" aria-hidden>{code ?? "status · empty"}</p>
+  <span className="mx-auto grid size-12 place-items-center rounded-[var(--radius-sm)] border border-line-strong hatch">
+    <Icon className="size-5 text-fg" aria-hidden />
+  </span>
+  <p className="kicker mt-5" aria-hidden>
+    {code ?? "status · empty"}
+  </p>
   <h2 className="mt-2 font-display text-xl font-bold tracking-[-0.02em]">{title}</h2>
   {body ? <p className="mt-2 text-sm leading-6 text-muted">{body}</p> : null}
   {action ? <div className="mt-6 flex justify-center gap-2">{action}</div> : null}
-</div>
+</div>;
 ```
 New optional prop `code?: string`. Call-site values: Feed error → `"err · fetch failed"`, article 5xx → `"err · offline"`, 404 → `"404 · not found"`, 403 → `"403 · no access"`, Following empty → `"0 · circle empty"`, default → `"0 · nothing here"`. aria-hidden, so headings/text tests (`"No stories found."`, etc.) unchanged.
 
@@ -260,7 +401,7 @@ New optional prop `code?: string`. Call-site values: Feed error → `"err · fet
 
 ### 2.5 Form — `src/shared/ui/form.tsx`
 
-**Anatomy: inset-labelled field.** The label sits *inside* the box as a mono caption on top; input below. Not a floating-label animation (that hides the label behind placeholder state and fails when autofilled) — a fixed inset label, which reads as instrument and keeps label visible always.
+**Anatomy: inset-labelled field.** The label sits _inside_ the box as a mono caption on top; input below. Not a floating-label animation (that hides the label behind placeholder state and fails when autofilled) — a fixed inset label, which reads as instrument and keeps label visible always.
 
 ```
 ┌ EMAIL OR USERNAME ───────────────┐
@@ -271,13 +412,14 @@ New optional prop `code?: string`. Call-site values: Feed error → `"err · fet
 
 ```ts
 // box wraps label + control
-const box = "group/field relative rounded-[var(--radius-sm)] border border-line-strong bg-card px-3 pt-2 pb-1.5 transition-colors focus-within:border-fg focus-within:shadow-[2px_2px_0_0_var(--fg)] has-[[aria-invalid=true]]:border-danger";
+const box =
+  "group/field relative rounded-[var(--radius-sm)] border border-line-strong bg-card px-3 pt-2 pb-1.5 transition-colors focus-within:border-fg focus-within:shadow-[2px_2px_0_0_var(--fg)] has-[[aria-invalid=true]]:border-danger";
 const labelCls = "block font-mono text-[10.5px] leading-4 uppercase tracking-[0.1em] text-muted group-focus-within/field:text-fg";
 export const inputCls = "h-7 w-full bg-transparent text-[15px] text-fg outline-none placeholder:text-muted";
 ```
 
 - `Field` renders `<div className={box}><label htmlFor={id} className={labelCls}>{label}</label>{children(a)}</div>` then message. Message: error `"mt-1.5 flex items-center gap-1.5 font-mono text-[12px] text-danger"` prefixed with `<span aria-hidden>!</span>`; hint `"mt-1.5 font-mono text-[11px] text-muted"`.
-- **`inputCls` contract change:** it is now the bare control inside a `Field` box. Call sites that use `inputCls` *outside* `Field` must use new `export const inputBoxCls = "h-11 w-full rounded-[var(--radius-sm)] border border-line-strong bg-card px-3 text-[15px] outline-none focus:border-fg focus:shadow-[2px_2px_0_0_var(--fg)] aria-[invalid=true]:border-danger"`. Grep `inputCls` and switch any non-Field usage. Textareas inside Field: `cn(inputCls, "h-auto min-h-20 py-1 resize-y")`.
+- **`inputCls` contract change:** it is now the bare control inside a `Field` box. Call sites that use `inputCls` _outside_ `Field` must use new `export const inputBoxCls = "h-11 w-full rounded-[var(--radius-sm)] border border-line-strong bg-card px-3 text-[15px] outline-none focus:border-fg focus:shadow-[2px_2px_0_0_var(--fg)] aria-[invalid=true]:border-danger"`. Grep `inputCls` and switch any non-Field usage. Textareas inside Field: `cn(inputCls, "h-auto min-h-20 py-1 resize-y")`.
 - `PasswordInput`: toggle becomes a mono text key `SHOW`/`HIDE` (`"absolute top-1/2 right-0 -translate-y-1/2 h-7 rounded-[var(--radius-xs)] px-2 font-mono text-[10.5px] uppercase tracking-[0.1em] text-muted hover:bg-surface-2 hover:text-fg"`). aria-labels `"Show password"` / `"Hide password"` unchanged. Input `pr-16`.
 - `ServerError`: `"flex items-start gap-2 rounded-[var(--radius-sm)] border border-danger bg-card p-3 font-mono text-[12px] text-danger"` with leading `<span aria-hidden>ERR</span>`; `role="alert"` kept.
 - a11y: label remains a real `<label for>`, so `getByLabelText("Email or username" | "Password" | "Email" | "Username" | "New password" | …)` all hold. Invalid state not by color alone: error text + `!` glyph.
@@ -299,12 +441,19 @@ export const inputCls = "h-7 w-full bg-transparent text-[15px] text-fg outline-n
 Status-bar style. Change `<Toaster position="bottom-center" />` to (position `top-center` decided in 7.4: nothing fixed lives at the top, so it can't collide with CookieBanner or ReadingDock):
 
 ```tsx
-<Toaster position="top-center" toastOptions={{ unstyled: true, classNames: {
-  toast: "flex w-[min(92vw,380px)] items-center gap-3 rounded-[var(--radius-sm)] border border-line-strong bg-inverse px-3 py-2.5 font-mono text-[12px] text-on-inverse shadow-[3px_3px_0_0_var(--line-strong)]",
-  error: "border-danger",
-  title: "leading-5",
-  icon: "hidden",
-}}} />
+<Toaster
+  position="top-center"
+  toastOptions={{
+    unstyled: true,
+    classNames: {
+      toast:
+        "flex w-[min(92vw,380px)] items-center gap-3 rounded-[var(--radius-sm)] border border-line-strong bg-inverse px-3 py-2.5 font-mono text-[12px] text-on-inverse shadow-[3px_3px_0_0_var(--line-strong)]",
+      error: "border-danger",
+      title: "leading-5",
+      icon: "hidden",
+    },
+  }}
+/>;
 ```
 And prefix in `toast.ts`: no API change; the status glyph comes from CSS `before:` — add `toast: "... before:content-['OK'] before:rounded-[2px] before:bg-on-inverse/15 before:px-1 before:text-[10px]"` and `error: "... before:content-['ERR']"`. Sonner still announces through its live region.
 
@@ -404,6 +553,7 @@ Replace `divide-y` ruled column + `border-l` with **stacked tiles**.
         <span className="min-w-0"><span className="line-clamp-2 font-display text-[14px] leading-5 font-bold">{title}</span>
           <span className="mt-0.5 block truncate font-mono text-[11px] text-muted">@{author} · {shortDate}</span></span></a></li>
 ```
+
 - "24h" strip label: **unverified** that trending is a 24 h window — drop it unless `trendingQuery` confirms; otherwise show `top {n}`.
 - Topics tile: `tile-head` "Topics" + `<div className="p-3"><TopicChips … wrap counts={…} /></div>`.
 - Writers tile: rows `flex items-center gap-3 px-3 py-2.5` with `Avatar size="md"` (square), name `text-sm font-semibold truncate`, `@handle · N readers` mono 11 px, `FollowButton size="sm"`.
@@ -421,6 +571,7 @@ Replace `divide-y` ruled column + `border-l` with **stacked tiles**.
 All three become **keys** (`.key`) so they compose into the ActionDeck (4.2); they keep working standalone.
 
 **BookmarkButton**
+
 - New optional prop `compact?: boolean` (icon-only, used in PostCard footer). Default renders icon + label.
 - Full: `<button className={cn("key", className)} aria-pressed={on} aria-label={on ? "Remove from saved" : "Save for later"}>` icon + `<span aria-hidden>{on ? "Saved" : "Save"}</span>`.
 - Compact: `className="key size-9 justify-center px-0"`.
@@ -428,6 +579,7 @@ All three become **keys** (`.key`) so they compose into the ActionDeck (4.2); th
 - aria-labels unchanged (`actions.test.tsx` uses "Save for later").
 
 **ClapButton (Spark)**
+
 - `className="key relative"`; content: `ZapIcon size-4`, `<span aria-hidden className="hidden sm:inline">Spark</span>`, count in a well `<span className="tag-count min-w-6 text-center">`.
 - Own story: `disabled` (opacity via `.key:disabled`), title kept.
 - Maxed: `aria-disabled`, show `MAX` in the well instead of count? No — count must stay visible; append `<span className="idx text-[10px]" aria-hidden>MAX</span>`.
@@ -435,6 +587,7 @@ All three become **keys** (`.key`) so they compose into the ActionDeck (4.2); th
 - aria-label unchanged (`"Spark. N sparks total…"`, tests match `/^Spark/`).
 
 **FollowButton (Track)**
+
 - Default (`outline`): `[+ TRACK]`; on: `[✓ TRACKING]` with `variant="outline"` + `bg-surface-2`. Add leading `PlusIcon size-3.5` when off.
 - Hover-on-tracking reveals intent: label swaps to "Untrack" via `group-hover:` (two spans, one `hidden group-hover:inline`), aria-label already "Stop tracking X". Both spans `aria-hidden`; name stays from aria-label.
 - `link` variant: keep, but styled per Button `link`.
@@ -483,6 +636,7 @@ const item = "flex cursor-pointer items-center gap-3 rounded-[var(--radius-xs)] 
   <DropdownMenu.Separator className="h-px bg-line" />
   <div className="p-1"><DropdownMenu.Item className={cn(item, "text-danger data-[highlighted]:bg-danger data-[highlighted]:text-surface")}><FlagIcon/> Report story…</DropdownMenu.Item></div>
 ```
+
 - Highlight = inverted row (keyboard-console feel), not gray tint.
 - Trigger: `Button variant="ghost-icon"` keeps name `More options for {title}`; in PostCard footer it sits inside the segmented pair (3.1); size `size-9`.
 - Long names: "Hide stories by {author}" → `truncate` on a `<span className="min-w-0 truncate">`.
@@ -514,21 +668,25 @@ Not a drawer today (inline section) — keep inline; restyle as a **discussion l
   </div>
 </section>
 ```
+
 - "· live" only when `useLiveComments` is connected; **unverified** whether that hook exposes status → if not, omit "· live".
 - Heading text "Discussion" kept (`ArticlePage.test.tsx:26`).
 
 **Composer:**
+
 - Signed out: `<button className="flex w-full items-center justify-between rounded-[var(--radius-sm)] border border-dashed border-line-strong px-3 h-11 font-mono text-[12px] text-muted hover:border-fg hover:text-fg">` "Add a note to the discussion…" + `<span className="kbd" aria-hidden>↵</span>`. Remove `mx-6 w-[calc(100%-3rem)]` hack.
 - Signed in: inset box `"rounded-[var(--radius-sm)] border border-line-strong bg-card focus-within:border-fg focus-within:shadow-[2px_2px_0_0_var(--fg)]"`. When open: header row `tile-head rounded-t-[calc(var(--radius-sm)-1px)]` with `Avatar size="xs"` + `@{me.username}` + right `idx` `{text.length}/5000`. Textarea `px-3 py-2`. Footer `flex justify-end gap-2 border-t border-line p-2` with Cancel (ghost) and "Post note" (primary) + `<kbd className="kbd" aria-hidden>⌘↵</kbd>` inside the button.
 - **New behavior:** Cmd/Ctrl+Enter submits (textarea `onKeyDown`). Small; if skipped, remove the kbd.
 - Name "Post note", textarea labels unchanged.
 
 **Item:**
+
 ```
  0001 ┌ [AD] @ada · 3h · edited ─────────────────┐
       │ text                                    │
       │ [▲ 4] [↳ REPLY] [◻ 1 reply] … [✎][🗑]   │
 ```
+
 - `li` (depth 0): `"grid grid-cols-[3rem_1fr] border-b border-line last:border-b-0"`; left gutter `<span aria-hidden className="idx pt-4 pl-3 text-[11px]">{pad4(n)}</span>` (n = position in tree). Body `"py-4 pr-4"`.
 - Header: `Avatar size="sm"` (square) + `font-mono text-[12px]`: `<span className="text-fg font-medium">@{author}</span> · <time>{timeAgo}</time>` + `(edited)` as `tag-count`. Removes name-over-date stacked Medium byline.
 - Text: `mt-2 text-[15px] leading-6` (unchanged).
@@ -606,6 +764,7 @@ Not a drawer today (inline section) — keep inline; restyle as a **discussion l
 - Container: `"divide-y divide-line"` → `"divide-y divide-line rounded-[var(--radius-sm)] border border-line"`; `row` → `"flex items-center justify-between gap-4 px-3 h-12"`; `label` → `"font-mono text-[11px] uppercase tracking-[0.1em] text-muted"`.
 - `select`: `"h-9 w-44 rounded-[var(--radius-sm)] border border-line-strong bg-card px-2 font-mono text-[12px] text-fg"`. Labels `Theme`/`Font` stay `<label htmlFor>` (test uses `getByLabelText("Theme"|"Font")`).
 - Size / Margin: replace two loose keys with a stepper `seg`: `[ − ] 3/7 [ + ]`:
+
   ```tsx
   <div className="seg items-center">
     <button className="seg-item w-9 px-0" aria-label="Smaller text" …>A−</button>
@@ -613,8 +772,10 @@ Not a drawer today (inline section) — keep inline; restyle as a **discussion l
     <button className="seg-item w-9 px-0" aria-label="Larger text" …>A+</button>
   </div>
   ```
+
   Margin buttons keep names "Wider margin" / "Narrower margin". Disabled: `disabled:opacity-40`.
 - **Switch:** square track, mono state text.
+
   ```tsx
   <button role="switch" aria-checked={on} aria-label={name} onClick=…
     className={cn("relative inline-flex h-7 w-14 items-center rounded-[var(--radius-xs)] border border-line-strong font-mono text-[10px] uppercase transition-colors",
@@ -623,6 +784,7 @@ Not a drawer today (inline section) — keep inline; restyle as a **discussion l
     <span aria-hidden className={cn("w-full", on ? "pl-1.5 text-left" : "pr-1.5 text-right")}>{on ? "On" : "Off"}</span>
   </button>
   ```
+
   Names unchanged ("Bold text", "Bionic reading", "Focus mode", "Full screen"). State conveyed by position + text, not color alone.
 - **Swatches:** `grid-cols-6 gap-1.5`, each `rounded-[var(--radius-xs)]`, selected = `outline-2 outline-fg outline-offset-2` + a 2 px inner corner tick; remove `hover:scale-110`. Note: swatch fills come from palette data (`x.light`, `x.secondary`) — some non-gray palettes (nord, gruvbox, mocha) introduce color. Owner said grayscale only: **decision needed** (see Risks). Spec default: keep, since these are user-chosen reading themes, not chrome.
 - **ReadingDock trigger:** `size-12 rounded-[var(--radius-md)] bg-inverse` → keep size, radius `--radius-sm`, add hard shadow `shadow-[3px_3px_0_0_var(--line-strong)]`, remove gear rotate on hover (keep on open). Name "Reading settings" unchanged.
@@ -646,7 +808,7 @@ Not a drawer today (inline section) — keep inline; restyle as a **discussion l
 - **SearchBox → command field:**
   - Box: `"hidden h-9 w-72 items-center gap-2 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-2.5 font-mono text-[12px] text-muted focus-within:border-fg focus-within:bg-card focus-within:shadow-[2px_2px_0_0_var(--fg)] md:flex lg:w-96"` — no width animation.
   - Leading `SearchIcon size-4`; trailing `<kbd className="kbd" aria-hidden>⌘K</kbd>` (show `Ctrl K` on non-Mac via `navigator.platform` check) and existing `/`.
-  - **New shortcut:** Cmd/Ctrl+K focuses the input (extend existing keydown handler; `preventDefault` only when meta/ctrl+k). Escape blurs + clears. This is a command *field*, not a full palette — a modal palette with results requires a search-suggest endpoint (not verified to exist) → **out of scope**; field submits to `/search` as today.
+  - **New shortcut:** Cmd/Ctrl+K focuses the input (extend existing keydown handler; `preventDefault` only when meta/ctrl+k). Escape blurs + clears. This is a command _field_, not a full palette — a modal palette with results requires a search-suggest endpoint (not verified to exist) → **out of scope**; field submits to `/search` as today.
   - Placeholder copy: keep `t("nav.search")`; label unchanged.
 - Bell: `Button ghost-icon` with border on hover (per 2.1); badge: `"absolute -top-0.5 -right-0.5 grid h-4 min-w-4 place-items-center rounded-[var(--radius-xs)] bg-inverse px-1 font-mono text-[10px] leading-none text-on-inverse ring-2 ring-card"` (square, not round).
 - UserMenu trigger: `"flex h-9 items-center gap-1.5 rounded-[var(--radius-sm)] border border-line-strong pl-0.5 pr-1.5 hover:border-fg data-[state=open]:border-fg"` containing `Avatar size="md"` (square, sized `size-7` via className) + `ChevronDownIcon size-3.5 text-muted`. Name "Account menu" (t key) unchanged.
@@ -686,6 +848,7 @@ Status-bar / system-prompt style docked bottom-left (doesn't overlap ReadingDock
   </div>
 </section>
 ```
+
 - Region name "Cookies", buttons "Necessary only" / "Accept all" unchanged. Equal-weight buttons (same size) — better consent UX than a primary-dominant pair; Accept still visually primary.
 - Toast position conflict: Sonner moved bottom-left (2.7). Mitigation: Sonner `offset={{ bottom: 24, left: 24 }}` and when banner visible add `mobileOffset`… simpler: put Toaster at `bottom-center` on mobile only, keep bottom-left md+. Pick: `position="bottom-center"` + desktop CSS override is fiddly → **Decision:** Toaster `position="top-center"`. Status bars at the top don't collide with any fixed bottom element. Use that instead of bottom-left in 2.7.
 
@@ -761,18 +924,19 @@ Status-bar / system-prompt style docked bottom-left (doesn't overlap ReadingDock
 **Unchanged (verified against tests):** Sign in, Sign up, Verify, Email or username, Password, Username, Email, Close, Reading settings, Bionic reading, Focus mode, Bold text, Full screen, Larger text, Smaller text, Wider margin, Narrower margin, Theme, Font, Language, Post actions, Spark…, Discussion…, Copy link, Save for later, Remove from saved, Post note, Write a note, Write a reply, Edit response, Delete response, Report response, 1 reply / N replies, More options, More options for {title}, Track/Stop tracking {u}, Ship it, Ship now, Schedule, Save draft, Title, Subtitle, Story body (Markdown), Remove {tag}, Add a topic, Revision history, Necessary only, Accept all, Cookie settings, Cookies (region), IWillBeGoogler home, Privacy Policy, Terms of Use, Show/Hide password, Go to slide N, Previous, Next, Newest (radio), Account menu, Notifications, Submit report, heading "Discussion", text "Welcome back.", text "1.2K".
 
 **Renamed / new (explicit):**
-| Where | Old | New |
-|---|---|---|
-| TopicChips link | `#devops` | `devops` (if `#` aria-hidden; optional) |
-| TopicChips with counts | `#devops` | `devops 12 stories` |
-| AuthDialog | — | new radiogroup "Account" with radios "Sign in" / "Create one" (`t("auth.createOne")`) |
-| AuthDialog | "Don't have an account? Create one" button | removed |
-| ArticlePage | — | new nav "Breadcrumb" with links "Stream", "#{tag}" |
-| BookmarkButton (non-compact) | icon only | visible "Save"/"Saved" text is aria-hidden; name unchanged |
-| Feed end text | "You're all caught up" | "EOF · N loaded" |
-| Responses empty | "No notes yet. Start the discussion." | "0 notes. Start the discussion." |
-| Sidebar empty | "Nothing rising yet." | "No signal yet." |
-| Byline | "by @ada" | "@ada" |
+
+| Where                        | Old                                        | New                                                                                   |
+| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------- |
+| TopicChips link              | `#devops`                                  | `devops` (if `#` aria-hidden; optional)                                               |
+| TopicChips with counts       | `#devops`                                  | `devops 12 stories`                                                                   |
+| AuthDialog                   | —                                          | new radiogroup "Account" with radios "Sign in" / "Create one" (`t("auth.createOne")`) |
+| AuthDialog                   | "Don't have an account? Create one" button | removed                                                                               |
+| ArticlePage                  | —                                          | new nav "Breadcrumb" with links "Stream", "#{tag}"                                    |
+| BookmarkButton (non-compact) | icon only                                  | visible "Save"/"Saved" text is aria-hidden; name unchanged                            |
+| Feed end text                | "You're all caught up"                     | "EOF · N loaded"                                                                      |
+| Responses empty              | "No notes yet. Start the discussion."      | "0 notes. Start the discussion."                                                      |
+| Sidebar empty                | "Nothing rising yet."                      | "No signal yet."                                                                      |
+| Byline                       | "by @ada"                                  | "@ada"                                                                                |
 
 **Stale e2e (pre-existing, not caused by this spec):** `e2e/reader.spec.ts:40` expects `tab "Latest"` (home now uses Lens radios "Newest"); `:67`/`:70` expect "Publish" / "Publish now" (editor uses "Ship it"/"Ship now"). Flag to QA; unit tests reflect current names.
 

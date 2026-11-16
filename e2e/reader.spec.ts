@@ -1,4 +1,4 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, type Page, request, test } from "@playwright/test";
 
 const ADMIN = { login: process.env.E2E_LOGIN ?? "admin", password: process.env.E2E_PASSWORD ?? "admin12345" };
 
@@ -10,6 +10,20 @@ async function signIn(page: Page) {
   await page.getByRole("dialog").getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("dialog")).toBeHidden();
 }
+
+// The language switch syncs web.lang to the signed-in account; put the admin back to English before and after, so a
+// previous (or aborted) run cannot leave later signed-in tests in uz/ru.
+async function resetLang() {
+  const ctx = await request.newContext({ baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000" });
+  const res = await ctx.post("/api/auth/login", { data: { login: ADMIN.login, password: ADMIN.password } });
+  if (res.ok()) {
+    const token = (await res.json()).data.token;
+    await ctx.patch("/api/diagrams/me/prefs", { data: { "web.lang": "en" }, headers: { Authorization: `Bearer ${token}` } });
+  }
+  await ctx.dispose();
+}
+test.beforeAll(resetLang);
+test.afterAll(resetLang);
 
 // The cookie banner is answered up front; its own test below starts without consent.
 test.beforeEach(async ({ page }, info) => {

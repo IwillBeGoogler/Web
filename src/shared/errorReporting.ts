@@ -41,7 +41,7 @@ export function scrub(s: string): string {
     .replace(/[A-Za-z0-9+/_=-]{32,}/g, (m) => (/\d/.test(m) ? "[redacted]" : m));
 }
 
-function describe(e: unknown): { name: string; message: string; stack: string } {
+function describeError(e: unknown): { name: string; message: string; stack: string } {
   if (e instanceof Error) return { name: e.name, message: e.message, stack: e.stack ?? "" };
   if (typeof e === "string") return { name: "", message: e, stack: "" };
   if (e && typeof e === "object") {
@@ -75,7 +75,7 @@ function dedupeKey(message: string, stack: string): string {
 export function reportError(error: unknown, deps: ReportDeps = {}): void {
   try {
     if (!deps.send && !import.meta.env.PROD) return;
-    const d = describe(error);
+    const d = describeError(error);
     if (isNoise(error, d)) return;
     const key = dedupeKey(d.message, d.stack);
     if (seen.has(key) || sent >= MAX_SENDS) return;

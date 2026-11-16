@@ -138,6 +138,7 @@ function NotFound() {
   return (
     <EmptyState
       icon={FileQuestionIcon}
+      heading="h1"
       title={t("page.notFound")}
       body={t("page.notFoundBody")}
       action={

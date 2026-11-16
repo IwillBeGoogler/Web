@@ -6,14 +6,14 @@ palette. The blog's own pages are untouched; the only changes to them are the **
 
 ## Routes (`src/app/router.tsx`)
 
-| Route | Page | Auth |
-| --- | --- | --- |
-| `/d` | my projects dashboard (`contexts/diagrams/ui/Dashboard.tsx`) | signed in |
-| `/d/p/$projectId` | project tree: folders and files (`ProjectTree.tsx`) | signed in |
-| `/d/f/$fileId` | the editor (`EditorHost.tsx`, lazy) | signed in (prompt otherwise) |
-| `/d/s/$token` | a share link in the editor | none |
-| `/d/v/$slug` | a published diagram, read-only viewer (`PublicViewer.tsx`; editor prop `slug`) | none |
-| `/templates` | template gallery, "Use template" forks and opens `/d/f/{fileId}` (`Templates.tsx`) | none to browse, sign-in to use |
+| Route             | Page                                                                               | Auth                           |
+| ----------------- | ---------------------------------------------------------------------------------- | ------------------------------ |
+| `/d`              | my projects dashboard (`contexts/diagrams/ui/Dashboard.tsx`)                       | signed in                      |
+| `/d/p/$projectId` | project tree: folders and files (`ProjectTree.tsx`)                                | signed in                      |
+| `/d/f/$fileId`    | the editor (`EditorHost.tsx`, lazy)                                                | signed in (prompt otherwise)   |
+| `/d/s/$token`     | a share link in the editor                                                         | none                           |
+| `/d/v/$slug`      | a published diagram, read-only viewer (`PublicViewer.tsx`; editor prop `slug`)     | none                           |
+| `/templates`      | template gallery, "Use template" forks and opens `/d/f/{fileId}` (`Templates.tsx`) | none to browse, sign-in to use |
 
 `/d` has an **Import .sdd** button: a hidden file input (`.sdd,.sddproj,.sddt`) uploads multipart `file` to `POST /api/diagrams/import` (`diagramRepository.importSdd`, 120 s timeout; the shared HTTP client sends `FormData` as is). 201 `kind: file|text` opens `/d/f/{file.id}`, `kind: project` opens `/d/p/{project.id}`; warnings show as a toast; 422 `SDD_INVALID` toasts its `details.reason`.
 

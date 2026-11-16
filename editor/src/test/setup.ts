@@ -1,4 +1,8 @@
 import '@testing-library/jest-dom/vitest';
+import { configure } from '@testing-library/react';
+
+// lazy chunks resolve slowly when ~500 test files run in parallel; the default 1 s findBy/waitFor timeout made Landing.test flaky
+configure({ asyncUtilTimeout: 5000 });
 
 // jsdom lacks these; React Flow needs them.
 class RO {

@@ -925,7 +925,7 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 .collab-avatars .avatar-btn:first-child { margin-left: 0; }
 .collab-avatars .avatar-btn:hover { transform: translateY(-1px); z-index: 2; }
 .avatar.status-idle { opacity: 0.6; }
-.avatar.status-away { opacity: 0.38; filter: grayscale(0.6); }
+.avatar.status-away { opacity: 0.38; }
 .avatar.speaking { box-shadow: 0 0 0 2px var(--elevated), 0 0 0 4px #30a46c; }
 .avatar.following { box-shadow: 0 0 0 2px var(--elevated), 0 0 0 4px var(--accent); }
 .collab-pop { position: absolute; top: calc(100% + 10px); right: 0; z-index: 40; min-width: 270px; max-width: calc(100vw - 24px); background: var(--elevated); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-lg); padding: var(--s-2); }
@@ -984,7 +984,7 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 .comment-pin:hover { background: transparent !important; }
 .comment-pin-shape { position: absolute; inset: 0; border-radius: 50% 50% 50% 0; rotate: -45deg; background: var(--pin, var(--accent)); border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); transform-origin: 50% 50%; }
 .comment-pin-count { position: absolute; inset: 0 0 6px 0; display: grid; place-items: center; color: #fff; font-size: 10px; font-weight: 700; pointer-events: none; }
-.comment-pin.resolved { opacity: 0.45; filter: grayscale(0.7); }
+.comment-pin.resolved { opacity: 0.45; }
 .comment-pin.active .comment-pin-shape { box-shadow: 0 0 0 3px var(--accent), 0 2px 6px rgba(0,0,0,.35); }
 .comment-pin.active { z-index: 3; }
 .comment-draft { position: absolute; left: 0; top: 0; transform-origin: 0 0; pointer-events: auto; }
