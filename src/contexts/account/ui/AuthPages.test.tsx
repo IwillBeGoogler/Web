@@ -1,9 +1,9 @@
 import { screen } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
+import { authDialog } from "@/contexts/identity/application/authDialog";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
-import { authDialog } from "@/contexts/identity/application/authDialog";
 import { ForgotPasswordPage, ResetPasswordPage, UnsubscribePage, VerifyEmailPage } from "./AuthPages";
 
 describe("auth link pages", () => {

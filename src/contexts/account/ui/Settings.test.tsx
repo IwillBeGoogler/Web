@@ -131,13 +131,14 @@ describe("Settings profile", () => {
         json({ id: 3, username: "admin", email: "a@x.dev", display_name: "Late", bio: "late bio", avatar_url: "http://x/late.png", created_at: "x" }),
       ),
     );
-    await renderRouted(<Settings tab="profile" onTab={() => {}} />);
+    const first = await renderRouted(<Settings tab="profile" onTab={() => {}} />);
     expect(await screen.findByDisplayValue("Late")).toBeInTheDocument();
     expect(screen.getByDisplayValue("late bio")).toBeInTheDocument();
+    first.unmount();
 
     server.use(http.get(api("/me"), () => json({ id: 3, username: "admin", email: "a@x.dev", created_at: "x" })));
     await renderRouted(<Settings tab="profile" onTab={() => {}} />);
-    await waitFor(() => expect(screen.getAllByLabelText("Display name")[1]).toHaveValue(""));
+    expect(await screen.findByLabelText("Name")).toHaveValue("");
     tokens.set(null);
   });
 

@@ -153,6 +153,39 @@ describe("ProjectTree project actions", () => {
     await hasToast();
   });
 
+  it("shows pending state while creating a file", async () => {
+    tree();
+    let resolve!: (res: Response) => void;
+    server.use(
+      http.post(
+        api("/diagrams/projects/p1/files"),
+        () =>
+          new Promise<Response>((r) => {
+            resolve = r;
+          }),
+      ),
+    );
+    const { user, router } = await render();
+    await user.click(await screen.findByRole("button", { name: "DB diagram" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "OOD diagram" })).toBeDisabled());
+    resolve(HttpResponse.json({ file: file({ id: "nf2" }) }, { status: 201 }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/d/f/nf2"));
+  });
+
+  it("opens share panel and navigates away when leaving project", async () => {
+    tree({ role: "viewer" });
+    server.use(
+      http.get(api("/diagrams/projects/p1/shares"), () => HttpResponse.json({ members: [], links: [] })),
+      http.delete(api(`/diagrams/projects/p1/members/${me.id}`), ok204),
+    );
+    const { user, router } = await render();
+    await user.click(await screen.findByRole("button", { name: "Share" }));
+    await user.click(await screen.findByRole("button", { name: "Leave project" }));
+    const confirmDialog = within(screen.getAllByRole("dialog").at(-1) as HTMLElement);
+    await user.click(confirmDialog.getByRole("button", { name: "Leave project" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/d"));
+  });
+
   it("renames the project; errors toast", async () => {
     tree();
     let body: unknown;
@@ -222,6 +255,21 @@ describe("ProjectTree project actions", () => {
 });
 
 describe("ProjectTree folders", () => {
+  it("cancel closes new folder, rename folder, and delete folder dialogs", async () => {
+    tree();
+    const { user } = await render();
+    await user.click(await screen.findByRole("button", { name: "New folder" }));
+    await user.click((await dialog()).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    await user.click(screen.getByRole("button", { name: "Rename folder Core" }));
+    await user.click((await dialog()).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+
+    await user.click(screen.getByRole("button", { name: "Delete folder Core" }));
+    await user.click((await dialog()).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  });
   it("creates a nested folder", async () => {
     tree();
     let body: unknown;

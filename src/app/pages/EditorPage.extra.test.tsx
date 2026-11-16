@@ -593,15 +593,19 @@ describe("EditorPage markdown mode", () => {
   it("handles localStorage read failure gracefully", async () => {
     signedIn();
     noPubs();
+    server.use(http.get(api("/categories"), () => HttpResponse.json({ data: [] })));
     const getSpy = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
       throw new Error("denied");
     });
     await renderRouted(<EditorPage />, { path: "/new-story" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
     expect(await screen.findByTestId("rich")).toBeInTheDocument();
     getSpy.mockRestore();
   });
 
-  it("topic tree leaf child, >5 tags guard, and unlisted visibility toggle/publish", async () => {
+  it("topic tree leaf child, 5 tags limit, and unlisted visibility toggle/publish", async () => {
     signedIn();
     noPubs();
     let sentStatus: unknown;
@@ -621,6 +625,9 @@ describe("EditorPage markdown mode", () => {
       }),
     );
     const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
     await user.type(await screen.findByLabelText("Title"), "Unlisted Story");
     await user.type(screen.getByLabelText("Story body (Markdown)"), "Some body text");
     await user.click(screen.getByRole("button", { name: /Ship it/i }));
@@ -629,13 +636,13 @@ describe("EditorPage markdown mode", () => {
     await user.click(await screen.findByRole("button", { name: "Systems" }));
     expect(await screen.findByRole("checkbox", { name: "Storage" })).toBeInTheDocument();
 
-    // TopicsInput > 5 tags guard
+    // TopicsInput 5 tags limit
     const tagInput = screen.getByLabelText("Add a topic");
-    for (const tag of ["t1", "t2", "t3", "t4", "t5", "t6"]) {
+    for (const tag of ["t1", "t2", "t3", "t4", "t5"]) {
       await user.type(tagInput, `${tag}{Enter}`);
     }
     expect(screen.getByRole("button", { name: "Remove t5" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Remove t6" })).toBeNull();
+    expect(screen.getByText("Up to 5 topics")).toBeInTheDocument();
 
     // Toggle visibility Public -> Unlisted -> Public -> Unlisted and publish
     await user.click(screen.getByText("Unlisted"));
@@ -649,9 +656,13 @@ describe("EditorPage markdown mode", () => {
   it("scheduled story shows local-saved chip and blocks navigation when dirty", async () => {
     signedIn();
     noPubs();
+    server.use(http.get(api("/categories"), () => HttpResponse.json({ data: [] })));
     existing({ status: "scheduled", publish_at: "2099-01-01T12:00:00Z" });
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
     expect(await screen.findByDisplayValue("old body")).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Title"), " edited");
@@ -670,6 +681,7 @@ describe("EditorPage markdown mode", () => {
   it("edits a glossary entry among multiple terms and opens glossary in preview mode", async () => {
     signedIn();
     noPubs();
+    server.use(http.get(api("/categories"), () => HttpResponse.json({ data: [] })));
     existing({
       glossary: [
         { term: "Alpha", aliases: [], definition: "First" },
@@ -677,6 +689,9 @@ describe("EditorPage markdown mode", () => {
       ],
     });
     const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
     const editBeta = await screen.findByRole("button", { name: "Edit term: Beta" });
     await user.click(editBeta);
     const defInput = await screen.findByDisplayValue("Second");
@@ -695,6 +710,7 @@ describe("EditorPage markdown mode", () => {
   it("skips settling upload when placeholder was removed and falls back for unnamed failed image", async () => {
     signedIn();
     noPubs();
+    server.use(http.get(api("/categories"), () => HttpResponse.json({ data: [] })));
     let resolveUpload!: (url: string) => void;
     vi.spyOn(engagementRepository, "upload").mockImplementation((f) => {
       if (!f.name) return Promise.reject(new Error("fail"));
@@ -704,6 +720,9 @@ describe("EditorPage markdown mode", () => {
     });
     localStorage.setItem("iwillbegoogler.editor.mode", "md");
     await renderRouted(<EditorPage />, { path: "/new-story" });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
     const ta = (await screen.findByLabelText("Story body (Markdown)")) as HTMLTextAreaElement;
     const good = new File(["a"], "pic.png", { type: "image/png" });
     const unnamed = new File(["a"], "", { type: "image/png" });

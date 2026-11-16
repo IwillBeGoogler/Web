@@ -607,6 +607,15 @@ describe("RichEditor edge cases", () => {
     await waitFor(() => expect(up).toHaveBeenCalledTimes(2));
 
     // 3) Drop non-image file (hits !files.length in handleDrop)
+    const prevCaret = (document as unknown as { caretRangeFromPoint?: unknown }).caretRangeFromPoint;
+    document.elementFromPoint = () => el;
+    (document as unknown as { caretRangeFromPoint: () => Range }).caretRangeFromPoint = () => {
+      const r = document.createRange();
+      const tn = el.querySelector("p")?.firstChild as Node;
+      r.setStart(tn, 0);
+      r.collapse(true);
+      return r;
+    };
     const txt = new File(["x"], "note.txt", { type: "text/plain" });
     fireEvent.drop(el, {
       dataTransfer: { files: [txt], getData: () => "" },
@@ -615,9 +624,7 @@ describe("RichEditor edge cases", () => {
     });
 
     // 4) Drop image when posAtCoords returns null
-    const prevCaret = (document as unknown as { caretRangeFromPoint?: unknown }).caretRangeFromPoint;
     (document as unknown as { caretRangeFromPoint: undefined }).caretRangeFromPoint = undefined;
-    document.elementFromPoint = () => el;
     fireEvent.drop(el, {
       dataTransfer: { files: [new File(["x"], "oob.png", { type: "image/png" })], getData: () => "" },
       clientX: 1,
