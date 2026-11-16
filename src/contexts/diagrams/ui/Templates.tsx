@@ -24,7 +24,7 @@ function TemplateCard({ tpl, index, busy, locked, onUse }: { tpl: DiagramTemplat
       <header className="tile-head">
         <span className="idx text-fg">{String(index + 1).padStart(2, "0")}</span>
         <span className="min-w-0 truncate">{t(kindLabel[tpl.kind])}</span>
-        <span className="ml-auto shrink-0 tabular-nums">{t("dg.pages", { n: tpl.page_count })}</span>
+        <span className="ml-auto shrink-0 tabular-nums">{tpl.page_count === 1 ? t("dg.pages.one") : t("dg.pages", { n: tpl.page_count })}</span>
       </header>
       <Thumb src={tpl.thumbnail_url} />
       <div className="flex-1 p-4">

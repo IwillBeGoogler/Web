@@ -154,6 +154,7 @@ export const uz: Record<keyof typeof en, string> = {
   "dg.kind.erd": "MB diagrammasi",
   "dg.kind.uml": "OOP diagrammasi",
   "dg.kind.board": "Doska",
+  "dg.pages.one": "1 sahifa",
   "dg.pages": "{n} sahifa",
   "dg.templates": "Andozalar",
   "dg.templates.lead": "Tayyor diagrammadan boshlang. Tanlasangiz, u sizning yangi loyihangizga nusxalanadi.",

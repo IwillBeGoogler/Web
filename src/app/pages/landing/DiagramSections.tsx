@@ -200,14 +200,16 @@ export function TemplatesTeaser() {
             </button>
           ))}
         </div>
-        <Stagger className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {shown.length === 0 ? <p className="mt-8 text-sm text-muted">{t("dg.templates.empty")}</p> : null}
+        {/* key={filter}: items mounting into an already-revealed Stagger stay at opacity 0 (whileInView runs once) */}
+        <Stagger key={filter} className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((tpl, i) => (
             <StaggerItem key={tpl.id}>
               <article className="tile tile-hover relative flex h-full flex-col overflow-hidden">
                 <p className="tile-head" aria-hidden>
                   <span className="idx text-fg">{String(i + 1).padStart(2, "0")}</span>
                   <span className="min-w-0 truncate">{t(kindLabel[tpl.kind])}</span>
-                  <span className="ml-auto shrink-0 tabular-nums">{t("dg.pages", { n: tpl.page_count })}</span>
+                  <span className="ml-auto shrink-0 tabular-nums">{tpl.page_count === 1 ? t("dg.pages.one") : t("dg.pages", { n: tpl.page_count })}</span>
                 </p>
                 <Thumb src={tpl.thumbnail_url} />
                 <div className="p-4">

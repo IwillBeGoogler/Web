@@ -154,6 +154,7 @@ export const ru: Record<keyof typeof en, string> = {
   "dg.kind.erd": "Диаграмма БД",
   "dg.kind.uml": "ООП-диаграмма",
   "dg.kind.board": "Доска",
+  "dg.pages.one": "1 стр.",
   "dg.pages": "стр.: {n}",
   "dg.templates": "Шаблоны",
   "dg.templates.lead": "Начните с готовой диаграммы. «Использовать» копирует её в новый проект у вас.",

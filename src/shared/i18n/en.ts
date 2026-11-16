@@ -152,6 +152,7 @@ export const en = {
   "dg.kind.erd": "DB diagram",
   "dg.kind.uml": "OOD diagram",
   "dg.kind.board": "Board",
+  "dg.pages.one": "1 page",
   "dg.pages": "{n} pages",
   "dg.templates": "Templates",
   "dg.templates.lead": "Start from a finished diagram. Using one copies it into a new project of yours.",
