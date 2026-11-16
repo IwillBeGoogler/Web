@@ -16,7 +16,10 @@ const cols: Record<number, string> = {
   4: "lg:grid-cols-4",
   5: "lg:grid-cols-5",
   6: "lg:grid-cols-6",
-  7: "lg:grid-cols-7",
+  7: "lg:grid-cols-5",
+  8: "lg:grid-cols-4",
+  9: "lg:grid-cols-5",
+  10: "lg:grid-cols-5",
 };
 
 /** Compact site numbers and the most viewed stories and diagrams. Renders nothing while loading, on error, or before any views. */
@@ -28,9 +31,11 @@ export function SiteStats() {
   const hours = Math.floor(t.read_seconds / 3600);
   const numbers = (
     [
+      ["Visitors today", t.visitors_today],
+      ["Visitors", t.visitors],
+      ["Min per visit", Math.round(t.avg_visit_seconds / 60)],
       ["Story views", t.post_views],
       ["Diagram views", t.diagram_views],
-      ["Visitors", t.visitors],
       ["Hours read", hours],
       ["Stories", t.posts],
       ["Diagrams", t.diagrams],

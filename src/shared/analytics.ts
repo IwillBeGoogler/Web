@@ -5,7 +5,11 @@ import { publicConfigQuery } from "@/shared/config";
 import { consent, useConsent } from "@/shared/consent";
 import { i18n } from "@/shared/i18n";
 
-export type AnalyticsEvent = { name: "page_view"; path: string } | { name: "signup_open" } | { name: "read_time"; post_id: number; value: number };
+export type AnalyticsEvent =
+  | { name: "page_view"; path: string }
+  | { name: "signup_open" }
+  | { name: "read_time"; post_id: number; value: number }
+  | { name: "active_time"; value: number };
 
 const VISITOR_KEY = "iwillbegoogler.visitor";
 
@@ -126,4 +130,34 @@ export function useReadTime(postId: number | undefined) {
       flush();
     };
   }, [postId]);
+}
+
+/**
+ * Counts the seconds the site is open in a visible tab (any page, across in-app navigation) and reports them as
+ * `active_time` when the tab hides or closes, and every 5 minutes on a long visit. Feeds "minutes on the site".
+ */
+export function startActiveTime(win: Window = window, doc: Document = document): () => void {
+  let since = doc.visibilityState === "visible" ? Date.now() : 0;
+  let total = 0;
+  const flush = () => {
+    if (since) total += Date.now() - since;
+    since = doc.visibilityState === "visible" ? Date.now() : 0;
+    const value = Math.round(total / 1000);
+    if (value < 3) return;
+    total = 0;
+    track({ name: "active_time", value });
+  };
+  const onVisibility = () => {
+    if (doc.visibilityState === "hidden") flush();
+    else since = Date.now();
+  };
+  doc.addEventListener("visibilitychange", onVisibility);
+  win.addEventListener("pagehide", flush);
+  const timer = win.setInterval(flush, 5 * 60_000);
+  return () => {
+    doc.removeEventListener("visibilitychange", onVisibility);
+    win.removeEventListener("pagehide", flush);
+    win.clearInterval(timer);
+    flush();
+  };
 }

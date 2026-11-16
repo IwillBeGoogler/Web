@@ -10,7 +10,7 @@ const MAX_BYTES = 1_500_000;
 
 const isPublic = (q: Query) => {
   const [head, arg] = q.queryKey as [unknown, unknown];
-  if (head === "trending" || head === "tags" || head === "landing") return true;
+  if (head === "trending" || head === "tags" || head === "landing" || head === "site-stats") return true;
   return head === "feed" && (arg as { kind?: string } | undefined)?.kind === "latest" && Object.keys(arg as object).length === 1;
 };
 

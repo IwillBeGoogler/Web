@@ -4,7 +4,7 @@ import { ArrowRightIcon, BookOpenTextIcon, LayersIcon, PaletteIcon, UsersIcon, Z
 import { authDialog } from "@/contexts/identity/application/authDialog";
 import { PALETTES, TYPEFACES } from "@/contexts/preferences/domain/reading";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
-import { feedQuery, tagsQuery, trendingQuery } from "@/contexts/reading/application/queries";
+import { feedQuery, siteStatsQuery, tagsQuery, trendingQuery } from "@/contexts/reading/application/queries";
 import { postPath, readTime } from "@/contexts/reading/domain/post";
 import { useT } from "@/shared/i18n";
 import { shortDate } from "@/shared/lib/format";
@@ -56,6 +56,7 @@ export function LandingPage() {
   const tags = useQuery(tagsQuery());
   const latest = useInfiniteQuery(feedQuery({ kind: "latest" }));
   const stories = latest.data?.pages[0]?.meta.total ?? 0;
+  const site = useQuery(siteStatsQuery()).data?.totals;
   const topics = (tags.data ?? []).map((t) => t.name);
   const marquee = topics.length ? [...topics, ...topics, ...topics].slice(0, Math.max(24, topics.length * 2)) : [];
 
@@ -108,21 +109,25 @@ export function LandingPage() {
               </Magnetic>
             </motion.div>
             <motion.dl
-              className="mt-12 grid grid-cols-2 divide-x divide-line border-y border-line"
+              className="mt-12 grid grid-cols-2 border-y border-line sm:grid-cols-3 md:grid-cols-5 [&>div]:border-line max-sm:[&>div:nth-child(n+3)]:border-t sm:[&>div+div]:border-l"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.7 }}
             >
               {(
                 [
-                  ["Stories", stories],
-                  ["Topics", topics.length],
+                  ["Stories", stories, ""],
+                  ["Topics", topics.length, ""],
+                  ["Visitors today", site?.visitors_today ?? 0, ""],
+                  ["Visitors", site?.visitors ?? 0, ""],
+                  ["Min per visit", Math.round((site?.avg_visit_seconds ?? 0) / 60), "m"],
                 ] as const
-              ).map(([k, v]) => (
+              ).map(([k, v, unit]) => (
                 <div key={k} className="flex flex-col-reverse px-4 py-4 first:pl-0">
                   <dt className="kicker mt-1">{k}</dt>
                   <dd className="font-mono text-3xl font-medium tabular-nums">
                     <CountUp value={v} />
+                    {unit ? <span className="ml-0.5 text-xl text-muted">{unit}</span> : null}
                   </dd>
                 </div>
               ))}

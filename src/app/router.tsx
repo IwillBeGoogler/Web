@@ -19,7 +19,7 @@ import { useLiveNotifications } from "@/contexts/engagement/application/realtime
 import { errorDetails } from "@/contexts/engagement/domain/feedback";
 import { adopted } from "@/contexts/publishing/application/adopted";
 import "@/contexts/preferences/application/store";
-import { track } from "@/shared/analytics";
+import { startActiveTime, track } from "@/shared/analytics";
 import { tokens } from "@/shared/api";
 import { reportError } from "@/shared/errorReporting";
 import { explainError, isApiError } from "@/shared/http";
@@ -498,3 +498,4 @@ declare module "@tanstack/react-router" {
 
 // Page views for product analytics (sent only with consent).
 router.subscribe("onResolved", ({ toLocation }) => track({ name: "page_view", path: toLocation.pathname }));
+if (typeof window !== "undefined") startActiveTime();

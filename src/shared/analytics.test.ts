@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resetTracking, track, useReadTime, useTagManager } from "./analytics";
+import { resetTracking, startActiveTime, track, useReadTime, useTagManager } from "./analytics";
 import { tokens } from "./api";
 import { consent } from "./consent";
 
@@ -187,5 +187,33 @@ describe("Tag Manager", () => {
     expect(window.dataLayer).toEqual(
       expect.arrayContaining([expect.objectContaining({ event: "gtm.js" }), expect.objectContaining({ event: "page_view", page_path: "/x" })]),
     );
+  });
+});
+
+describe("startActiveTime", () => {
+  afterEach(() => {
+    consent.reset();
+    resetTracking();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("reports visible seconds on the site when the tab hides, skips blips, and stops on cleanup", () => {
+    consent.set("all");
+    vi.useFakeTimers();
+    const f = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", f);
+    let state: DocumentVisibilityState = "visible";
+    Object.defineProperty(document, "visibilityState", { configurable: true, get: () => state });
+    const stop = startActiveTime();
+    vi.advanceTimersByTime(90_000);
+    state = "hidden";
+    document.dispatchEvent(new Event("visibilitychange"));
+    vi.advanceTimersByTime(60_000); // hidden time does not count
+    state = "visible";
+    document.dispatchEvent(new Event("visibilitychange"));
+    vi.advanceTimersByTime(1000);
+    stop(); // 1 s: below the 3 s floor, not sent
+    expect(sent(f)).toEqual([expect.objectContaining({ name: "active_time", value: 90 })]);
   });
 });

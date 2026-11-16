@@ -111,6 +111,9 @@ export const siteStatsSchema = z.object({
     diagrams: z.number().default(0),
     users: z.number().default(0),
     read_seconds: z.number().default(0),
+    visitors_today: z.number().default(0),
+    /** average time a visitor spends on the site in a day (visible tab), last 30 days; 0 when unknown */
+    avg_visit_seconds: z.number().default(0),
   }),
   top_posts: z
     .array(
