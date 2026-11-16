@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from "@tanstack/react-router";
-import { act, render } from "@testing-library/react";
+import { render } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { Toaster } from "sonner";
@@ -22,8 +22,5 @@ export async function renderRouted(ui: ReactElement, { path = "/", qc = testQuer
       <Toaster />
     </QueryClientProvider>,
   );
-  await act(async () => {
-    await router.load();
-  });
   return { ...r, user, qc, router };
 }
