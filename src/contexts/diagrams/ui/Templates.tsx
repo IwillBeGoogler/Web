@@ -101,7 +101,8 @@ export function Templates() {
       ) : items.length === 0 ? (
         <EmptyState icon={LayoutTemplateIcon} code="0 · templates" title={t("dg.templates.empty")} />
       ) : (
-        <Stagger as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        // key={kind}: items mounting into an already-revealed Stagger stay at opacity 0 (whileInView runs once)
+        <Stagger key={kind} as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((x, i) => (
             <StaggerItem as="li" key={x.id}>
               <TemplateCard tpl={x} index={i} busy={using === x.id} locked={using !== null && using !== x.id} onUse={() => use(x.id)} />

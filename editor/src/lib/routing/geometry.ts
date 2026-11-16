@@ -34,9 +34,19 @@ export function nearestSides(a: Rect, b: Rect): [Side, Side] {
   const ny = Math.abs(dy) / ((a.height + b.height) / 2 || 1);
   // side by side (no horizontal overlap): flows read left to right, so horizontal wins a near tie
   const apart = a.x + a.width <= b.x || b.x + b.width <= a.x;
-  if (nx * (apart ? 1.25 : 1) >= ny) return dx >= 0 ? ['right', 'left'] : ['left', 'right'];
+  let horizontal = nx * (apart ? 1.25 : 1) >= ny;
+  // adapt to the room between the boxes: a line needs space for its marker and one bend, so when the chosen axis leaves a
+  // cramped gap and the other axis has clearly more, use the other one (the router would otherwise loop around the box)
+  const gapX = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width));
+  const gapY = Math.max(b.y - (a.y + a.height), a.y - (b.y + b.height));
+  if (horizontal && gapX < MIN_FACING_GAP && gapY > gapX && gapY > 0) horizontal = false;
+  else if (!horizontal && gapY < MIN_FACING_GAP && gapX > gapY && gapX > 0) horizontal = true;
+  if (horizontal) return dx >= 0 ? ['right', 'left'] : ['left', 'right'];
   return dy >= 0 ? ['bottom', 'top'] : ['top', 'bottom'];
 }
+
+/** below this gap between two facing sides (px) the other axis is preferred, when it has more room */
+export const MIN_FACING_GAP = 36;
 
 /** Point on a rect side; t is the position along the side (0..1, 0.5 = middle). */
 export function portPoint(r: Rect, side: Side, t = 0.5): Pt {

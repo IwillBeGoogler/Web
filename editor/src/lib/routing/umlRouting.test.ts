@@ -56,3 +56,30 @@ describe('use case lines', () => {
     expect(picked.lineType).toBe('orthogonal');
   });
 });
+
+describe('sides adapt to the room between the boxes', () => {
+  const box = (x: number, y: number, w = 170, h = 110) => ({ x, y, width: w, height: h });
+  it('keeps the horizontal pair when the gap is wide enough', async () => {
+    const { nearestSides } = await import('./geometry');
+    expect(nearestSides(box(0, 0), box(300, 20))).toEqual(['right', 'left']);
+  });
+  it('switches to the vertical pair when the side gap is cramped and the vertical gap is larger', async () => {
+    const { nearestSides } = await import('./geometry');
+    // gap 11 horizontally, 40 vertically: top/bottom has the room
+    expect(nearestSides(box(0, 0), box(181, 150))).toEqual(['bottom', 'top']);
+  });
+  it('stays horizontal when the boxes overlap vertically (no vertical room at all)', async () => {
+    const { nearestSides } = await import('./geometry');
+    expect(nearestSides(box(0, 0), box(181, 50))).toEqual(['right', 'left']);
+  });
+  it('mirrors for a cramped vertical gap with room on the sides', async () => {
+    const { nearestSides } = await import('./geometry');
+    expect(nearestSides(box(0, 0, 100, 100), box(150, 111, 100, 100))).toEqual(['right', 'left']);
+  });
+  it('a cramped neighbour gets one short elbow, not a loop around the box', () => {
+    const a = blankClass('a', { x: 0, y: 0 }, 'class', 'User');
+    const b = blankClass('b', { x: 181, y: 170 }, 'class', 'UserService');
+    const r = computeRoutes([a, b], [umlEdge('e', 'b', 'a', { kind: 'dependency' })], opts).get('e')!;
+    expect(r.points.length).toBeLessThanOrEqual(4);
+  });
+});
