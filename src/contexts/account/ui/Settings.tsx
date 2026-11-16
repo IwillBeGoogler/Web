@@ -63,14 +63,15 @@ function UsernameField({ current }: { current: string }) {
   return (
     <Field label="Username" hint={valid || !next ? "3-32: letters, digits, _" : "Only letters, digits and _ (3-32)"}>
       {(a) => (
-        <div className="flex gap-2">
-          <div className="relative min-w-0 flex-1">
-            <span aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted">
+        <div className="flex items-center gap-2">
+          {/* "@" sits in the same row as the text (same size and line), not floated over it */}
+          <div className="flex min-w-0 flex-1 items-center gap-0.5">
+            <span aria-hidden className="text-[15px] leading-7 text-muted select-none">
               @
             </span>
             <input
               {...a}
-              className={cn(inputCls, "pl-7")}
+              className={cn(inputCls, "min-w-0 leading-7")}
               maxLength={32}
               autoCapitalize="none"
               spellCheck={false}
