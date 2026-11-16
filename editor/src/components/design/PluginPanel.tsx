@@ -7,6 +7,7 @@ import { PluginHost, type Reply } from '../../lib/plugins/host';
 import { buildSandboxDoc, SANDBOX_ATTR } from '../../lib/plugins/sandbox';
 import { usePlugins } from '../../lib/plugins/store';
 import type { InstalledPlugin } from '../../lib/plugins/manifest';
+import { usePaneDismiss } from '../../hooks/usePaneDismiss';
 import { t } from '../../i18n';
 
 const docAdapter = {
@@ -68,6 +69,7 @@ export function PluginPanel() {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, setDesign]);
   const enabled = plugins.filter((p) => p.enabled);
+  usePaneDismiss(open, () => setDesign({ pluginsOpen: false }));
   if (!open) return null;
   return (
     <div className="plugin-pop glass" role="dialog" aria-label={t('Plugins')}>

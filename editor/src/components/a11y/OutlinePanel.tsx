@@ -6,6 +6,7 @@ import { useLayoutStore } from '../../store/layoutStore';
 import { buildOutline, type OutlineNode } from '../../lib/a11y/outline';
 import { focusNode } from '../../lib/a11y/keyboard';
 import { zoomToNode } from '../../lib/design/actions';
+import { usePaneDismiss } from '../../hooks/usePaneDismiss';
 import { t } from '../../i18n';
 
 /**
@@ -25,6 +26,7 @@ export function OutlinePanel() {
     () => (open ? buildOutline(pages, activePageId, (id) => (id === activePageId ? { nodes, edges } : stash[id] ?? { nodes: [], edges: [] })) : []),
     [open, pages, activePageId, nodes, edges, stash],
   );
+  usePaneDismiss(open, () => setDesign({ outlineOpen: false }));
   if (!open) return null;
 
   const go = (pageId: string, then?: () => void) => {

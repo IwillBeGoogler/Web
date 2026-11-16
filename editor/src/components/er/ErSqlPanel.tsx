@@ -8,6 +8,7 @@ import { migrationSql } from '../../lib/er/migrate';
 import { replaceTablesFromSql } from '../../lib/er/apply';
 import { DIALECTS, type Dialect, type ErSchemaDef } from '../../lib/er/types';
 import { toast } from '../../store/toastStore';
+import { usePaneDismiss } from '../../hooks/usePaneDismiss';
 import { t } from '../../i18n';
 
 /**
@@ -30,6 +31,7 @@ export function ErSqlPanel() {
   const migration = useMemo(() => (schema && baseline && tab === 'migration' ? migrationSql(baseline, schema, dialect) : ''), [schema, baseline, dialect, tab]);
   // null: showing the live script; a string: the user's unapplied edit
   const [draft, setDraft] = useState<string | null>(null);
+  usePaneDismiss(open, () => useUiStore.getState().setDesign({ sqlPanelOpen: false }));
   if (!open) return null;
   const apply = () => {
     if (draft === null) return;

@@ -28,6 +28,7 @@ export function LayersPanel() {
     const all = buildLayerRows(nodes, { expanded, all: searching });
     return searching ? filterRows(all, q) : all;
   }, [nodes, expanded, q, searching]);
+  usePaneDismiss(open, () => setDesign({ layersOpen: false }));
   if (!open) return null;
 
   const select = (id: string, add: boolean) => {
@@ -131,6 +132,7 @@ export function LayersPanel() {
 }
 
 import { useLayoutStore } from '../../store/layoutStore';
+import { usePaneDismiss } from '../../hooks/usePaneDismiss';
 import { t } from '../../i18n';
 function useUiStoreSidebar(): boolean {
   return useLayoutStore((s) => s.sidebarOpen);

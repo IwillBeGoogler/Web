@@ -9,6 +9,7 @@ import { useSmart } from '../../store/smartStore';
 import { useUiStore } from '../../store/uiStore';
 import { useLayoutStore } from '../../store/layoutStore';
 import { useEditorSession } from '../../sync/status';
+import { usePaneDismiss } from '../../hooks/usePaneDismiss';
 import { t } from '../../i18n';
 
 const ICON = { error: OctagonAlert, warning: AlertTriangle, info: Info } as const;
@@ -22,6 +23,7 @@ export function ProblemsPanel() {
   const readOnly = useEditorSession((s) => s.readOnly);
   const problems = useLintProblems(open);
   const groups = useMemo(() => (['error', 'warning', 'info'] as Severity[]).map((sev) => ({ sev, items: problems.filter((p) => p.severity === sev) })).filter((g) => g.items.length), [problems]);
+  usePaneDismiss(open, () => setOpen(false));
   if (!open) return null;
   const openRules = () => { useUiStore.getState().setSettingsOpen(true); };
   return (

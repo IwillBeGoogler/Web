@@ -10,6 +10,7 @@ import { useDiagramStore } from '../../store/diagramStore';
 import { useLayoutStore } from '../../store/layoutStore';
 import { useSmart } from '../../store/smartStore';
 import { useEditorSession } from '../../sync/status';
+import { usePaneDismiss } from '../../hooks/usePaneDismiss';
 import { t } from '../../i18n';
 
 const usd = (n: number) => (n >= 100 ? Math.round(n).toLocaleString('en-US') : n.toFixed(2));
@@ -39,6 +40,7 @@ export function CapacityPanel() {
   const edges = useDiagramStore((s) => s.edges);
   const result = useCapacity(open);
   const [showCost, setShowCost] = useState(false);
+  usePaneDismiss(open, () => setOpen(false));
   if (!open) return null;
   const selNodes = nodes.filter((n) => n.selected && ['icon', 'cluster', 'card'].includes(n.type ?? ''));
   const selEdges = edges.filter((e) => e.selected);
