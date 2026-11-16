@@ -18,6 +18,7 @@ import { SiteStats } from "@/contexts/reading/ui/SiteStats";
 import { cn } from "@/shared/lib/cn";
 import { compact, shortDate, timeAgo } from "@/shared/lib/format";
 import { Reveal, Stagger, StaggerItem } from "@/shared/motion";
+import { useSplashReady } from "@/shared/splash";
 import { Avatar } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { Carousel } from "@/shared/ui/carousel";
@@ -42,6 +43,10 @@ export function HomeGrid({ children, aside = true }: { children: React.ReactNode
 
 export function HomePage({ tab }: { tab: HomeTab | undefined }) {
   const token = useToken();
+  // Both home views open on trending + the latest stories: the first-load splash stays up until they are in.
+  const trending = useQuery(trendingQuery());
+  const latest = useInfiniteQuery(feedQuery({ kind: "latest" }));
+  useSplashReady(!trending.isPending && !latest.isPending);
   // Signed-out visitors land on the marketing page until they pick a feed.
   // Logo click bumps the key so the entrance animation replays.
   const [replay, setReplay] = useState(0);

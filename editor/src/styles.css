@@ -170,7 +170,10 @@ input[type=checkbox] { accent-color: var(--accent); }
 .react-flow__edge.animated path, .edge-flow .react-flow__edge-path { stroke-dasharray: 6 4; animation: dash-flow 0.7s linear infinite; }
 .edge-new .react-flow__edge-path { stroke-dasharray: 2000; stroke-dashoffset: 2000; animation: edge-draw 0.6s var(--ease) forwards; }
 @keyframes edge-draw { to { stroke-dashoffset: 0; } }
-.react-flow__minimap { border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow-md); background: var(--panel) !important; }
+.react-flow__minimap { border-radius: var(--r-lg); overflow: hidden; border: 0; box-shadow: var(--shadow-md); background: color-mix(in srgb, var(--panel) 88%, transparent) !important; backdrop-filter: blur(8px);
+  /* outside the viewport: a soft veil of the panel colour (not React Flow's grey slab); the viewport keeps a thin accent outline */
+  --xy-minimap-mask-background-color: color-mix(in srgb, var(--panel) 55%, transparent); --xy-minimap-mask-stroke-color: var(--accent, #3b6cff); --xy-minimap-mask-stroke-width: 1.5;
+  --xy-minimap-node-background-color: color-mix(in srgb, var(--text, #c9d1e3) 55%, transparent); --xy-minimap-node-stroke-color: transparent; }
 .react-flow__background { transition: opacity var(--t-slow); }
 .guide-line { stroke: #ff4fa3; stroke-width: 1; stroke-dasharray: 4 3; }
 .draw-layer { position: absolute; inset: 0; z-index: 5; cursor: crosshair; touch-action: none; }
@@ -795,6 +798,12 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 .er-tag.chk { color: var(--warn); background: var(--warn-subtle); }
 .er-more-line { color: var(--er-muted); font-family: var(--font); }
 .er-table.er-view { border-style: dashed; }
+/* compact (overview) card: accent dot + name, then a muted "N columns" line; relations attach at the header */
+.er-table.er-compact .er-head { padding: 0 12px; gap: 8px; border-bottom-color: var(--er-line); box-shadow: inset 0 3px 0 var(--er-accent); }
+.er-table.er-compact .er-dot { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--er-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--er-accent) 22%, transparent); }
+.er-table.er-compact .er-title { font-weight: 650; }
+.er-table.er-compact .er-compact-sub { display: flex; align-items: center; width: 100%; padding: 0 12px; border: 0; background: none; color: var(--er-muted); font: inherit; font-size: 11px; letter-spacing: .01em; text-align: left; cursor: pointer; border-radius: 0 0 9px 9px; }
+.er-table.er-compact .er-compact-sub:hover { color: var(--er-text-2); background: var(--er-hover); }
 .er-table.er-enum .er-name { font-family: var(--font-mono); font-size: 12px; }
 .handle.er-h.react-flow__handle { opacity: 0; width: 9px; height: 9px; }
 .react-flow__node:hover .handle.er-h, .react-flow__node.selected .handle.er-h { opacity: 0; }
@@ -1099,6 +1108,9 @@ button.avatar-btn { cursor: pointer; border: 2px solid var(--elevated); }
 .arr-seg button.on { background: var(--accent-subtle); color: var(--accent); font-weight: var(--fw-semibold); }
 .arrange-pop .arr-run { margin-top: var(--s-2); justify-content: center; width: 100%; }
 .arr-note { font-size: 11px; color: var(--muted); text-align: center; }
+.arr-check { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0 2px; padding: 8px 10px; border-radius: var(--r-md, 8px); background: var(--hover, rgba(127,127,127,.08)); cursor: pointer; font-size: var(--fs-sm); }
+.arr-check input { margin-top: 2px; accent-color: var(--accent); }
+.arr-check > span { display: flex; flex-direction: column; gap: 2px; }
 @media (prefers-reduced-motion: no-preference) {
   html[data-arranging] .react-flow__node { transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1); }
   html[data-arranging] .react-flow__edges, html[data-arranging] .react-flow__edgelabel-renderer { animation: arrange-edges-in 300ms ease-out; }

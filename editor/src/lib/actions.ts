@@ -185,7 +185,12 @@ export function executeAction(action: string, env: ActionEnv = {}): void {
     case 'er-collapse-all':
     case 'er-expand-all': {
       const ids = st.nodes.filter((n) => n.type === 'table').map((n) => n.id);
-      return void (ids.length && st.updateNodesData(ids, { collapsed: name === 'er-collapse-all' } as never));
+      return void (ids.length && st.setTablesView(ids, { collapsed: name === 'er-collapse-all', compact: false }));
+    }
+    case 'er-compact-all':
+    case 'er-full-all': {
+      const ids = st.nodes.filter((n) => n.type === 'table').map((n) => n.id);
+      return void (ids.length && st.setTablesView(ids, { compact: name === 'er-compact-all' }));
     }
     case 'er-import': return void openErImport();
     case 'er-export': return void openErExport();
@@ -198,7 +203,8 @@ export function executeAction(action: string, env: ActionEnv = {}): void {
       if (!def) return void toast.info('Enums have no CREATE TABLE');
       return void navigator.clipboard?.writeText(tableSql('postgres', def, schema)[0]).then(() => toast.success('Copied CREATE TABLE'));
     }
-    case 'table-collapse': return env.nodeId ? st.updateNodeData(env.nodeId, { collapsed: !st.nodes.find((n) => n.id === env.nodeId)?.data.collapsed }) : undefined;
+    case 'table-collapse': return env.nodeId ? st.setTablesView([env.nodeId], { collapsed: !st.nodes.find((n) => n.id === env.nodeId)?.data.collapsed, compact: false }) : undefined;
+    case 'table-compact': return env.nodeId ? st.setTablesView([env.nodeId], { compact: !st.nodes.find((n) => n.id === env.nodeId)?.data.compact }) : undefined;
     case 'table-add-column': return env.nodeId ? st.updateTable(env.nodeId, (d) => addColumn(d)) : undefined;
     case 'table-accent': return (env.nodeId ? [env.nodeId] : selNodeIds()).forEach((id) => useDiagramStore.getState().updateNodeData(id, { accent: arg }));
     case 'rel-card': return st.setCardinality(targetEdges(), arg as never);

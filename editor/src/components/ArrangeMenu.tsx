@@ -49,7 +49,16 @@ export function ArrangeMenu() {
   const scope = describeScope();
   const picked = nodes.filter((n) => n.selected).length;
   const scopeLabel = scope === 'group' ? t('Arrange inside group') : scope === 'selection' ? t('Arrange {n} selected', { n: picked }) : t('Arrange page');
-  const run = () => { executeAction('auto-arrange', { fitView: () => fit(300) }); setOpen(false); };
+  // ERD: lay the schema out as compact cards (name + column count), like an overview map; the toggle starts from the page's state
+  const tables = nodes.filter((n) => n.type === 'table');
+  const allCompact = tables.length > 0 && tables.every((n) => !!n.data.compact);
+  const [compact, setCompact] = useState(allCompact);
+  useEffect(() => { if (open) setCompact(allCompact); }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const run = () => {
+    if (kind === 'erd' && tables.length && compact !== allCompact) executeAction(compact ? 'er-compact-all' : 'er-full-all');
+    executeAction('auto-arrange', { fitView: () => fit(300) });
+    setOpen(false);
+  };
 
   return (
     <div className="menu arrange-menu" ref={box}>
@@ -82,6 +91,12 @@ export function ArrangeMenu() {
             <div className="arr-seg" role="radiogroup" aria-labelledby="arr-space">
               {SPACINGS.map((s) => <button key={s} type="button" role="radio" aria-checked={prefs.spacing === s} className={prefs.spacing === s ? 'on' : ''} onClick={() => update({ spacing: s })}>{t(s[0].toUpperCase() + s.slice(1))}</button>)}
             </div>
+            {kind === 'erd' && tables.length > 0 && (
+              <label className="arr-check">
+                <input type="checkbox" checked={compact} onChange={(e) => setCompact(e.target.checked)} />
+                <span><b>{t('Compact tables')}</b><span className="arr-algo-hint">{t('Names and column counts only: the whole schema at a glance')}</span></span>
+              </label>
+            )}
             <button type="button" className="btn btn-primary arr-run" onClick={run}>{scopeLabel} <Kbd>⇧L</Kbd></button>
             <div className="arr-note">{t('Locked items stay put. One undo step.')}</div>
           </motion.div>

@@ -82,6 +82,30 @@ export function TableNode({ id, data, selected }: NodeProps<DiagramNode>) {
 
   const toggle = (c: TableColumn, key: 'pk' | 'unique' | 'nullable') => edit((x) => patchColumn(x, c.id, key === 'pk' ? { pk: !c.pk, nullable: c.pk ? c.nullable : false } : { [key]: !c[key] }));
 
+  if (d.compact)
+    return (
+      <div className={`er-table er-${variant} er-compact${selected ? ' selected' : ''}`} style={{ ['--er-accent' as string]: accent, width: '100%', height: '100%' }} data-testid={`table-${id}`} title={d.comment || undefined}>
+        <div className="er-head">
+          <span className="er-dot" aria-hidden />
+          {editingHeader ? (
+            <BufferedInput autoFocus value={d.label} className="nodrag er-input er-title-input" aria-label={t('Table name')} onCommit={(label) => edit((x) => ({ ...x, label: label.trim() || x.label }))} onDone={() => setEditing(null)} />
+          ) : (
+            <div className="er-titles" onDoubleClick={() => !locked && setEditing(id)}>
+              <span className="er-title">{d.label}</span>
+              {d.schema ? <span className="er-schema">{d.schema}</span> : null}
+            </div>
+          )}
+          {variant !== 'table' && <span className="er-kind">{t(variant)}</span>}
+          <CrossLinkBadge id={id} data={data} />
+          <Handle id="left" type="source" position={Position.Left} className="handle er-h" />
+          <Handle id="right" type="source" position={Position.Right} className="handle er-h" />
+        </div>
+        <button type="button" className="er-compact-sub nodrag" style={{ height: ER.compactLine }} title={t('Show columns')} onClick={() => useDiagramStore.getState().setTablesView([id], { compact: false })} onDoubleClick={(e) => e.stopPropagation()}>
+          {isEnum ? t('{n} values', { n: d.columns.length }) : t('{n} columns', { n: d.columns.length })}
+        </button>
+      </div>
+    );
+
   const header = (
     <div className="er-head">
       <button type="button" className="er-collapse nodrag" aria-label={d.collapsed ? t('Show all columns') : t('Show keys only')} aria-expanded={!d.collapsed} onClick={() => updateData(id, { collapsed: !d.collapsed })}>

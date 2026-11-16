@@ -177,6 +177,8 @@ interface DiagramState {
   reverseEdge: (id: string) => void;
   /** ER: edit a table node (resizes it, drops relations to removed columns, keeps FK hints in step) */
   updateTable: (id: string, fn: (d: TableNodeData) => TableNodeData) => void;
+  /** ER: change the view of many tables at once (collapsed / compact), resizing them, as one undo step */
+  setTablesView: (ids: string[], patch: Partial<Pick<TableNodeData, 'collapsed' | 'compact'>>) => void;
   /** ER: reference `parent` from `child` (creating the FK column when none is given); returns the relation edge id */
   connectTables: (input: CreateRelationInput) => string | null;
   /** ER: replace an N:M relation by a junction table; returns its node id */
@@ -699,6 +701,12 @@ export const useDiagramStore = create<DiagramState>((set, get) => ({
       const nodes = s.nodes.map((n) => (n.id === id && n.type === 'table' ? withTableSize({ ...n, data: fn(tableOf(n)) as unknown as DiagramNode['data'] }) : n));
       const edges = dropDanglingRelations(nodes, s.edges);
       return { ...pushPast(s), nodes: pruneFks(nodes, edges), edges };
+    }),
+
+  setTablesView: (ids, patch) =>
+    set((s) => {
+      const sel = new Set(ids);
+      return { ...pushPast(s), nodes: s.nodes.map((n) => (sel.has(n.id) && n.type === 'table' ? withTableSize({ ...n, data: { ...n.data, ...patch } }) : n)) };
     }),
 
   connectTables: (input) => {

@@ -2,7 +2,33 @@
 // Each replay mounts a fresh copy and re-runs public/splash.js, so the full WebGL scene plays again;
 // splash.js stops its worker once the copy leaves the DOM.
 
+import { useEffect } from "react";
+
 type SplashWindow = Window & { __splashReplay?: boolean };
+
+/** Fired by the 3D Earth once its textures are in (or when it cannot draw at all). */
+export const EARTH_READY = "iwillbegoogler:earth-ready";
+const CONTENT_READY = "iwillbegoogler:content-ready";
+
+const flags = { content: false, earth: false };
+if (typeof window !== "undefined") addEventListener(EARTH_READY, () => (flags.earth = true));
+
+const when = (key: keyof typeof flags, event: string) =>
+  flags[key] ? Promise.resolve() : new Promise<void>((r) => addEventListener(event, () => r(), { once: true }));
+
+/** Resolves once the first page says its main content is on screen (see useSplashReady). */
+export const contentReady = () => when("content", CONTENT_READY);
+/** Resolves once the Earth has drawn (or gave up). */
+export const earthReady = () => when("earth", EARTH_READY);
+
+/** A page calls this with true once its first screen of data is in; the loading splash waits for it on first load. */
+export function useSplashReady(ready: boolean) {
+  useEffect(() => {
+    if (!ready || flags.content) return;
+    flags.content = true;
+    dispatchEvent(new Event(CONTENT_READY));
+  }, [ready]);
+}
 
 let template: HTMLElement | null = null;
 

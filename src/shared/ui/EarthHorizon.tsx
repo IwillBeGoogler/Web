@@ -27,6 +27,7 @@ import {
   WebGLRenderer,
 } from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { EARTH_READY } from "@/shared/splash";
 import { closestT, FLYBY_EVERY, FLYBY_SECONDS, ORBITS, orbitPoint } from "./satellite/orbit";
 import { createSatellite } from "./satellite/satelliteModel";
 import { shakePage, stopShake } from "./satellite/shake";
@@ -58,6 +59,15 @@ void main() {
 
 const TEX = `${import.meta.env.BASE_URL}earth/`;
 
+/** The HD maps (~4-6 MB) are fetched only on a quick link: not with data saver, not on 2G/3G, not under ~5 Mbit/s (where the browser tells). */
+function fastNetwork(): boolean {
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string; downlink?: number } }).connection;
+  if (!c) return true;
+  if (c.saveData) return false;
+  if (c.effectiveType && c.effectiveType !== "4g") return false;
+  return c.downlink === undefined || c.downlink >= 5;
+}
+
 /**
  * Photoreal Earth filling the bottom of the viewport, after franky-adl/threejs-earth (MIT):
  * NASA albedo (Blue Marble, public domain, 16k on capable desktops), bump, ocean glint, city lights on the night side, cloud shadows, atmosphere.
@@ -79,13 +89,14 @@ export default function EarthHorizon({ brand, satellite = false }: { brand?: str
     const reduce = matchMedia("(prefers-reduced-motion: reduce)");
     const mobile = innerWidth < 768;
     const attrs: WebGLContextAttributes & { powerPreference: "low-power" } = { antialias: true, alpha: true, powerPreference: "low-power" };
+    const gaveUp = () => void dispatchEvent(new Event(EARTH_READY)); // no planet: do not hold the splash for one
     const context = canvas.getContext("webgl2", attrs) as WebGL2RenderingContext | null;
-    if (!context) return;
+    if (!context) return gaveUp();
     let renderer: WebGLRenderer;
     try {
       renderer = new WebGLRenderer({ canvas, context, ...attrs });
     } catch {
-      return;
+      return gaveUp();
     }
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, mobile ? 1.5 : 2));
@@ -257,66 +268,81 @@ export default function EarthHorizon({ brand, satellite = false }: { brand?: str
     group.visible = false; // without its maps the planet is a white ball and a hollow halo: hidden until they load (or for good if they fail)
     const manager = new LoadingManager();
     manager.onProgress = (_url, done, total) => setProgress(total ? done / total : 0);
-    const loader = new TextureLoader(manager);
-    // phones get 2048px maps (~0.8 MB) instead of the 4-8K desktop set (~4.4 MB)
-    const dir = mobile ? `${TEX}sm/` : TEX;
-    // Desktop GPUs that take 16k textures get the NASA Blue Marble at 16000px for a sharp close-up horizon.
+    // Two passes so the planet shows fast: the 2048px set (~0.8 MB) first on every device, then on desktop the 4-8K maps
+    // (and the 16000px NASA Blue Marble where the GPU takes it) swap in quietly once the page is idle.
     const big = !mobile && renderer.capabilities.maxTextureSize >= 16384;
-    const file = (n: string) => (n === "albedo" && big ? "albedo-16k" : n);
-    Promise.all(["albedo", "bump", "clouds", "ocean", "lights"].map((n) => loader.loadAsync(`${dir}${file(n)}.webp`)))
-      .then(([albedo, bump, cloudTex, ocean, lights]) => {
-        if (disposed || !albedo || !bump || !cloudTex || !ocean || !lights) return;
-        textures = [albedo, bump, cloudTex, ocean, lights];
-        albedo.colorSpace = SRGBColorSpace;
-        for (const t of textures) t.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
-        cloudTex.wrapS = RepeatWrapping;
-        earthMat.map = albedo;
-        earthMat.bumpMap = bump;
-        earthMat.roughnessMap = ocean;
-        earthMat.metalnessMap = ocean;
-        earthMat.emissiveMap = lights;
-        // Ocean map is white on water: invert it for roughness, light cities only on the night side,
-        // shade the ground under clouds, and tint the limb blue.
-        earthMat.onBeforeCompile = (shader) => {
-          shader.uniforms.tClouds = { value: cloudTex };
-          shader.uniforms.uv_xOffset = cloudOffset;
-          shader.fragmentShader = shader.fragmentShader
-            .replace("#include <common>", "#include <common>\nuniform sampler2D tClouds;\nuniform float uv_xOffset;")
-            .replace(
-              "#include <roughnessmap_fragment>",
-              `float roughnessFactor = roughness;
-              #ifdef USE_ROUGHNESSMAP
-                vec4 texelRoughness = vec4(1.0) - texture2D(roughnessMap, vRoughnessMapUv);
-                roughnessFactor *= clamp(texelRoughness.g, 0.5, 1.0);
-              #endif`,
-            )
-            .replace(
-              "#include <emissivemap_fragment>",
-              `#ifdef USE_EMISSIVEMAP
-                vec4 emissiveColor = texture2D(emissiveMap, vEmissiveMapUv);
-                emissiveColor *= 1.0 - smoothstep(-0.02, 0.0, dot(nonPerturbedNormal, directionalLights[0].direction));
-                totalEmissiveRadiance *= emissiveColor.rgb;
-              #endif
-              float cloudsMapValue = texture2D(tClouds, vec2(vMapUv.x - uv_xOffset, vMapUv.y)).r;
-              diffuseColor.rgb *= max(1.0 - cloudsMapValue, 0.2);
-              // limb haze from the real view direction (the cap faces up, not at the camera,
-              // so the original z-axis test washed the whole visible surface blue)
-              float limb = 1.0 - max(dot(nonPerturbedNormal, normalize(vViewPosition)), 0.0);
-              diffuseColor.rgb += vec3(0.3, 0.6, 1.0) * pow(limb, 6.0) * 0.6;`,
-            );
-        };
+    const names = ["albedo", "bump", "clouds", "ocean", "lights"] as const;
+    const tClouds: { value: Texture | null } = { value: null };
+    type Set5 = [Texture, Texture, Texture, Texture, Texture];
+    const loadSet = (dir: string, l: TextureLoader, file: (n: string) => string = (n) => n) =>
+      Promise.all(names.map((n) => l.loadAsync(`${dir}${file(n)}.webp`))) as Promise<Set5>;
+    const apply = ([albedo, bump, cloudTex, ocean, lights]: Set5) => {
+      const old = textures;
+      textures = [albedo, bump, cloudTex, ocean, lights];
+      albedo.colorSpace = SRGBColorSpace;
+      for (const t of textures) t.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+      cloudTex.wrapS = RepeatWrapping;
+      earthMat.map = albedo;
+      earthMat.bumpMap = bump;
+      earthMat.roughnessMap = ocean;
+      earthMat.metalnessMap = ocean;
+      earthMat.emissiveMap = lights;
+      tClouds.value = cloudTex;
+      cloudMat.alphaMap = cloudTex;
+      for (const t of old) t.dispose();
+      kick();
+    };
+    earthMat.onBeforeCompile = (shader) => {
+      shader.uniforms.tClouds = tClouds;
+      shader.uniforms.uv_xOffset = cloudOffset;
+      shader.fragmentShader = shader.fragmentShader
+        .replace("#include <common>", "#include <common>\nuniform sampler2D tClouds;\nuniform float uv_xOffset;")
+        .replace(
+          "#include <roughnessmap_fragment>",
+          `float roughnessFactor = roughness;
+          #ifdef USE_ROUGHNESSMAP
+            vec4 texelRoughness = vec4(1.0) - texture2D(roughnessMap, vRoughnessMapUv);
+            roughnessFactor *= clamp(texelRoughness.g, 0.5, 1.0);
+          #endif`,
+        )
+        .replace(
+          "#include <emissivemap_fragment>",
+          `#ifdef USE_EMISSIVEMAP
+            vec4 emissiveColor = texture2D(emissiveMap, vEmissiveMapUv);
+            emissiveColor *= 1.0 - smoothstep(-0.02, 0.0, dot(nonPerturbedNormal, directionalLights[0].direction));
+            totalEmissiveRadiance *= emissiveColor.rgb;
+          #endif
+          float cloudsMapValue = texture2D(tClouds, vec2(vMapUv.x - uv_xOffset, vMapUv.y)).r;
+          diffuseColor.rgb *= max(1.0 - cloudsMapValue, 0.2);
+          // limb haze from the real view direction (the cap faces up, not at the camera,
+          // so the original z-axis test washed the whole visible surface blue)
+          float limb = 1.0 - max(dot(nonPerturbedNormal, normalize(vViewPosition)), 0.0);
+          diffuseColor.rgb += vec3(0.3, 0.6, 1.0) * pow(limb, 6.0) * 0.6;`,
+        );
+    };
+    loadSet(`${TEX}sm/`, new TextureLoader(manager))
+      .then((set) => {
+        if (disposed || set.some((t) => !t)) return;
+        apply(set);
         earthMat.needsUpdate = true;
-        cloudMat.alphaMap = cloudTex;
         cloudMat.needsUpdate = true;
         clouds.visible = true;
         group.visible = true;
         cloudMat.opacity = 0;
         fading = true;
         setProgress(1);
-        dispatchEvent(new Event("iwillbegoogler:earth-ready")); // lets the loading splash lift
-        kick();
+        dispatchEvent(new Event(EARTH_READY)); // lets the loading splash lift
+        if (mobile || !fastNetwork()) return; // slow link or data saver: the 2048px set stays
+        const upgrade = () =>
+          loadSet(TEX, new TextureLoader(), (n) => (n === "albedo" && big ? "albedo-16k" : n))
+            .then((hd) => {
+              if (!disposed) return apply(hd);
+              for (const t of hd) t.dispose();
+            })
+            .catch(() => undefined); // keep the small set
+        setTimeout(() => ("requestIdleCallback" in window ? requestIdleCallback(upgrade, { timeout: 3000 }) : upgrade()), 1500);
       })
-      .catch(() => undefined);
+      .catch(gaveUp);
 
     const resize = () => {
       renderer.setSize(innerWidth, innerHeight, false);

@@ -161,7 +161,7 @@ export function Editor({ fileId, projectId, onBack, sync }: { fileId: string; pr
           <ReviewPanel />
           <CapacityPanel />
           <MetricsBar />
-          <SimulateButton />
+          <SimulateButton fileId={fileId} />
           <DriftPanel />
           <PluginPanel />
           <CommentsPanel />

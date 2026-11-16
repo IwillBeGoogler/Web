@@ -79,8 +79,8 @@ function Live() {
 const isEditor = (path: string) => /^\/d\/(f|s|v)\/[^/]+\/?$/.test(path);
 
 /** True once the visitor interacts, or a few seconds after load: the 3D Earth (three.js + ~800 KB of textures) waits for it so the page itself loads first. */
-function useDeferred(ms = 4000) {
-  const [on, setOn] = useState(false);
+function useDeferred(ms = 4000, now = false) {
+  const [on, setOn] = useState(now);
   useEffect(() => {
     if (on) return;
     const go = () => setOn(true);
@@ -106,7 +106,8 @@ const SCENE_PATH = /^\/(@[^/]+\/?)?$/;
 
 function Shell() {
   const t = useT();
-  const earthOn = useDeferred();
+  // Under the first-load splash the Earth starts at once: the splash waits for it, so nothing visible is held back.
+  const earthOn = useDeferred(4000, typeof document !== "undefined" && !!document.getElementById("splash"));
   const path = useRouterState({ select: (s) => s.location.pathname });
   const editor = isEditor(path);
   const scene = SCENE_PATH.test(path);

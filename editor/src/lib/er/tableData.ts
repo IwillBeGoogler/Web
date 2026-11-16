@@ -25,6 +25,8 @@ export interface TableNodeData {
   checks: ErCheckDef[];
   accent: string;
   collapsed: boolean;
+  /** overview card: the header and a "N columns" line, no rows (big schemas at a glance); relations attach at the header */
+  compact?: boolean;
   comment?: string;
 }
 export const isTableNode = (n: DiagramNode | undefined): n is DiagramNode & { data: TableNodeData } => n?.type === 'table';

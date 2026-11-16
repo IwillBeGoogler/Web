@@ -15,18 +15,22 @@ export const ER = {
   charW: 7.1,
   sidePad: 12,
   maxFooterLines: 5,
+  /** compact card: the "N columns" line under the header */
+  compactLine: 26,
+  compactMinW: 170,
 } as const;
 
-export const visibleColumns = (d: TableNodeData): TableColumn[] => (d.collapsed ? d.columns.filter((c) => c.pk || !!c.fk) : d.columns);
+export const visibleColumns = (d: TableNodeData): TableColumn[] => (d.compact ? [] : d.collapsed ? d.columns.filter((c) => c.pk || !!c.fk) : d.columns);
 
 export function footerLines(d: TableNodeData): number {
-  if (d.collapsed) return 0;
+  if (d.collapsed || d.compact) return 0;
   const n = d.indexes.length + d.checks.length;
   return n <= ER.maxFooterLines ? n : ER.maxFooterLines + 1;
 }
 
 /** The table as rows for the shared row engine: one `columns` compartment, an index / check footer. */
 export function tableLayout(d: TableNodeData): RowLayout {
+  if (d.compact) return layoutRows({ headerH: ER.headerH, rowH: ER.rowH, bottomPad: ER.bottomPad, footerH: ER.compactLine, compartments: [] });
   const f = footerLines(d);
   return layoutRows({
     headerH: ER.headerH,
@@ -42,6 +46,7 @@ export const tableHeight = (d: TableNodeData): number => tableLayout(d).height;
 export function tableWidth(d: TableNodeData): number {
   const cols = visibleColumns(d);
   let w = (d.schema ? d.schema.length + 1 : 0) * ER.charW + d.label.length * 8 + 110;
+  if (d.compact) return Math.round(Math.min(ER.maxW, Math.max(ER.compactMinW, w)) / 10) * 10;
   for (const c of cols) w = Math.max(w, (c.name.length + Math.min(c.type.length, 22)) * ER.charW + 96);
   return Math.round(Math.min(ER.maxW, Math.max(ER.minW, w)) / 10) * 10;
 }

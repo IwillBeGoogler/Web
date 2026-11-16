@@ -92,6 +92,7 @@ export function CommandPalette() {
       cmd('er-collapse-all', 'Collapse all tables', 'Database', () => executeAction('er-collapse-all'), undefined, ['er', 'keys', 'fold']),
       cmd('er-sql-panel', 'Toggle live SQL preview', 'Database', () => executeAction('er-sql-panel'), undefined, ['er', 'sql', 'ddl', 'code']),
       cmd('er-expand-all', 'Expand all tables', 'Database', () => executeAction('er-expand-all'), undefined, ['er', 'unfold']),
+      cmd('er-compact-all', 'Compact all tables (names and column counts)', 'Database', () => executeAction('er-compact-all'), undefined, ['er', 'compact', 'overview', 'small', 'names']),
       cmd('uml-import', 'Import code or diagram text… (TypeScript, Java, Python, Go, C#, Mermaid, PlantUML)', 'UML', () => executeAction('uml-import'), undefined, ['uml', 'class', 'sequence', 'state', 'activity', 'import', 'typescript', 'java', 'python', 'go', 'golang', 'csharp', 'c#', 'mermaid', 'plantuml', 'code']),
       cmd('uml-sync', 'Update this class diagram from code (re-import, keep positions, review drift)…', 'UML', () => executeAction('uml-sync'), undefined, ['uml', 'class', 'sync', 'drift', 'reimport', 'code', 'update', 'typescript', 'java']),
       cmd('uml-export', 'Export UML… (class, sequence, state: Mermaid, PlantUML, TypeScript, Java)', 'UML', () => executeAction('uml-export'), undefined, ['uml', 'class', 'sequence', 'state', 'activity', 'export', 'mermaid', 'plantuml', 'typescript', 'java', 'skeleton']),

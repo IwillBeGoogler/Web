@@ -10,9 +10,12 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { queryClient, router } from "./app/router";
 import { installErrorReporting } from "./shared/errorReporting";
-import { keepSplash } from "./shared/splash";
+import { persistQueries } from "./shared/queryPersist";
+import { contentReady, earthReady, keepSplash } from "./shared/splash";
 
 installErrorReporting();
+// Public first-screen data (trending, tags, latest, landing teasers) comes back from localStorage, so a repeat visit paints at once.
+persistQueries(queryClient);
 
 // Router view transitions reject when the viewport changes mid-transition (rotation, mobile URL bar); that is harmless, so keep it out of the console.
 if (document.startViewTransition) {
@@ -32,15 +35,17 @@ createRoot(document.getElementById("root") as HTMLElement).render(
   </StrictMode>,
 );
 
-// Lift the pre-JS loading screen once the shell and fonts are ready. The 3D Earth loads later (see router Shell), so it no longer holds the splash;
-// a 3s safety cap keeps a stuck font load from trapping the user.
+// Lift the pre-JS loading screen once the page is really there: fonts, and on the home page its first screen of data and the 3D Earth.
+// A safety cap keeps a stuck request or texture from trapping the user.
 const splash = document.getElementById("splash");
 const parked = (window as { __splash?: HTMLElement }).__splash;
 if (parked) keepSplash(parked);
 else if (splash) keepSplash(splash);
 if (splash) {
   const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  Promise.race([document.fonts?.ready ?? Promise.resolve(), wait(3000)]).then(() => {
+  const home = location.pathname === "/";
+  const holds = [document.fonts?.ready ?? Promise.resolve(), ...(home ? [contentReady(), earthReady()] : [])];
+  Promise.race([Promise.all(holds), wait(home ? 10_000 : 3000)]).then(() => {
     requestAnimationFrame(() => {
       splash.classList.add("out");
       setTimeout(() => splash.remove(), 600);

@@ -20,6 +20,12 @@
     }
     return;
   }
+  // Home page: start the Earth's first (2048px) texture set now, while the app boots; EarthHorizon picks them up from the cache.
+  if (!window.__splashReplay) ["albedo", "bump", "clouds", "ocean", "lights"].forEach(function (n) {
+    var l = document.createElement("link");
+    l.rel = "preload"; l.as = "image"; l.crossOrigin = "anonymous"; l.href = "/earth/sm/" + n + ".webp";
+    document.head.appendChild(l);
+  });
   var st = {
     m: innerWidth < 600,
     calm: matchMedia("(prefers-reduced-motion: reduce)").matches,

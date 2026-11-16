@@ -839,6 +839,13 @@ export const uz: Record<string, string> = {
   'Start simulation': 'Simulyatsiyani boshlash',
   'Stop simulation': 'Simulyatsiyani to‘xtatish',
   'Traffic': 'Trafik',
+  'Compact tables': 'Ixcham jadvallar',
+  'Names and column counts only: the whole schema at a glance': 'Faqat nomlar va ustunlar soni: butun sxema bir qarashda',
+  'Show columns': 'Ustunlarni ko‘rsatish',
+  'Compact (name only)': 'Ixcham (faqat nom)',
+  'Compact all tables (names only)': 'Barcha jadvallarni ixchamlash (faqat nomlar)',
+  'Compact all tables (names and column counts)': 'Barcha jadvallarni ixchamlash (nomlar va ustunlar soni)',
+  '{n} values': '{n} ta qiymat',
 };
 
 export const ru: Record<string, string> = {
@@ -1681,4 +1688,11 @@ export const ru: Record<string, string> = {
   'Start simulation': 'Запустить симуляцию',
   'Stop simulation': 'Остановить симуляцию',
   'Traffic': 'Трафик',
+  'Compact tables': 'Компактные таблицы',
+  'Names and column counts only: the whole schema at a glance': 'Только имена и число столбцов: вся схема с одного взгляда',
+  'Show columns': 'Показать столбцы',
+  'Compact (name only)': 'Компактно (только имя)',
+  'Compact all tables (names only)': 'Сделать все таблицы компактными (только имена)',
+  'Compact all tables (names and column counts)': 'Сделать все таблицы компактными (имена и число столбцов)',
+  '{n} values': 'значений: {n}',
 };
