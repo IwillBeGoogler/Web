@@ -292,7 +292,7 @@ describe("markdown helpers", () => {
       }).type,
     ).toBe("doc");
 
-    // orderMarks: link longer than emphasis with trailing non-emphasis mark (code)
+    // orderMarks: link longer than emphasis with multiple emphasis marks
     expect(
       cleanDoc({
         type: "doc",
@@ -304,7 +304,7 @@ describe("markdown helpers", () => {
               {
                 type: "text",
                 text: "bold",
-                marks: [{ type: "bold" }, { type: "code" }, { type: "link", attrs: { href: "https://example.com" } }],
+                marks: [{ type: "bold" }, { type: "italic" }, { type: "link", attrs: { href: "https://example.com" } }],
               },
             ],
           },
@@ -331,11 +331,7 @@ describe("markdown helpers", () => {
               },
               {
                 type: "listItem",
-                content: [
-                  { type: "paragraph", content: [{ type: "text", text: "first" }] },
-                  { type: "blockquote" },
-                  { type: "blockquote" },
-                ],
+                content: [{ type: "paragraph", content: [{ type: "text", text: "first" }] }, { type: "blockquote" }, { type: "blockquote" }],
               },
               {
                 type: "listItem",
