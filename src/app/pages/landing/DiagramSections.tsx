@@ -169,6 +169,7 @@ export function TemplatesTeaser() {
   const t = useT();
   const q = useQuery(landingTemplatesQuery());
   const [filter, setFilter] = useState<Filter>("all");
+  const [picked, setPicked] = useState(false);
   const all = q.data ?? [];
   if (q.isError || all.length === 0) return null;
   const shown = all.filter((x) => filter === "all" || x.kind === filter).slice(0, 6);
@@ -190,7 +191,10 @@ export function TemplatesTeaser() {
               key={f.id}
               type="button"
               aria-pressed={filter === f.id}
-              onClick={() => setFilter(f.id)}
+              onClick={() => {
+                setFilter(f.id);
+                setPicked(true);
+              }}
               className={cn(
                 "rounded-[var(--radius-sm)] border px-3 py-1.5 font-mono text-[13px] transition-colors",
                 filter === f.id ? "border-fg bg-inverse text-on-inverse" : "border-line bg-card hover:border-fg",
@@ -201,8 +205,8 @@ export function TemplatesTeaser() {
           ))}
         </div>
         {shown.length === 0 ? <p className="mt-8 text-sm text-muted">{t("dg.templates.empty")}</p> : null}
-        {/* key={filter}: items mounting into an already-revealed Stagger stay at opacity 0 (whileInView runs once) */}
-        <Stagger key={filter} className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {/* key={filter} remounts the grid per filter; after a pick it animates on mount, not on scroll-in */}
+        <Stagger key={filter} immediate={picked} className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((tpl, i) => (
             <StaggerItem key={tpl.id}>
               <article className="tile tile-hover relative flex h-full flex-col overflow-hidden">

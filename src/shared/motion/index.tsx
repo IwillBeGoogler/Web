@@ -41,16 +41,22 @@ export function Reveal({
 const staggerParent = { hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } } };
 const staggerChild = { hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease } } };
 
-/** Children of a Stagger animate in one after another. */
+/**
+ * Children of a Stagger animate in one after another, once it scrolls into view.
+ * `immediate`: animate on mount instead (content swapped in place, e.g. by a filter, is already on screen and the
+ * one-shot in-view trigger may never fire for it, leaving the items at opacity 0).
+ */
 export function Stagger({
   children,
   className,
   as = "div",
+  immediate = false,
   "aria-label": ariaLabel,
 }: {
   children: ReactNode;
   className?: string;
   as?: "div" | "ul" | "ol";
+  immediate?: boolean;
   "aria-label"?: string;
 }) {
   const reduce = useReducedMotion();
@@ -61,8 +67,7 @@ export function Stagger({
       aria-label={ariaLabel}
       variants={staggerParent}
       initial={reduce ? false : "hidden"}
-      whileInView="show"
-      viewport={{ once: true, margin: "-40px" }}
+      {...(immediate ? { animate: "show" } : { whileInView: "show", viewport: { once: true, margin: "-40px" } })}
     >
       {children}
     </Comp>

@@ -48,6 +48,7 @@ export function Templates() {
   const q = useQuery(templatesQuery());
   const fork = useForkTemplate();
   const [kind, setKind] = useState<Filter>("all");
+  const [picked, setPicked] = useState(false);
   const [using, setUsing] = useState<string | null>(null);
   const items = (q.data ?? []).filter((x) => kind === "all" || x.kind === kind);
   const use = (id: string) =>
@@ -67,7 +68,10 @@ export function Templates() {
         <Lens
           label={t("dg.templates.filter")}
           value={kind}
-          onChange={setKind}
+          onChange={(k) => {
+            setKind(k);
+            setPicked(true);
+          }}
           items={[
             ["all", t("dg.templates.all")],
             ["system", t("dg.templates.system")],
@@ -102,7 +106,7 @@ export function Templates() {
         <EmptyState icon={LayoutTemplateIcon} code="0 · templates" title={t("dg.templates.empty")} />
       ) : (
         // key={kind}: items mounting into an already-revealed Stagger stay at opacity 0 (whileInView runs once)
-        <Stagger key={kind} as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger key={kind} immediate={picked} as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((x, i) => (
             <StaggerItem as="li" key={x.id}>
               <TemplateCard tpl={x} index={i} busy={using === x.id} locked={using !== null && using !== x.id} onUse={() => use(x.id)} />
