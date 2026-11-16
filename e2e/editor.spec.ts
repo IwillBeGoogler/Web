@@ -45,8 +45,7 @@ test.afterAll(async () => {
 
 // The language test switches the UI to uz/ru; the signed-in account syncs that language (web.lang), which would leave every
 // later signed-in test (and run) in the wrong language. Put it back to English.
-const resetLang = (ctx: APIRequestContext) =>
-  ctx.patch("/api/diagrams/me/prefs", { data: { "web.lang": "en" }, headers: auth() });
+const resetLang = (ctx: APIRequestContext) => ctx.patch("/api/diagrams/me/prefs", { data: { "web.lang": "en" }, headers: auth() });
 
 async function signIn(page: Page) {
   await page.goto("/");

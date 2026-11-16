@@ -6,7 +6,7 @@ import QRCode from "qrcode";
 import { type ReactNode, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { engagementRepository } from "@/contexts/engagement/infrastructure/engagementRepository";
-import { useMe, useUpdateProfile } from "@/contexts/identity/application/session";
+import { useChangeUsername, useMe, useUpdateProfile } from "@/contexts/identity/application/session";
 import { displayName } from "@/contexts/identity/domain/account";
 import { readingPrefs } from "@/contexts/preferences/application/store";
 import { ReadingControls } from "@/contexts/preferences/ui/ReadingPanel";
@@ -53,6 +53,50 @@ const Section = ({ title, desc, children }: { title: string; desc?: string; chil
     <div className="mt-5">{children}</div>
   </section>
 );
+
+function UsernameField({ current }: { current: string }) {
+  const change = useChangeUsername();
+  const [value, setValue] = useState(current);
+  const next = value.trim();
+  const valid = /^[a-zA-Z0-9_]{3,32}$/.test(next);
+  const dirty = next !== current;
+  return (
+    <Field label="Username" hint={valid || !next ? "3-32: letters, digits, _" : "Only letters, digits and _ (3-32)"}>
+      {(a) => (
+        <div className="flex gap-2">
+          <div className="relative min-w-0 flex-1">
+            <span aria-hidden className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-muted">
+              @
+            </span>
+            <input
+              {...a}
+              className={cn(inputCls, "pl-7")}
+              maxLength={32}
+              autoCapitalize="none"
+              spellCheck={false}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            loading={change.isPending}
+            disabled={!dirty || !valid}
+            onClick={() =>
+              change.mutate(next, {
+                onSuccess: () => toast.ok(`You are now @${next}. Old profile links stop working.`),
+                onError: (e) => toast.error(/conflict|exists/i.test(String((e as Error)?.message)) ? "That username is taken." : e),
+              })
+            }
+          >
+            Change
+          </Button>
+        </div>
+      )}
+    </Field>
+  );
+}
 
 function ProfileTab() {
   const { me } = useMe();
@@ -117,7 +161,7 @@ function ProfileTab() {
             ) : null}
           </div>
         </div>
-        <p className="text-sm text-muted">@{me.username}</p>
+        <UsernameField current={me.username} />
         <Field label="Name" hint={`${form.display_name.length}/50`}>
           {(a) => (
             <input {...a} className={inputCls} maxLength={50} value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} />

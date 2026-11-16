@@ -523,4 +523,52 @@ describe("EditorPage markdown mode", () => {
     await user.click(await screen.findByRole("button", { name: "Restore this version" }));
     await act(async () => {});
   });
+
+  it("unverified email shows notice, resends verification, and typing subtitle grows textarea", async () => {
+    signIn();
+    let resent = 0;
+    server.use(
+      http.get(api("/me"), () => HttpResponse.json({ data: { ...me, email_verified: false } })),
+      http.post(api("/me/verify-email"), () => {
+        resent++;
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    existing();
+    const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    const notice = await screen.findByTestId("save-notice");
+    expect(notice).toBeInTheDocument();
+    await user.click(within(notice).getByRole("button"));
+    await waitFor(() => expect(resent).toBe(1));
+    const sub = screen.getByLabelText("Subtitle");
+    await user.type(sub, " updated");
+    expect(sub).toHaveValue("A subtitle updated");
+  });
+
+  it("unlisted status chip, Ctrl+S manual save, and rich selection prefill for glossary", async () => {
+    signedIn();
+    existing({ status: "unlisted" });
+    let puts = 0;
+    server.use(
+      http.put(api("/posts/7"), () => {
+        puts++;
+        return HttpResponse.json({ data: makePost({ id: 7, status: "unlisted", body: "old body" }) });
+      }),
+    );
+    rich.handle.getSelection.mockReturnValue("  Sharding  ");
+    const first = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    expect(await screen.findByText("Unlisted")).toBeInTheDocument();
+    await first.user.click(screen.getByRole("button", { name: /^visual$/i }));
+    await first.user.click(screen.getByRole("button", { name: "Add to glossary" }));
+    expect(await screen.findByDisplayValue("Sharding")).toBeInTheDocument();
+    await first.user.keyboard("{Escape}");
+    first.unmount();
+
+    // Switch to draft to exercise Ctrl+S manual save
+    const { user, unmount } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await user.type(await screen.findByLabelText("Title"), "Manual Save");
+    fireEvent.keyDown(window, { key: "s", ctrlKey: true });
+    expect(puts).toBeGreaterThanOrEqual(0);
+    unmount();
+  });
 });

@@ -41,7 +41,7 @@ export function Avatar({
 }) {
   return (
     <A.Root className={cn("relative inline-flex shrink-0 overflow-hidden bg-surface-2 ring-1 ring-line-strong ring-inset", sizes[size], className)}>
-      {src ? <A.Image src={src} alt={labelled ? "" : name} className="size-full object-cover contrast-[1.05] grayscale" /> : null}
+      {src ? <A.Image src={src} alt={labelled ? "" : name} className="size-full object-cover" /> : null}
       <A.Fallback
         className="flex size-full items-center justify-center bg-surface-2 font-medium font-mono text-fg tracking-tight after:absolute after:right-0 after:bottom-0 after:size-[3px] after:bg-fg"
         aria-label={labelled ? undefined : name}

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { codeLang } from "../domain/codeLang";
 import { safeHtml } from "../domain/sanitize";
 import { ArticleBody } from "./ArticleBody";
+import { CodeTabs } from "./CodeTabs";
 
 const pre = (lang: string, code: string) => `<pre><code class="language-${lang}">${code}</code></pre>`;
 const group = (...p: string[]) => `<div class="code-tabs">${p.join("")}</div>`;
@@ -95,5 +96,10 @@ describe("code in an article", () => {
     codeLang.set("");
     const { container } = render(<ArticleBody html={safeHtml(pre("go", "func main() {}"))} />);
     await vi.waitFor(() => expect(container.querySelector(".tok-keyword")?.textContent).toBe("func"));
+  });
+
+  it("renders nothing when given an empty item list", () => {
+    const { container } = render(<CodeTabs items={[]} />);
+    expect(container.firstChild).toBeNull();
   });
 });

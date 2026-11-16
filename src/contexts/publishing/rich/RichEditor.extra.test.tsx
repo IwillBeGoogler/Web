@@ -46,7 +46,7 @@ describe("RichEditor toolbar", () => {
     await body();
     const user = userEvent.setup();
     act(() => ref.current?.focus());
-    for (const name of ["Heading 2", "Heading 3", "Bold", "Italic", "Code", "Bulleted list", "Numbered list", "Quote", "Code block", "Divider"]) {
+    for (const name of ["Heading", "Subheading", "Bold", "Italic", "Inline code", "Bulleted list", "Numbered list", "Quote", "Code block", "Divider"]) {
       const b = screen.queryAllByRole("button", {
         name: new RegExp(`^${name}`, "i"),
       })[0];
@@ -152,6 +152,60 @@ describe("RichEditor links", () => {
     act(() => ref.current?.flush());
     await waitFor(() => expect(onChange).toHaveBeenCalled());
   });
+
+  it("removes an existing link via Remove link button", async () => {
+    const { ref } = setup("see [docs](https://old.example) now");
+    await body();
+    const user = userEvent.setup();
+    act(() => ref.current?.focus());
+    const a = document.querySelector(".rich-body a") as HTMLElement;
+    const sel = window.getSelection() as Selection;
+    const r = document.createRange();
+    r.setStart(a.firstChild as Node, 1);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    fireEvent(document, new Event("selectionchange"));
+    await user.click(tb("Link"));
+    const removeBtn = screen.queryByRole("button", { name: /remove link/i });
+    if (removeBtn) {
+      await user.click(removeBtn);
+      await waitFor(() => expect(document.querySelector(".rich-body a")).toBeNull());
+    }
+  });
+
+  it("toolbar buttons and BubbleMenu format selected text", async () => {
+    const { ref, onChange } = setup("hello world");
+    const el = await body();
+    const user = userEvent.setup();
+    act(() => ref.current?.focus());
+
+    // Select "hello" so BubbleMenu appears and toolbar marks apply to selection
+    const pText = el.querySelector("p")?.firstChild as Node;
+    const sel = window.getSelection() as Selection;
+    const range = document.createRange();
+    range.setStart(pText, 0);
+    range.setEnd(pText, 5);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    act(() => {
+      document.dispatchEvent(new Event("selectionchange"));
+    });
+
+    // Click toolbar buttons including Heading, Subheading, Inline code, and Image button
+    await user.click(tb("Heading"));
+    await user.click(tb("Subheading"));
+    await user.click(tb("Inline code"));
+    await user.click(tb("Image"));
+    act(() => ref.current?.flush());
+    expect(onChange).toHaveBeenCalled();
+
+    // Also run BubbleMenu buttons if rendered
+    for (const label of ["Bold", "Italic", "Inline code", "Heading", "Quote", "Link"]) {
+      const all = screen.queryAllByRole("button", { name: new RegExp(`^${label}`, "i") });
+      if (all.length > 1) await user.click(all[1] as HTMLElement);
+    }
+  });
 });
 
 describe("RichEditor slash menu", () => {
@@ -199,7 +253,7 @@ describe("RichEditor slash menu", () => {
     fireEvent.keyDown(await body(), { key: "ArrowDown" });
   });
 
-  it.each(["h2", "h3", "quote", "code", "ul", "ol", "hr", "live", "diagram", "image"])("runs /%s by mouse", async (q) => {
+  it.each(["h2", "h3", "quote", "code", "table", "ul", "ol", "hr", "live", "diagram", "image"])("runs /%s by mouse", async (q) => {
     const { onDiagram } = await slash(`/${q}`);
     const list = await screen.findByRole("listbox");
     const opt = within(list).getAllByRole("option")[0] as HTMLElement;

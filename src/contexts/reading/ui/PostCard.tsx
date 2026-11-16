@@ -71,7 +71,7 @@ export function PostCard({ post, index }: { post: Post; index?: number }) {
                   const cell = e.currentTarget.closest("[data-cover]") as HTMLElement | null;
                   if (cell) cell.hidden = true;
                 }}
-                className="absolute inset-0 size-full object-cover contrast-[1.05] grayscale"
+                className="absolute inset-0 size-full object-cover contrast-[1.05]"
               />
             </div>
           ) : null}

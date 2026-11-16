@@ -26,6 +26,7 @@ describe("SiteStats", () => {
                 title: "Caching 101",
                 author: "ali",
                 views: 900,
+                avg_read_seconds: 120,
               },
             ],
             top_diagrams: [

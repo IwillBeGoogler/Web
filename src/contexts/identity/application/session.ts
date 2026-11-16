@@ -52,6 +52,17 @@ export function useLogout() {
     },
   });
 }
+export function useChangeUsername() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: accountRepository.changeUsername,
+    onSuccess: (u) => {
+      qc.setQueryData(meKey, u);
+      void qc.invalidateQueries(); // authors appear by username all over the cache
+    },
+  });
+}
+
 export function useUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({

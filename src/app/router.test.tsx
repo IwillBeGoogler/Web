@@ -44,7 +44,17 @@ vi.mock("./pages/MePages", () => ({
   SeriesRoute: show("series"),
   PublicationRoute: show("pubroute"),
 }));
-vi.mock("./pages/LegalPages", () => ({ PrivacyPage: show("privacy"), TermsPage: show("terms") }));
+vi.mock("./pages/LegalPages", () => ({
+  PrivacyPage: show("privacy"),
+  TermsPage: show("terms"),
+  AboutPage: show("about"),
+  ContactPage: show("contact"),
+  HelpPage: show("help"),
+}));
+vi.mock("./pages/TopicsPage", () => ({
+  TopicsPage: show("topics"),
+  TopicPage: show("topic"),
+}));
 vi.mock("./pages/DiagramPages", () => ({
   DiagramsPage: show("diagrams"),
   DiagramProjectPage: show("dproject"),
@@ -130,6 +140,11 @@ describe("router", () => {
       ["/pub/p1", "pubroute", '"slug":"p1"'],
       ["/privacy", "privacy", ""],
       ["/terms", "terms", ""],
+      ["/about", "about", ""],
+      ["/contact", "contact", ""],
+      ["/help", "help", ""],
+      ["/topics", "topics", ""],
+      ["/topics/distributed", "topic", '"slug":"distributed"'],
       ["/auth/callback", "sso", ""],
       ["/forgot-password", "forgot", ""],
       ["/d/v/my-slug", "dview", '"slug":"my-slug"'],
@@ -212,6 +227,15 @@ describe("router", () => {
     await waitFor(() => expect(router.state.location.search).toEqual({ tab: "security" }));
     await go("/me/settings?tab=nope");
     await waitFor(() => expect(screen.getByTestId("settings")).toHaveTextContent("profile"));
+  });
+
+  it("home and a writer's profile get the planet, earth and sun; story pages do not", async () => {
+    await go("/@ali");
+    await waitFor(() => expect(screen.getByTestId("galaxy")).toHaveTextContent("true"));
+    expect(await screen.findByTestId("earth")).toHaveTextContent("true");
+    await go("/@ali/some-story");
+    await waitFor(() => expect(screen.getByTestId("galaxy")).toHaveTextContent("false"));
+    expect(screen.queryByTestId("earth")).toBeNull();
   });
 
   it("only the home page gets the planet and the earth", async () => {

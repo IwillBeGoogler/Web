@@ -292,7 +292,7 @@ function PublishDialog({
                       {tags[0] ? ` · #${tags[0]}` : ""}
                     </p>
                   </div>
-                  {cover ? <img src={cover} alt="" className="h-12 w-16 rounded-[var(--radius-xs)] border border-line object-cover grayscale" /> : null}
+                  {cover ? <img src={cover} alt="" className="h-12 w-16 rounded-[var(--radius-xs)] border border-line object-cover" /> : null}
                 </div>
               </div>
             </li>
@@ -900,7 +900,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
           </div>
         </div>
       </header>
-      <div className="mx-auto flex max-w-[1040px] gap-8 px-4">
+      <div className="mx-auto flex gap-8 px-4 [max-width:min(100%,calc(var(--article-measure,80ch)+7rem+2rem))]">
         <p
           aria-hidden
           className="focus-hide sticky top-20 hidden h-fit w-20 shrink-0 space-y-2 pt-12 font-mono text-[10.5px] tracking-[0.1em] text-muted uppercase lg:block"
@@ -909,7 +909,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
           <span className="block">02 Dek</span>
           <span className="block">03 Body</span>
         </p>
-        <main id="main" className="reading-glass mx-auto w-full max-w-feed min-w-0 px-4 pt-10 pb-24">
+        <main id="main" className="article-column reading-glass mx-auto w-full min-w-0 px-4 pt-10 pb-24 md:px-6">
           {banner ? (
             <section
               aria-label={t("editor.restore.title")}

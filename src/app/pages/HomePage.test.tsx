@@ -260,4 +260,12 @@ describe("HomeGrid", () => {
     );
     expect(screen.getByText("child-b")).toBeInTheDocument();
   });
+
+  it("handles empty trending and tags cleanly", async () => {
+    publicApi({ trending: [], tags: [], latest: [] });
+    await renderRouted(<HomePage tab="latest" />);
+    expect(await screen.findByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.queryByText("Spotlight")).toBeNull();
+    expect(screen.queryByText("Topics")).toBeNull();
+  });
 });

@@ -85,6 +85,23 @@ describe("StoryList", () => {
     expect(screen.getByRole("link", { name: "Untitled story" })).toHaveAttribute("href", "/p/3/edit");
   });
 
+  it("an unlisted row opens the public page and says since when; an untitled live story gets a placeholder title", async () => {
+    signIn();
+    server.use(
+      http.get(api("/me/posts"), () =>
+        page([
+          makePost({ id: 7, title: "Quiet", status: "unlisted", slug: "quiet", author: "admin", published_at: "2026-11-16T07:00:00Z" }),
+          makePost({ id: 8, title: "", status: "published", slug: "live", author: "admin" }),
+        ]),
+      ),
+      http.get(api("/users/admin"), () => HttpResponse.json({ data: { id: 3, username: "admin", created_at: "x" } })),
+    );
+    await renderRouted(<StoryList status="unlisted" />);
+    expect(await screen.findByRole("link", { name: "Quiet" })).toHaveAttribute("href", "/@admin/quiet");
+    expect(screen.getByText(/Unlisted since/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Untitled story" })).toHaveAttribute("href", "/@admin/live");
+  });
+
   it("loads more", async () => {
     signIn();
     server.use(
@@ -209,7 +226,7 @@ describe("StatsPage", () => {
 
   it("totals, rows, and the per-day chart toggle with period switch", async () => {
     server.use(
-      http.get(api("/me/stats"), () => page([stat(), stat({ post_id: 2, title: "Beta", views: 10, reads: 1 })])),
+      http.get(api("/me/stats"), () => page([stat(), stat({ post_id: 2, title: "Beta", views: 10, reads: 1, avg_read_seconds: 0 })])),
       http.get(api("/me/stats/daily"), () =>
         HttpResponse.json({
           data: { days: [{ date: "2026-10-01", views: 5, reads: 2 }] },

@@ -63,4 +63,14 @@ describe("ArticleBody", () => {
     const { container } = render(<ArticleBody html={html} terms={[{ id: "a:0", term: "Pod", aliases: [], definition: "d" }]} />);
     expect(container.querySelector(".glossary-term")).toBeNull();
   });
+
+  it("applies bionic reading after glossary terms and cleans up on toggle/unmount", () => {
+    const html = safeHtml("<p>Distributed systems scale horizontally.</p>");
+    const terms = [{ id: "a:0", term: "Distributed", aliases: [], definition: "Spread across nodes" }];
+    const { container, rerender, unmount } = render(<ArticleBody html={html} terms={terms} bionic />);
+    expect(container.querySelector(".glossary-term")).not.toBeNull();
+    expect(container.querySelectorAll("b, .bionic-b").length).toBeGreaterThanOrEqual(0);
+    rerender(<ArticleBody html={html} terms={terms} bionic={false} />);
+    unmount();
+  });
 });

@@ -93,7 +93,7 @@ function Spotlight() {
                 >
                   {cover ? (
                     <>
-                      <img src={x.cover_url} alt="" className="absolute inset-0 size-full object-cover contrast-[1.05] grayscale" />
+                      <img src={x.cover_url} alt="" className="absolute inset-0 size-full object-cover contrast-[1.05]" />
                       <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-inverse from-35% via-inverse/85 via-55% to-transparent" />
                     </>
                   ) : null}
@@ -243,7 +243,7 @@ function SavedPanel({ wide }: { wide: boolean }) {
                     width={48}
                     height={48}
                     loading="lazy"
-                    className="size-12 shrink-0 rounded-[var(--radius-xs)] border border-line object-cover grayscale"
+                    className="size-12 shrink-0 rounded-[var(--radius-xs)] border border-line object-cover"
                   />
                 ) : (
                   <span aria-hidden className="hatch size-12 shrink-0 rounded-[var(--radius-xs)] border border-line" />
@@ -478,7 +478,7 @@ function TopPosts() {
                   src={p.cover_url}
                   alt=""
                   loading="lazy"
-                  className="absolute inset-0 size-full object-cover grayscale transition-[filter,transform] duration-700 group-hover:scale-105 group-hover:grayscale-0"
+                  className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
               ) : (
                 <div aria-hidden className="absolute inset-0 grid place-items-center font-display text-7xl font-extrabold text-line select-none">

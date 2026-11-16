@@ -113,6 +113,17 @@ describe("Settings profile", () => {
     tokens.set(null);
   });
 
+  it("profile form fills in blanks for an account with no name, bio or photo, and when /me answers late", async () => {
+    signIn();
+    server.use(
+      http.get(api("/me"), () => json({ id: 3, username: "admin", email: "a@x.dev", display_name: "Late", bio: "late bio", avatar_url: "", created_at: "x" })),
+    );
+    const bare = withMe({ id: 3, username: "admin", email: "a@x.dev", created_at: "x" } as never);
+    await renderRouted(<Settings tab="profile" onTab={() => {}} />, { qc: bare });
+    expect((await screen.findAllByDisplayValue("")).length).toBeGreaterThan(0);
+    tokens.set(null);
+  });
+
   it("resend failure toasts error", async () => {
     signIn();
     server.use(http.post(api("/me/verify-email"), () => HttpResponse.json({ status: 500, detail: "boom" }, { status: 500 })));
@@ -160,6 +171,48 @@ describe("Settings profile", () => {
     tokens.set(null);
     const { container } = await renderRouted(<Settings tab="profile" onTab={() => {}} />);
     expect(container.querySelector("form")).toBeNull();
+  });
+
+  it("changes username: validates hint, handles conflict/generic error, and succeeds", async () => {
+    signIn();
+    let mode: "conflict" | "err" | "ok" = "conflict";
+    const errSpy = vi.spyOn(toast, "error").mockImplementation(() => undefined as never);
+    const okSpy = vi.spyOn(toast, "ok").mockImplementation(() => undefined as never);
+    server.use(
+      http.get(api("/me"), () => json({ id: 3, username: "admin", email_verified: true, created_at: "x" })),
+      http.put(api("/me/username"), () => {
+        if (mode === "conflict") return HttpResponse.json({ status: 409, detail: "username exists" }, { status: 409 });
+        if (mode === "err") return HttpResponse.json({ status: 500, detail: "down" }, { status: 500 });
+        return json({ id: 3, username: "newname", created_at: "x" });
+      }),
+    );
+    const qc = withMe({ id: 3, username: "admin", email_verified: true, created_at: "x" });
+    const { user: u } = await renderRouted(<Settings tab="profile" onTab={() => {}} />, { qc });
+    const input = await screen.findByLabelText("Username");
+    const changeBtn = screen.getByRole("button", { name: "Change" });
+    expect(changeBtn).toBeDisabled();
+
+    await u.clear(input);
+    await u.type(input, "a");
+    expect(screen.getByText(/Only letters, digits and _/)).toBeInTheDocument();
+    expect(changeBtn).toBeDisabled();
+
+    await u.clear(input);
+    await u.type(input, "newname");
+    expect(changeBtn).toBeEnabled();
+    await u.click(changeBtn);
+    await waitFor(() => expect(errSpy).toHaveBeenCalledWith("That username is taken."));
+
+    mode = "err";
+    await u.click(changeBtn);
+    await waitFor(() => expect(errSpy).toHaveBeenCalledTimes(2));
+
+    mode = "ok";
+    await u.click(changeBtn);
+    await waitFor(() => expect(okSpy).toHaveBeenCalledWith(expect.stringContaining("@newname")));
+    errSpy.mockRestore();
+    okSpy.mockRestore();
+    tokens.set(null);
   });
 });
 

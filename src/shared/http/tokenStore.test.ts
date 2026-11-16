@@ -91,4 +91,22 @@ describe("tokenStore", () => {
     f.otherTab(null, null); // storage.clear() in another tab
     expect(store.get()).toBeNull();
   });
+
+  it("falls back to null when localStorage access throws", () => {
+    const orig = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    Object.defineProperty(globalThis, "localStorage", {
+      configurable: true,
+      get() {
+        throw new Error("denied");
+      },
+    });
+    try {
+      const store = createTokenStore();
+      expect(store.get()).toBeNull();
+      store.set({ token: "x", expiresAt: "2030-01-01T00:00:00Z" });
+      expect(store.get()?.token).toBe("x");
+    } finally {
+      if (orig) Object.defineProperty(globalThis, "localStorage", orig);
+    }
+  });
 });

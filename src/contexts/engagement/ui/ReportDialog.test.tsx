@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { signIn } from "@/test/fixtures";
@@ -42,5 +42,17 @@ describe("ReportDialog", () => {
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Close" }));
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("handles post/user targets and clears note on submit", async () => {
+    signIn();
+    server.use(http.post(api("/reports"), () => new HttpResponse(null, { status: 204 })));
+    const onClose = vi.fn();
+    const { user } = await renderRouted(<ReportDialog target={{ type: "post", id: 9 }} onClose={onClose} />);
+    expect(screen.getByText("Report story")).toBeInTheDocument();
+    const note = screen.getByLabelText(/details|note/i);
+    await user.type(note, "spam");
+    fireEvent.submit(note.closest("form") as HTMLFormElement);
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 });

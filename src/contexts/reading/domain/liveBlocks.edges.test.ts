@@ -14,7 +14,7 @@ describe("splitLive edges", () => {
     expect(parts.at(-1)).toMatchObject({ kind: "text", text: "after" });
   });
   it("keeps the lines of a non-live fenced block as prose, including its closer", () => {
-    const parts = splitLive("~~~html-live-not\nbody\n~~~\n```html-live\nok\n```");
+    const parts = splitLive("~~~html-live-not\nbody\n~~~\n```html-live a b\nx\n```\n```html-live\nok\n```");
     expect(parts.map((p) => p.kind)).toEqual(["text", "live"]);
   });
 });

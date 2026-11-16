@@ -195,4 +195,14 @@ describe("TermTooltip", () => {
     fireEvent.focusIn(pod); // touch mode ignores focus
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
+
+  it("stays open when focus moves into the tooltip and when glossary updates preserve the active term", async () => {
+    const { pod } = setup();
+    fireEvent.keyDown(document, { key: "Tab" });
+    act(() => pod.focus());
+    await flush();
+    const tip = screen.getByRole("tooltip");
+    fireEvent.focusOut(pod, { relatedTarget: tip });
+    expect(screen.queryByRole("tooltip")).not.toBeNull();
+  });
 });

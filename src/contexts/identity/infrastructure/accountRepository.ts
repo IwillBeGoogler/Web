@@ -30,4 +30,7 @@ export const accountRepository = {
   async updateProfile(body: { display_name: string; bio: string; avatar_url: string }): Promise<User> {
     return (await http("/me", { method: "PATCH", body, schema: dataEnvelope(userSchema) })).data;
   },
+  async changeUsername(username: string): Promise<User> {
+    return (await http("/me/username", { method: "PUT", body: { username }, schema: dataEnvelope(userSchema) })).data;
+  },
 };
