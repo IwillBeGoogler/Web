@@ -7,6 +7,7 @@ import {
   Color,
   DirectionalLight,
   Group,
+  ImageBitmapLoader,
   LineBasicMaterial,
   LineLoop,
   LoadingManager,
@@ -21,7 +22,7 @@ import {
   ShaderMaterial,
   SphereGeometry,
   SRGBColorSpace,
-  type Texture,
+  Texture,
   TextureLoader,
   Vector3,
   WebGLRenderer,
@@ -59,13 +60,13 @@ void main() {
 
 const TEX = `${import.meta.env.BASE_URL}earth/`;
 
-/** The HD maps (~4-6 MB) are fetched only on a quick link: not with data saver, not on 2G/3G, not under ~5 Mbit/s (where the browser tells). */
+/** The HD maps (~4-6 MB) are fetched only on a quick link: not with data saver, not on 2G/3G, not under ~3 Mbit/s (where the browser tells). */
 function fastNetwork(): boolean {
   const c = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string; downlink?: number } }).connection;
   if (!c) return true;
   if (c.saveData) return false;
   if (c.effectiveType && c.effectiveType !== "4g") return false;
-  return c.downlink === undefined || c.downlink >= 5;
+  return c.downlink === undefined || c.downlink >= 3;
 }
 
 /**
@@ -269,19 +270,23 @@ export default function EarthHorizon({ brand, satellite = false }: { brand?: str
     const manager = new LoadingManager();
     manager.onProgress = (_url, done, total) => setProgress(total ? done / total : 0);
     // Two passes so the planet shows fast: the 2048px set (~0.8 MB) first on every device, then on desktop the 4-8K maps
-    // (and the 16000px NASA Blue Marble where the GPU takes it) swap in quietly once the page is idle.
-    const big = !mobile && renderer.capabilities.maxTextureSize >= 16384;
+    // swap in quietly once the page is idle.
     const names = ["albedo", "bump", "clouds", "ocean", "lights"] as const;
     const tClouds: { value: Texture | null } = { value: null };
     type Set5 = [Texture, Texture, Texture, Texture, Texture];
     const loadSet = (dir: string, l: TextureLoader, file: (n: string) => string = (n) => n) =>
       Promise.all(names.map((n) => l.loadAsync(`${dir}${file(n)}.webp`))) as Promise<Set5>;
-    const apply = ([albedo, bump, cloudTex, ocean, lights]: Set5) => {
-      const old = textures;
-      textures = [albedo, bump, cloudTex, ocean, lights];
+    // sampling settings go on before the first upload: changing them later re-uploads the whole map
+    const prep = ([albedo, , cloudTex]: Set5, set: Set5) => {
       albedo.colorSpace = SRGBColorSpace;
-      for (const t of textures) t.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+      for (const t of set) t.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
       cloudTex.wrapS = RepeatWrapping;
+    };
+    const apply = (set: Set5) => {
+      const [albedo, bump, cloudTex, ocean, lights] = set;
+      const old = textures;
+      textures = [...set];
+      prep(set, set);
       earthMat.map = albedo;
       earthMat.bumpMap = bump;
       earthMat.roughnessMap = ocean;
@@ -333,14 +338,30 @@ export default function EarthHorizon({ brand, satellite = false }: { brand?: str
         setProgress(1);
         dispatchEvent(new Event(EARTH_READY)); // lets the loading splash lift
         if (mobile || !fastNetwork()) return; // slow link or data saver: the 2048px set stays
-        const upgrade = () =>
-          loadSet(TEX, new TextureLoader(), (n) => (n === "albedo" && big ? "albedo-16k" : n))
-            .then((hd) => {
-              if (!disposed) return apply(hd);
-              for (const t of hd) t.dispose();
-            })
-            .catch(() => undefined); // keep the small set
-        setTimeout(() => ("requestIdleCallback" in window ? requestIdleCallback(upgrade, { timeout: 3000 }) : upgrade()), 1500);
+        // The HD maps are decoded off the main thread (ImageBitmap) and sent to the GPU one per idle slot, so no frame carries
+        // a multi-megapixel decode + upload (that was the hitch a second or two after load). 8K at most: a 16K map alone is
+        // ~0.5 GB of texture memory and a long upload.
+        const idle = () => new Promise<void>((r) => ("requestIdleCallback" in window ? requestIdleCallback(() => r(), { timeout: 2000 }) : setTimeout(r, 50)));
+        const upgrade = async () => {
+          if (typeof createImageBitmap === "undefined") return;
+          const l = new ImageBitmapLoader();
+          l.setOptions({ imageOrientation: "flipY" });
+          const hd = (await Promise.all(names.map((n) => l.loadAsync(`${TEX}${n}.webp`)))).map((b) => {
+            const t = new Texture(b as ImageBitmap);
+            t.flipY = false;
+            t.needsUpdate = true;
+            return t;
+          }) as Set5;
+          prep(hd, hd);
+          for (const t of hd) {
+            await idle();
+            if (disposed) break;
+            renderer.initTexture(t);
+          }
+          if (disposed) for (const t of hd) t.dispose();
+          else apply(hd);
+        };
+        setTimeout(() => void upgrade().catch(() => undefined), 2500); // keep the small set on any failure
       })
       .catch(gaveUp);
 
