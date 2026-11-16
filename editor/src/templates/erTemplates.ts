@@ -111,7 +111,7 @@ CREATE TABLE post_tags (
 );
 `;
 
-function fromSql(sql: string, title: string): Diagram {
+export function fromSql(sql: string, title: string): Diagram {
   const d = schemaToDiagram(parseSql(sql).schema);
   const minX = Math.min(...d.nodes.map((n) => n.position.x));
   const minY = Math.min(...d.nodes.map((n) => n.position.y));

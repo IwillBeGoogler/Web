@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
+import { useTagManager } from "@/shared/analytics";
 import { consent, useConsent } from "@/shared/consent";
 import { useT } from "@/shared/i18n";
 
@@ -12,6 +13,7 @@ const choice =
  * so the article action bar and reading dock lift clear of it.
  */
 export function CookieBanner() {
+  useTagManager();
   if (useConsent() !== null) return null;
   return <Banner />;
 }

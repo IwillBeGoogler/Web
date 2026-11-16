@@ -1,6 +1,8 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook } from "@testing-library/react";
+import { createElement, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resetTracking, track, useReadTime } from "./analytics";
+import { resetTracking, track, useReadTime, useTagManager } from "./analytics";
 import { tokens } from "./api";
 import { consent } from "./consent";
 
@@ -143,5 +145,47 @@ describe("useReadTime", () => {
     vi.advanceTimersByTime(10_000);
     unmount();
     expect(f).not.toHaveBeenCalled();
+  });
+});
+
+describe("Tag Manager", () => {
+  const wrap = (id: string) => {
+    const client = new QueryClient();
+    client.setQueryData(["config"], { gtm_container_id: id });
+    return ({ children }: { children: ReactNode }) => createElement(QueryClientProvider, { client }, children);
+  };
+  const gtm = () => document.head.querySelectorAll('script[src*="googletagmanager.com/gtm.js"]');
+
+  afterEach(() => {
+    consent.reset();
+    resetTracking();
+    for (const s of gtm()) s.remove();
+    window.dataLayer = undefined;
+  });
+
+  it("stays off without consent", () => {
+    consent.set("necessary");
+    renderHook(() => useTagManager(), { wrapper: wrap("GTM-ABC123") });
+    expect(gtm()).toHaveLength(0);
+  });
+
+  it("stays off without a container id or with an invalid one", () => {
+    consent.set("all");
+    renderHook(() => useTagManager(), { wrapper: wrap("") });
+    renderHook(() => useTagManager(), { wrapper: wrap("bad id") });
+    expect(gtm()).toHaveLength(0);
+  });
+
+  it("loads once after consent and forwards page views to the dataLayer", () => {
+    consent.set("all");
+    renderHook(() => useTagManager(), { wrapper: wrap("GTM-ABC123") });
+    renderHook(() => useTagManager(), { wrapper: wrap("GTM-ABC123") });
+    expect(gtm()).toHaveLength(1);
+    expect(gtm()[0]?.getAttribute("src")).toContain("id=GTM-ABC123");
+    const f = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    track({ name: "page_view", path: "/x" }, f);
+    expect(window.dataLayer).toEqual(
+      expect.arrayContaining([expect.objectContaining({ event: "gtm.js" }), expect.objectContaining({ event: "page_view", page_path: "/x" })]),
+    );
   });
 });

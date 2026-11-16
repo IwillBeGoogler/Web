@@ -11,8 +11,8 @@ const names = (d: { nodes: DiagramNode[] }) => d.nodes.filter((n) => n.type === 
 const kinds = (d: { edges: { data?: { uml?: { kind: string } } }[] }) => d.edges.map((e) => e.data?.uml?.kind);
 
 describe('UML design-pattern templates', () => {
-  it('registers the seven patterns with uml / class / oop / ood tags', () => {
-    expect(UML.map((t) => t.name)).toEqual(['UML — Strategy', 'UML — Observer', 'UML — Factory Method', 'UML — Singleton', 'UML — Decorator', 'UML — Adapter', 'UML — Repository']);
+  it('registers the seventeen patterns with uml / class / oop / ood tags', () => {
+    expect(UML.map((t) => t.name)).toEqual(['UML — Strategy', 'UML — Observer', 'UML — Factory Method', 'UML — Singleton', 'UML — Decorator', 'UML — Adapter', 'UML — Repository', 'UML — Builder', 'UML — Abstract Factory', 'UML — Command', 'UML — State', 'UML — Composite', 'UML — Proxy', 'UML — Facade', 'UML — Chain of Responsibility', 'UML — Template Method', 'UML — Mediator']);
     for (const t of UML) expect(t.tags, t.id).toEqual(expect.arrayContaining(['uml', 'class', 'oop', 'ood']));
   });
   for (const t of UML) {

@@ -5,6 +5,7 @@ import { dataEnvelope } from "@/shared/http";
 
 const publicConfigSchema = z.object({
   captcha_site_key: z.string().optional().default(""),
+  gtm_container_id: z.string().optional().default(""),
   analytics: z.boolean().optional().default(false),
   sso: z
     .object({

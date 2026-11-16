@@ -75,3 +75,17 @@ describe("i18n module edges", () => {
     vi.doUnmock("../settingsSync");
   });
 });
+
+describe("?lang= in the URL", () => {
+  it("wins over the stored language", async () => {
+    localStorage.setItem("iwillbegoogler.lang", "en");
+    history.replaceState(null, "", "/?lang=ru");
+    vi.resetModules();
+    const m = await import("./index");
+    expect(m.i18n.get()).toBe("ru");
+    history.replaceState(null, "", "/?lang=xx");
+    vi.resetModules();
+    expect((await import("./index")).i18n.get()).toBe("en");
+    history.replaceState(null, "", "/");
+  });
+});
