@@ -589,4 +589,150 @@ describe("EditorPage markdown mode", () => {
     expect(puts).toBeGreaterThanOrEqual(0);
     unmount();
   });
+
+  it("handles localStorage read failure gracefully", async () => {
+    signedIn();
+    noPubs();
+    const getSpy = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("denied");
+    });
+    await renderRouted(<EditorPage />, { path: "/new-story" });
+    expect(await screen.findByTestId("rich")).toBeInTheDocument();
+    getSpy.mockRestore();
+  });
+
+  it("topic tree grandchildren, >5 tags guard, and unlisted visibility toggle/publish", async () => {
+    signedIn();
+    noPubs();
+    let sentStatus: unknown;
+    server.use(
+      http.get(api("/categories"), () =>
+        HttpResponse.json({
+          data: [
+            {
+              id: 1,
+              name: "Systems",
+              slug: "systems",
+              children: [
+                {
+                  id: 2,
+                  name: "Storage",
+                  slug: "storage",
+                  children: [{ id: 3, name: "LSM", slug: "lsm", children: [] }],
+                },
+              ],
+            },
+          ],
+        }),
+      ),
+      http.post(api("/posts"), async ({ request }) => {
+        const body = (await request.json()) as { status?: string };
+        sentStatus = body.status;
+        return HttpResponse.json({ data: makePost({ id: 9, slug: "unlisted-story", status: "unlisted" }) }, { status: 201 });
+      }),
+    );
+    localStorage.setItem("iwillbegoogler.editor.mode", "md");
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await user.type(await screen.findByLabelText("Title"), "Unlisted Story");
+    await user.type(screen.getByLabelText("Story body (Markdown)"), "Some body text");
+    await user.click(screen.getByRole("button", { name: /Ship it/i }));
+
+    // Expand topic tree to grandchild
+    const systemsBtn = await screen.findByRole("button", { name: "Systems" });
+    await user.click(systemsBtn);
+    const summary = await screen.findByText("1");
+    await user.click(summary);
+    expect(await screen.findByText("LSM")).toBeInTheDocument();
+
+    // TopicsInput > 5 tags guard
+    const tagInput = screen.getByPlaceholderText(/Add a tag/i);
+    for (const tag of ["t1", "t2", "t3", "t4", "t5", "t6"]) {
+      await user.type(tagInput, `${tag}{Enter}`);
+    }
+    expect(screen.getByText("#t5")).toBeInTheDocument();
+    expect(screen.queryByText("#t6")).toBeNull();
+
+    // Toggle visibility Public -> Unlisted -> Public -> Unlisted and publish
+    await user.click(screen.getByRole("button", { name: "Unlisted" }));
+    expect(screen.getByText(/Only people with the link can read it/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Public" }));
+    await user.click(screen.getByRole("button", { name: "Unlisted" }));
+    await user.click(screen.getByRole("button", { name: "Publish unlisted" }));
+    await waitFor(() => expect(sentStatus).toBe("unlisted"));
+  });
+
+  it("scheduled story shows local-saved chip and blocks navigation when dirty", async () => {
+    signedIn();
+    noPubs();
+    existing({ status: "scheduled", publish_at: "2099-01-01T12:00:00Z" });
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    expect(await screen.findByText("rich:old body")).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("Title"), " edited");
+    expect(await screen.findByText(/Saved on this device/i)).toBeInTheDocument();
+
+    // Trigger beforeunload and router blocker
+    window.dispatchEvent(new Event("beforeunload", { cancelable: true }));
+    await user.click(screen.getByRole("link", { name: /Stories/i }));
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(screen.getByLabelText("Title")).toBeInTheDocument();
+
+    confirmSpy.mockReturnValue(true);
+    await user.click(screen.getByRole("link", { name: /Stories/i }));
+  });
+
+  it("edits a glossary entry among multiple terms and opens glossary in preview mode", async () => {
+    signedIn();
+    noPubs();
+    existing({
+      glossary: [
+        { term: "Alpha", definition: "First" },
+        { term: "Beta", definition: "Second" },
+      ],
+    });
+    localStorage.setItem("iwillbegoogler.editor.mode", "md");
+    const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    expect(await screen.findByLabelText("Story body (Markdown)")).toBeInTheDocument();
+
+    const editBtns = screen.getAllByRole("button", { name: /Edit/i });
+    await user.click(editBtns[1]);
+    const defInput = await screen.findByDisplayValue("Second");
+    await user.clear(defInput);
+    await user.type(defInput, "Updated");
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Updated")).toBeInTheDocument();
+
+    // Toggle preview so bodyRef.current is null when Add to glossary is clicked
+    await user.click(screen.getByRole("button", { name: "Preview" }));
+    await user.click(screen.getByRole("button", { name: "Add to glossary" }));
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+  });
+
+  it("skips settling upload when placeholder was removed and falls back for unnamed failed image", async () => {
+    signedIn();
+    noPubs();
+    let resolveUpload!: (url: string) => void;
+    vi.spyOn(engagementRepository, "upload").mockImplementation((f) => {
+      if (!f.name) return Promise.reject(new Error("fail"));
+      return new Promise<string>((res) => {
+        resolveUpload = res;
+      });
+    });
+    localStorage.setItem("iwillbegoogler.editor.mode", "md");
+    await renderRouted(<EditorPage />, { path: "/new-story" });
+    const ta = (await screen.findByLabelText("Story body (Markdown)")) as HTMLTextAreaElement;
+    const good = new File(["a"], "pic.png", { type: "image/png" });
+    const unnamed = new File(["a"], "", { type: "image/png" });
+    fireEvent.paste(ta, { clipboardData: { files: [good, unnamed] } });
+    await waitFor(() => expect(ta.value).toContain("![Uploading…]"));
+
+    // Remove the placeholder before the upload resolves
+    fireEvent.change(ta, { target: { value: "" } });
+    await act(async () => {
+      resolveUpload("http://x/pic.png");
+    });
+    expect(ta.value).toBe("");
+  });
 });
