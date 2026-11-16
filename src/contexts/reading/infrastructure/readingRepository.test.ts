@@ -3,8 +3,20 @@ import { describe, expect, it } from "vitest";
 import { api, server } from "@/test/server";
 import { readingRepository } from "./readingRepository";
 
-const post = { id: 1, title: "T", slug: "t", status: "published", author: "ali", created_at: "x", updated_at: "x" };
-const page = (q: Record<string, string>) => HttpResponse.json({ data: [{ ...post, title: JSON.stringify(q) }], meta: { page: 1, limit: 20, total: 1 } });
+const post = {
+  id: 1,
+  title: "T",
+  slug: "t",
+  status: "published",
+  author: "ali",
+  created_at: "x",
+  updated_at: "x",
+};
+const page = (q: Record<string, string>) =>
+  HttpResponse.json({
+    data: [{ ...post, title: JSON.stringify(q) }],
+    meta: { page: 1, limit: 20, total: 1 },
+  });
 const params = (r: Request) => Object.fromEntries(new URL(r.url).searchParams);
 
 describe("readingRepository.feed", () => {
@@ -78,7 +90,9 @@ describe("readingRepository", () => {
     server.use(
       http.get(api("/glossary"), ({ request }) => {
         lang = new URL(request.url).searchParams.get("lang");
-        return HttpResponse.json({ data: [{ id: 1, term: "Pod", aliases: null, definition: "d", lang: "" }] });
+        return HttpResponse.json({
+          data: [{ id: 1, term: "Pod", aliases: null, definition: "d", lang: "" }],
+        });
       }),
     );
     expect(await readingRepository.glossary("uz")).toEqual([{ id: 1, term: "Pod", aliases: [], definition: "d", lang: "" }]);

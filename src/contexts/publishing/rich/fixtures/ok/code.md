@@ -10,6 +10,6 @@ no language
   indented line
 ```
 
-````md
-```nested fence```
-````
+```md
+`nested fence`
+```

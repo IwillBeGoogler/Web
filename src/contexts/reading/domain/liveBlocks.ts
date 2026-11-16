@@ -23,7 +23,10 @@ export type LiveBlock = { code: string; height: number };
  * Takes the live blocks out of sanitized article HTML. Each one becomes an empty `<div data-live="i">` host in the
  * returned markup, and `blocks[i]` holds its source. The source is only ever read as text.
  */
-export function extractLive(html: string): { html: string; blocks: LiveBlock[] } {
+export function extractLive(html: string): {
+  html: string;
+  blocks: LiveBlock[];
+} {
   if (typeof DOMParser === "undefined" || !html.includes("language-html-live-")) return { html, blocks: [] };
   const root = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html").body.firstElementChild as HTMLElement;
   const blocks: LiveBlock[] = [];
@@ -51,14 +54,24 @@ export function splitLive(body: string): BodyPart[] {
   const parts: BodyPart[] = [];
   let text: string[] = [];
   // height is null for any fence that is not a valid live block; its lines stay prose
-  let open: { ch: string; n: number; height: number | null; code: string[] } | null = null;
+  let open: {
+    ch: string;
+    n: number;
+    height: number | null;
+    code: string[];
+  } | null = null;
   const flush = () => {
     if (text.length) parts.push({ id: parts.length, kind: "text", text: text.join("\n") });
     text = [];
   };
   const emit = (o: { height: number | null; code: string[] }) => {
     flush();
-    parts.push({ id: parts.length, kind: "live", code: o.code.join("\n"), height: o.height ?? LIVE_DEFAULT_HEIGHT });
+    parts.push({
+      id: parts.length,
+      kind: "live",
+      code: o.code.join("\n"),
+      height: o.height ?? LIVE_DEFAULT_HEIGHT,
+    });
   };
   for (const raw of body.split("\n")) {
     const line = raw.replace(/\r$/, "");

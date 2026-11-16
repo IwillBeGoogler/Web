@@ -10,7 +10,13 @@ const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})(.*)$/;
 export const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})[ \t]*$/;
 const HEIGHT = /^height=(\d{1,5})$/;
 
-export type LiveFence = { start: number; end: number; code: string; height: number | null; fence: string };
+export type LiveFence = {
+  start: number;
+  end: number;
+  code: string;
+  height: number | null;
+  fence: string;
+};
 
 /** The info string of a fence line as a live block's options, or null when the fence is not a (valid) live block. */
 export function liveInfo(info: string): { height: number | null } | null {
@@ -26,9 +32,24 @@ export function scanLive(body: string): LiveFence[] {
   if (!body.includes(LIVE_LANG)) return [];
   const lines = body.split("\n");
   const out: LiveFence[] = [];
-  let open: { ch: string; n: number; live: boolean; start: number; height: number | null; fence: string; code: string[] } | null = null;
+  let open: {
+    ch: string;
+    n: number;
+    live: boolean;
+    start: number;
+    height: number | null;
+    fence: string;
+    code: string[];
+  } | null = null;
   const finish = (end: number) => {
-    if (open?.live) out.push({ start: open.start, end, code: open.code.join("\n"), height: open.height, fence: open.fence });
+    if (open?.live)
+      out.push({
+        start: open.start,
+        end,
+        code: open.code.join("\n"),
+        height: open.height,
+        fence: open.fence,
+      });
     open = null;
   };
   lines.forEach((raw, i) => {
@@ -40,7 +61,15 @@ export function scanLive(body: string): LiveFence[] {
       const info = (m[2] as string).trim();
       if (fence[0] === "`" && info.includes("`")) return;
       const live = liveInfo(info);
-      open = { ch: fence[0] as string, n: fence.length, live: !!live, start: i, height: live?.height ?? null, fence, code: [] };
+      open = {
+        ch: fence[0] as string,
+        n: fence.length,
+        live: !!live,
+        start: i,
+        height: live?.height ?? null,
+        fence,
+        code: [],
+      };
       return;
     }
     const c = FENCE_CLOSE.exec(line);

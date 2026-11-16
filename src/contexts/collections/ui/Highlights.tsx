@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { HighlighterIcon, Trash2Icon } from "lucide-react";
 import { type RefObject, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { requireAuth } from "@/contexts/identity/application/authDialog";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
 import { Button } from "@/shared/ui/button";
@@ -33,7 +34,8 @@ export function Highlighter({ postId, body, container }: { postId: number; body:
     };
   }, [container]);
   if (!sel) return null;
-  return (
+  // portal: .reading-glass (backdrop-filter) would make the article the containing block of this absolute box
+  return createPortal(
     <div className="absolute z-40 -translate-x-1/2 -translate-y-full pb-2" style={{ left: sel.x, top: sel.y }}>
       <Button
         size="sm"
@@ -53,7 +55,8 @@ export function Highlighter({ postId, body, container }: { postId: number; body:
       >
         <HighlighterIcon className="size-4" aria-hidden /> Highlight
       </Button>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

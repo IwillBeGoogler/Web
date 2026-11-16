@@ -214,14 +214,14 @@ describe("router", () => {
     await waitFor(() => expect(screen.getByTestId("settings")).toHaveTextContent("profile"));
   });
 
-  it("reading pages: no planet, no earth", async () => {
+  it("only the home page gets the planet and the earth", async () => {
     await go("/p/abc");
     await screen.findByTestId("article");
     expect(screen.getByTestId("galaxy")).toHaveTextContent("false");
     expect(screen.queryByTestId("earth")).toBeNull();
     await go("/@ali/edit");
-    await waitFor(() => expect(screen.getByTestId("galaxy")).toHaveTextContent("true"));
-    expect(await screen.findByTestId("earth")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("galaxy")).toHaveTextContent("false"));
+    expect(screen.queryByTestId("earth")).toBeNull();
   });
 
   it("signed out guard redirects home", async () => {

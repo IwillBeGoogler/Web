@@ -33,7 +33,7 @@ export const storyFormSchema = z
       .trim()
       .refine((s) => bytes(s) <= 300, "Subtitle is too long"),
     body: z.string().refine((s) => bytes(s) <= 100_000, "Story is too long"),
-    status: z.enum(["draft", "published", "scheduled"]),
+    status: z.enum(["draft", "published", "unlisted", "scheduled"]),
     publishAt: z.string(),
     publicationId: z.number().int().min(0),
     coverUrl: z.string().trim().refine(okUrl, "Use an uploaded image or an http(s) URL"),
@@ -41,11 +41,26 @@ export const storyFormSchema = z
     /** Topic tree ids, the first is the main one. */
     categoryIds: z.array(z.number().int().positive()).max(5, "Up to 5 topics"),
     /** Terms explained in a tooltip while reading this story. */
-    glossary: z.array(z.object({ term: z.string(), aliases: z.array(z.string()), definition: z.string() })),
+    glossary: z.array(
+      z.object({
+        term: z.string(),
+        aliases: z.array(z.string()),
+        definition: z.string(),
+      }),
+    ),
   })
-  .refine((v) => !entriesProblem(v.glossary), { path: ["glossary"], message: "Check the glossary terms" })
-  .refine((v) => v.status === "draft" || v.body.trim().length > 0, { path: ["body"], message: "Write something before publishing" })
-  .refine((v) => v.status !== "scheduled" || isFuture(v.publishAt), { path: ["publishAt"], message: "Pick a time in the future" });
+  .refine((v) => !entriesProblem(v.glossary), {
+    path: ["glossary"],
+    message: "Check the glossary terms",
+  })
+  .refine((v) => v.status === "draft" || v.body.trim().length > 0, {
+    path: ["body"],
+    message: "Write something before publishing",
+  })
+  .refine((v) => v.status !== "scheduled" || isFuture(v.publishAt), {
+    path: ["publishAt"],
+    message: "Pick a time in the future",
+  });
 export type StoryForm = z.infer<typeof storyFormSchema>;
 
 export const emptyStory = (): StoryForm => ({
@@ -90,11 +105,15 @@ export const storyToForm = (p: {
   title: p.title,
   subtitle: p.subtitle,
   body: p.body,
-  status: p.status === "draft" ? "draft" : p.status === "scheduled" ? "scheduled" : "published",
+  status: p.status === "draft" ? "draft" : p.status === "scheduled" ? "scheduled" : p.status === "unlisted" ? "unlisted" : "published",
   coverUrl: p.cover_url,
   tags: p.tags,
   categoryIds: p.category_ids ?? [],
   publishAt: toLocalInput(p.publish_at),
   publicationId: p.publication_id ?? 0,
-  glossary: (p.glossary ?? []).map((g) => ({ term: g.term, aliases: [...g.aliases], definition: g.definition })),
+  glossary: (p.glossary ?? []).map((g) => ({
+    term: g.term,
+    aliases: [...g.aliases],
+    definition: g.definition,
+  })),
 });

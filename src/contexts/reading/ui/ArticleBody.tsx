@@ -1,5 +1,6 @@
 import { type Ref, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { bionicDom, clearBionic } from "@/contexts/preferences/ui/bionic";
 import { extractCode } from "../domain/codeBlocks";
 import { clearTerms, markTerms, type Term } from "../domain/glossary";
 import { extractLive } from "../domain/liveBlocks";
@@ -14,7 +15,18 @@ import { TermTooltip } from "./TermTooltip";
  * `terms` (the article's glossary merged with the site's) get their first mention underlined, with a tooltip.
  * The HTML string is left as it is: the marking happens on the DOM, outside the live and code hosts.
  */
-export function ArticleBody({ html, bodyRef, terms }: { html: string; bodyRef?: Ref<HTMLDivElement>; terms?: readonly Term[] | undefined }) {
+export function ArticleBody({
+  html,
+  bodyRef,
+  terms,
+  bionic = false,
+}: {
+  html: string;
+  /** bionic reading is applied to the live DOM AFTER glossary marking: it splits words across nodes */
+  bionic?: boolean;
+  bodyRef?: Ref<HTMLDivElement>;
+  terms?: readonly Term[] | undefined;
+}) {
   const tipId = `glossary-tip-${useId().replace(/:/g, "")}`;
   const {
     html: markup,
@@ -37,10 +49,15 @@ export function ArticleBody({ html, bodyRef, terms }: { html: string; bodyRef?: 
   // biome-ignore lint/correctness/useExhaustiveDependencies: markup is what replaces the text nodes being marked
   useLayoutEffect(() => {
     const root = el.current;
-    if (!root || !terms?.length) return;
-    markTerms(root, terms, tipId);
-    return () => clearTerms(root);
-  }, [markup, terms, tipId]);
+    if (!root) return;
+    const marked = !!terms?.length;
+    if (marked) markTerms(root, terms, tipId);
+    if (bionic) bionicDom(root);
+    return () => {
+      if (bionic) clearBionic(root);
+      if (marked) clearTerms(root);
+    };
+  }, [markup, terms, tipId, bionic]);
   return (
     <>
       <div

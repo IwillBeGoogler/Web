@@ -58,6 +58,12 @@ function ProfileTab() {
   const { me } = useMe();
   const save = useUpdateProfile();
   const [form, setForm] = useState({ display_name: me?.display_name ?? "", bio: me?.bio ?? "", avatar_url: me?.avatar_url ?? "" });
+  const [seeded, setSeeded] = useState(!!me);
+  if (me && !seeded) {
+    // a page refresh mounts this before /me answers: fill the form once it does, not with blanks
+    setSeeded(true);
+    setForm({ display_name: me.display_name ?? "", bio: me.bio ?? "", avatar_url: me.avatar_url ?? "" });
+  }
   const [uploading, setUploading] = useState(false);
   const resend = useMutation({ mutationFn: repo.resendVerification, onSuccess: () => toast.ok("Verification email sent"), onError: toast.error });
   if (!me) return null;

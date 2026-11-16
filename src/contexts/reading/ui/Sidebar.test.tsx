@@ -60,7 +60,17 @@ describe("Sidebar", () => {
     server.use(
       http.get(api("/posts/trending"), () => ok([])),
       http.get(api("/tags"), () => ok([])),
-      http.get(api("/me/suggestions/users"), () => ok([{ id: 7, username: "vali", display_name: "Vali D", avatar_url: "", followers: 1200 }])),
+      http.get(api("/me/suggestions/users"), () =>
+        ok([
+          {
+            id: 7,
+            username: "vali",
+            display_name: "Vali D",
+            avatar_url: "",
+            followers: 1200,
+          },
+        ]),
+      ),
     );
     await renderRouted(<Sidebar />);
     expect(await screen.findByText("Writers to watch")).toBeInTheDocument();

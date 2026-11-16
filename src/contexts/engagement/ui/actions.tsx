@@ -185,6 +185,12 @@ export function FollowButton({
   const { me } = useMe();
   const m = useFollow();
   const [on, setOn] = useState(following);
+  const [seen, setSeen] = useState(following);
+  if (seen !== following) {
+    // the prop changed (another profile, a refetch): follow it
+    setSeen(following);
+    setOn(following);
+  }
   if (me?.username === username) return null;
   const toggle = requireAuth(() => {
     setOn(!on);

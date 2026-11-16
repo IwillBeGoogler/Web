@@ -16,7 +16,12 @@ export const globalTermSchema = z.object({
 export type GlobalTerm = z.infer<typeof globalTermSchema>;
 
 /** One term the reader can see explained. `id` is "a:<index>" for the article's own terms and "g:<id>" for site-wide ones. */
-export type Term = { id: string; term: string; aliases: string[]; definition: string };
+export type Term = {
+  id: string;
+  term: string;
+  aliases: string[];
+  definition: string;
+};
 
 /** Quote variants Uzbek Latin is typed with: o‘ o’ oʻ o' o` all spell the same letter. */
 const APOSTROPHES = new Set(["'", "‘", "’", "ʻ", "ʼ", "`", "´", "′"]);
@@ -37,7 +42,12 @@ export function fold(s: string): string {
 export function mergeTerms(article: readonly GlossaryEntry[], globals: readonly GlobalTerm[]): Term[] {
   const mine: Term[] = article
     .filter((e) => e.term.trim() && e.definition.trim())
-    .map((e, i) => ({ id: `a:${i}`, term: e.term.trim(), aliases: e.aliases.map((a) => a.trim()).filter(Boolean), definition: e.definition }));
+    .map((e, i) => ({
+      id: `a:${i}`,
+      term: e.term.trim(),
+      aliases: e.aliases.map((a) => a.trim()).filter(Boolean),
+      definition: e.definition,
+    }));
   const taken = new Set(mine.flatMap((t) => [t.term, ...t.aliases]).map(fold));
   const theirs: Term[] = [];
   for (const g of globals) {
@@ -53,7 +63,12 @@ export function mergeTerms(article: readonly GlossaryEntry[], globals: readonly 
       continue;
     }
     for (const n of names) taken.add(fold(n));
-    theirs.push({ id: `g:${g.id}`, term: g.term.trim(), aliases: names.slice(1), definition: g.definition });
+    theirs.push({
+      id: `g:${g.id}`,
+      term: g.term.trim(),
+      aliases: names.slice(1),
+      definition: g.definition,
+    });
   }
   return [...mine, ...theirs];
 }

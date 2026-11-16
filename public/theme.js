@@ -12,6 +12,6 @@ try {
     if (p.bold) root.classList.add("bold-text");
     if (p.focus) root.classList.add("focus-mode");
     if (p.typeStep) root.style.setProperty("--article-size", 20 + Math.max(-2, Math.min(4, p.typeStep)) + "px");
-    if (p.measureStep) root.style.setProperty("--article-measure", 80 + Math.max(-5, Math.min(5, p.measureStep)) * 4 + "ch");
+    if (p.measureStep) root.style.setProperty("--article-measure", 80 + Math.max(-9, Math.min(12, p.measureStep)) * 4 + "ch");
   }
 } catch (e) {}

@@ -65,13 +65,15 @@ export const queryClient = new QueryClient({
   },
 });
 
+// signed out (here, expired, or in another tab): drop everything the previous reader's session cached
+tokens.subscribe((t) => {
+  if (t === null) queryClient.clear();
+});
+
 function Live() {
   useLiveNotifications();
   return null;
 }
-
-/** Story pages (/@user/slug, /p/slug, /posts/slug) keep only the starfield: no planet or sun behind the text. */
-const isReading = (path: string) => /^\/(@[^/]+|p|posts)\/[^/]+\/?$/.test(path) && !path.endsWith("/edit");
 
 /** The diagram editor fills the window under the top bar: its own calm backdrop (embed/theme.css), no footer. */
 const isEditor = (path: string) => /^\/d\/(f|s|v)\/[^/]+\/?$/.test(path);
@@ -99,17 +101,21 @@ function useDeferred(ms = 4000) {
   return on;
 }
 
+/** Pages that keep the Earth horizon + sun: home and a writer's profile (not their story pages). */
+const SCENE_PATH = /^\/(@[^/]+\/?)?$/;
+
 function Shell() {
   const t = useT();
   const earthOn = useDeferred();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const editor = isEditor(path);
+  const scene = SCENE_PATH.test(path);
   return (
     <div className="min-h-dvh text-fg">
-      {editor ? null : <Galaxy planet={!isReading(path)} />}
-      {isReading(path) || editor || !earthOn ? null : (
+      {editor ? null : <Galaxy planet={scene} />}
+      {!scene || !earthOn ? null : (
         <Suspense fallback={null}>
-          <EarthHorizon satellite={path === "/"} brand={BRAND} />
+          <EarthHorizon satellite={scene} brand={BRAND} />
         </Suspense>
       )}
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:bg-surface focus:px-4 focus:py-2">

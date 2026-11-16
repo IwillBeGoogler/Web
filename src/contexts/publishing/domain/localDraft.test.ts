@@ -2,10 +2,20 @@ import { describe, expect, it } from "vitest";
 import { decodeCopy, encodeCopy, localDraft, localKey, shouldOfferRestore } from "./localDraft";
 import { emptyStory, type StoryForm } from "./story";
 
-const form = (o: Partial<StoryForm> = {}): StoryForm => ({ ...emptyStory(), title: "T", body: "server", ...o });
+const form = (o: Partial<StoryForm> = {}): StoryForm => ({
+  ...emptyStory(),
+  title: "T",
+  body: "server",
+  ...o,
+});
 const mem = () => {
   const m = new Map<string, string>();
-  return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => void m.set(k, v), removeItem: (k: string) => void m.delete(k), m };
+  return {
+    getItem: (k: string) => m.get(k) ?? null,
+    setItem: (k: string, v: string) => void m.set(k, v),
+    removeItem: (k: string) => void m.delete(k),
+    m,
+  };
 };
 
 describe("shouldOfferRestore", () => {

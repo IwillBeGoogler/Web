@@ -12,13 +12,25 @@ const attrsOf = (n: unknown, html: string) => {
 describe("HtmlLive node", () => {
   it("parses attributes from the element, with defaults", () => {
     expect(attrsOf(HtmlLive, '<div data-html-live data-code="x" data-height="300" data-fence="~~~"></div>')).toEqual({ code: "x", height: 300, fence: "~~~" });
-    expect(attrsOf(HtmlLive, "<div data-html-live></div>")).toEqual({ code: "", height: null, fence: "```" });
+    expect(attrsOf(HtmlLive, "<div data-html-live></div>")).toEqual({
+      code: "",
+      height: null,
+      fence: "```",
+    });
     expect(attrsOf(HtmlLive, '<div data-html-live data-height="1.5"></div>').height).toBeNull();
     expect(cfg(HtmlLive).addAttributes.call({}).fence.default).toBe("```");
   });
   it("renders HTML", () => {
-    expect(cfg(HtmlLive).renderHTML({ node: { attrs: { code: "c", height: null, fence: "```" } } })[1]["data-height"]).toBe("");
-    expect(cfg(HtmlLive).renderHTML({ node: { attrs: { code: "c", height: 5, fence: "```" } } })[1]["data-height"]).toBe(5);
+    expect(
+      cfg(HtmlLive).renderHTML({
+        node: { attrs: { code: "c", height: null, fence: "```" } },
+      })[1]["data-height"],
+    ).toBe("");
+    expect(
+      cfg(HtmlLive).renderHTML({
+        node: { attrs: { code: "c", height: 5, fence: "```" } },
+      })[1]["data-height"],
+    ).toBe(5);
   });
   const t = cfg(HtmlLive).markdownTokenizer;
   it("finds the start", () => {

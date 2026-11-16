@@ -441,6 +441,7 @@ export const en = {
   "rich.slash.ul": "Bulleted list",
   "rich.slash.ol": "Numbered list",
   "rich.slash.hr": "Divider",
+  "rich.slash.table": "Table",
   "rich.slash.diagram": "Diagram",
   "rich.slash.live": "Animation",
   "rich.slash.codegroup": "Code in several languages",

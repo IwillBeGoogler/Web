@@ -6,7 +6,16 @@ const row = (o: Partial<Topic> & { id: number }): Topic => topicSchema.parse({ s
 describe("topicSchema", () => {
   it("fills defaults and turns null names into {}", () => {
     const t = topicSchema.parse({ id: 1, slug: "a", name: "A", names: null });
-    expect(t).toEqual({ id: 1, parent_id: 0, slug: "a", name: "A", names: {}, description: "", position: 0, count: 0 });
+    expect(t).toEqual({
+      id: 1,
+      parent_id: 0,
+      slug: "a",
+      name: "A",
+      names: {},
+      description: "",
+      position: 0,
+      count: 0,
+    });
   });
 });
 

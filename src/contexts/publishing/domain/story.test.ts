@@ -18,7 +18,11 @@ describe("story", () => {
     expect(storyFormSchema.safeParse({ ...ok, coverUrl: "/api/uploads/a.png" }).success).toBe(true);
   });
   it("maps to the API draft with normalised tags", () => {
-    const f = storyFormSchema.parse({ ...ok, tags: ["Go", "go", " DevOps "], status: "published" });
+    const f = storyFormSchema.parse({
+      ...ok,
+      tags: ["Go", "go", " DevOps "],
+      status: "published",
+    });
     expect(toDraft(f)).toEqual({
       title: "Hello",
       subtitle: "",
@@ -33,7 +37,16 @@ describe("story", () => {
     });
   });
   it("maps a post back to the form", () => {
-    expect(storyToForm({ title: "T", subtitle: "S", body: "B", status: "draft", cover_url: "c", tags: ["x"] })).toEqual({
+    expect(
+      storyToForm({
+        title: "T",
+        subtitle: "S",
+        body: "B",
+        status: "draft",
+        cover_url: "c",
+        tags: ["x"],
+      }),
+    ).toEqual({
       title: "T",
       subtitle: "S",
       body: "B",
@@ -51,23 +64,53 @@ describe("story", () => {
     const f = storyFormSchema.parse({ ...ok, glossary: g });
     expect(toDraft(f).glossary).toEqual([{ term: "Pod", aliases: ["pods"], definition: "Unit" }]);
     expect(
-      storyToForm({ title: "T", subtitle: "", body: "", status: "draft", cover_url: "", tags: [], glossary: [{ term: "A", aliases: ["b"], definition: "d" }] })
-        .glossary,
+      storyToForm({
+        title: "T",
+        subtitle: "",
+        body: "",
+        status: "draft",
+        cover_url: "",
+        tags: [],
+        glossary: [{ term: "A", aliases: ["b"], definition: "d" }],
+      }).glossary,
     ).toEqual([{ term: "A", aliases: ["b"], definition: "d" }]);
-    expect(storyFormSchema.safeParse({ ...ok, glossary: [g[0], { ...g[0], term: "POD" }] }).success).toBe(false);
+    expect(
+      storyFormSchema.safeParse({
+        ...ok,
+        glossary: [g[0], { ...g[0], term: "POD" }],
+      }).success,
+    ).toBe(false);
   });
 });
 
 describe("scheduling", () => {
   it("needs a future time and sends RFC 3339", () => {
     expect(storyFormSchema.safeParse({ ...ok, status: "scheduled", publishAt: "" }).success).toBe(false);
-    expect(storyFormSchema.safeParse({ ...ok, status: "scheduled", publishAt: "2001-01-01T10:00" }).success).toBe(false);
-    const f = storyFormSchema.parse({ ...ok, status: "scheduled", publishAt: "2099-05-06T07:08", publicationId: 3 });
+    expect(
+      storyFormSchema.safeParse({
+        ...ok,
+        status: "scheduled",
+        publishAt: "2001-01-01T10:00",
+      }).success,
+    ).toBe(false);
+    const f = storyFormSchema.parse({
+      ...ok,
+      status: "scheduled",
+      publishAt: "2099-05-06T07:08",
+      publicationId: 3,
+    });
     expect(toDraft(f).publish_at).toBe(new Date("2099-05-06T07:08").toISOString());
     expect(toDraft(f).publication_id).toBe(3);
     expect(
-      storyToForm({ title: "T", subtitle: "", body: "", status: "scheduled", cover_url: "", tags: [], publish_at: new Date("2099-05-06T07:08").toISOString() })
-        .publishAt,
+      storyToForm({
+        title: "T",
+        subtitle: "",
+        body: "",
+        status: "scheduled",
+        cover_url: "",
+        tags: [],
+        publish_at: new Date("2099-05-06T07:08").toISOString(),
+      }).publishAt,
     ).toBe("2099-05-06T07:08");
   });
 });

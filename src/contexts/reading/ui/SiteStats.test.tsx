@@ -11,9 +11,31 @@ describe("SiteStats", () => {
       http.get(api("/stats/site"), () =>
         HttpResponse.json({
           data: {
-            totals: { post_views: 1500, diagram_views: 42, visitors: 7, posts: 3, diagrams: 1, users: 2 },
-            top_posts: [{ id: 1, slug: "cache", title: "Caching 101", author: "ali", views: 900 }],
-            top_diagrams: [{ slug: "queue", title: "Queue design", author: "vali", views: 40 }],
+            totals: {
+              post_views: 1500,
+              diagram_views: 42,
+              visitors: 7,
+              posts: 3,
+              diagrams: 1,
+              users: 2,
+            },
+            top_posts: [
+              {
+                id: 1,
+                slug: "cache",
+                title: "Caching 101",
+                author: "ali",
+                views: 900,
+              },
+            ],
+            top_diagrams: [
+              {
+                slug: "queue",
+                title: "Queue design",
+                author: "vali",
+                views: 40,
+              },
+            ],
           },
         }),
       ),
@@ -32,16 +54,36 @@ describe("SiteStats", () => {
 });
 
 describe("SiteStats edges", () => {
-  const totals = (o: Record<string, number> = {}) => ({ post_views: 0, diagram_views: 0, visitors: 0, posts: 0, diagrams: 0, users: 0, ...o });
+  const totals = (o: Record<string, number> = {}) => ({
+    post_views: 0,
+    diagram_views: 0,
+    visitors: 0,
+    posts: 0,
+    diagrams: 0,
+    users: 0,
+    ...o,
+  });
   it("renders nothing when every headline total is zero", async () => {
-    server.use(http.get(api("/stats/site"), () => HttpResponse.json({ data: { totals: totals(), top_posts: [], top_diagrams: [] } })));
+    server.use(
+      http.get(api("/stats/site"), () =>
+        HttpResponse.json({
+          data: { totals: totals(), top_posts: [], top_diagrams: [] },
+        }),
+      ),
+    );
     const { container } = await renderRouted(<SiteStats />);
     await new Promise((r) => setTimeout(r, 30));
     expect(container.querySelector("#site-stats")).toBeNull();
   });
   it("renders when only one headline total is non-zero, and skips empty lists", async () => {
     for (const t of [totals({ post_views: 1 }), totals({ diagram_views: 1 }), totals({ posts: 1 })]) {
-      server.use(http.get(api("/stats/site"), () => HttpResponse.json({ data: { totals: t, top_posts: [], top_diagrams: [] } })));
+      server.use(
+        http.get(api("/stats/site"), () =>
+          HttpResponse.json({
+            data: { totals: t, top_posts: [], top_diagrams: [] },
+          }),
+        ),
+      );
       const { container, unmount } = await renderRouted(<SiteStats />);
       expect(await screen.findByText("The site in numbers")).toBeInTheDocument();
       expect(container.querySelector("#stats-posts")).toBeNull();

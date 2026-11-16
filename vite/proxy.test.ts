@@ -22,8 +22,8 @@ describe("dev proxy", () => {
 });
 
 describe("nginx.conf", () => {
-  it("blocks /api/internal/ with a 404 before it can reach the API (also past the /stream regex)", () => {
-    const block = /location \^~ \/api\/internal\/ \{\s*return 404;\s*\}/.exec(nginx);
+  it("blocks /api/internal (any suffix) with a 404 before it can reach the API (also past the /stream regex)", () => {
+    const block = /location \^~ \/api\/internal \{\s*return 404;\s*\}/.exec(nginx);
     expect(block).not.toBeNull();
     expect(nginx.indexOf(block?.[0] ?? "")).toBeLessThan(nginx.indexOf("location /api/ {"));
   });

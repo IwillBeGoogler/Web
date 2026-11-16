@@ -24,12 +24,21 @@ class FakeClipboardEvent extends Event {
     this.clipboardData = init?.clipboardData ?? new FakeTransfer();
   }
 }
-const saved = { dt: (globalThis as { DataTransfer?: unknown }).DataTransfer, ce: (globalThis as { ClipboardEvent?: unknown }).ClipboardEvent };
+const saved = {
+  dt: (globalThis as { DataTransfer?: unknown }).DataTransfer,
+  ce: (globalThis as { ClipboardEvent?: unknown }).ClipboardEvent,
+};
 beforeAll(() => {
-  Object.assign(globalThis, { DataTransfer: FakeTransfer, ClipboardEvent: FakeClipboardEvent });
+  Object.assign(globalThis, {
+    DataTransfer: FakeTransfer,
+    ClipboardEvent: FakeClipboardEvent,
+  });
 });
 afterAll(() => {
-  Object.assign(globalThis, { DataTransfer: saved.dt, ClipboardEvent: saved.ce });
+  Object.assign(globalThis, {
+    DataTransfer: saved.dt,
+    ClipboardEvent: saved.ce,
+  });
 });
 
 const open: Editor[] = [];
@@ -46,7 +55,11 @@ const editor = () => {
 function written(ed: Editor) {
   const doc = ed.getJSON();
   const md = serializeDoc(doc);
-  return { md, exact: sameRichDoc(parseMarkdown(md), doc), plain: canRoundTrip(md) };
+  return {
+    md,
+    exact: sameRichDoc(parseMarkdown(md), doc),
+    plain: canRoundTrip(md),
+  };
 }
 
 function paste(html: string) {

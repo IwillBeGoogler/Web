@@ -6,8 +6,23 @@ import { engagementRepository } from "@/contexts/engagement/infrastructure/engag
 import RichEditor, { type RichHandle } from "./RichEditor";
 
 beforeAll(() => {
-  const rect = { x: 0, y: 0, top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0, toJSON: () => ({}) };
-  Range.prototype.getClientRects = () => ({ length: 0, item: () => null, [Symbol.iterator]: [][Symbol.iterator] }) as unknown as DOMRectList;
+  const rect = {
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+    toJSON: () => ({}),
+  };
+  Range.prototype.getClientRects = () =>
+    ({
+      length: 0,
+      item: () => null,
+      [Symbol.iterator]: [][Symbol.iterator],
+    }) as unknown as DOMRectList;
   Range.prototype.getBoundingClientRect = () => rect as DOMRect;
   document.elementFromPoint = () => null;
 });
@@ -32,7 +47,9 @@ describe("RichEditor toolbar", () => {
     const user = userEvent.setup();
     act(() => ref.current?.focus());
     for (const name of ["Heading 2", "Heading 3", "Bold", "Italic", "Code", "Bulleted list", "Numbered list", "Quote", "Code block", "Divider"]) {
-      const b = screen.queryAllByRole("button", { name: new RegExp(`^${name}`, "i") })[0];
+      const b = screen.queryAllByRole("button", {
+        name: new RegExp(`^${name}`, "i"),
+      })[0];
       if (b) await user.click(b);
     }
     act(() => ref.current?.flush());
@@ -259,7 +276,9 @@ describe("RichEditor images", () => {
     setup("hi");
     await body();
     const input = screen.getAllByLabelText("Image").find((e) => e.tagName === "INPUT") as HTMLInputElement;
-    const big = new File([new Uint8Array(6 * 1024 * 1024)], "big.png", { type: "image/png" });
+    const big = new File([new Uint8Array(6 * 1024 * 1024)], "big.png", {
+      type: "image/png",
+    });
     const gif = new File(["x"], "doc.svg", { type: "image/svg+xml" });
     fireEvent.change(input, { target: { files: [png("bad.png"), big, gif] } });
     await waitFor(() =>
@@ -275,7 +294,9 @@ describe("RichEditor images", () => {
     const el = await body();
     fireEvent.paste(el, { clipboardData: { files: [], getData: () => "" } });
     expect(up).not.toHaveBeenCalled();
-    fireEvent.paste(el, { clipboardData: { files: [png("p.png")], getData: () => "" } });
+    fireEvent.paste(el, {
+      clipboardData: { files: [png("p.png")], getData: () => "" },
+    });
     await waitFor(() => expect(up).toHaveBeenCalled());
   });
 
@@ -294,7 +315,11 @@ describe("RichEditor images", () => {
     };
     (document as unknown as { caretRangeFromPoint: () => Range }).caretRangeFromPoint = at;
     document.elementFromPoint = () => el;
-    fireEvent.drop(el, { dataTransfer: { files: [png("d.png")], getData: () => "" }, clientX: 1, clientY: 1 });
+    fireEvent.drop(el, {
+      dataTransfer: { files: [png("d.png")], getData: () => "" },
+      clientX: 1,
+      clientY: 1,
+    });
     await waitFor(() => expect(up).toHaveBeenCalled());
   });
 });
@@ -327,10 +352,16 @@ describe("RichEditor node views", () => {
     const height = screen.getByLabelText("Height (px)");
     fireEvent.change(height, { target: { value: "250" } });
     await waitFor(() => expect(screen.getByLabelText("Height (px)")).toHaveValue(250));
-    fireEvent.change(screen.getByLabelText("Height (px)"), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText("Height (px)"), {
+      target: { value: "" },
+    });
     await waitFor(() => expect(screen.getByLabelText("Height (px)")).toHaveValue(null));
-    fireEvent.change(screen.getByLabelText("Height (px)"), { target: { value: "0" } });
-    fireEvent.change(screen.getByLabelText("Height (px)"), { target: { value: "999999" } });
+    fireEvent.change(screen.getByLabelText("Height (px)"), {
+      target: { value: "0" },
+    });
+    fireEvent.change(screen.getByLabelText("Height (px)"), {
+      target: { value: "999999" },
+    });
     await waitFor(() => expect(screen.getByLabelText("Height (px)")).toHaveValue(99999));
     await new Promise((r) => setTimeout(r, 700)); // the preview frame settles
     act(() => ref.current?.flush());

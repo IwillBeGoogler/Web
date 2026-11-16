@@ -3,11 +3,20 @@ import { canRoundTrip, parseMarkdown, serializeDoc, splitInfo } from "./markdown
 
 describe("code groups", () => {
   it("splits an info string into language and group", () => {
-    expect(splitInfo("go group=sort")).toEqual({ language: "go", group: "sort" });
+    expect(splitInfo("go group=sort")).toEqual({
+      language: "go",
+      group: "sort",
+    });
     expect(splitInfo("group=sort")).toEqual({ language: null, group: "sort" });
     expect(splitInfo("go")).toEqual({ language: "go", group: null });
-    expect(splitInfo("go groupie=x")).toEqual({ language: "go groupie=x", group: null });
-    expect(splitInfo("go group=a<b")).toEqual({ language: "go group=a<b", group: null });
+    expect(splitInfo("go groupie=x")).toEqual({
+      language: "go groupie=x",
+      group: null,
+    });
+    expect(splitInfo("go group=a<b")).toEqual({
+      language: "go group=a<b",
+      group: null,
+    });
   });
 
   it("reads the group of each fence and writes it back", () => {

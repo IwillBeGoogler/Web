@@ -8,6 +8,7 @@ import Italic from "@tiptap/extension-italic";
 import Link from "@tiptap/extension-link";
 import Paragraph from "@tiptap/extension-paragraph";
 import Strike from "@tiptap/extension-strike";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import { Placeholder } from "@tiptap/extensions";
 import { Markdown } from "@tiptap/markdown";
 import { Node as PMNode } from "@tiptap/pm/model";
@@ -131,7 +132,10 @@ const RichCode = Code.extend(noPaste);
 const GROUP_ATTR = /(?:^|\s)group=([A-Za-z0-9_-]{1,32})(?=\s|$)/;
 
 /** A fence's info string split into its language (everything but the group) and its group name. */
-export function splitInfo(info: string): { language: string | null; group: string | null } {
+export function splitInfo(info: string): {
+  language: string | null;
+  group: string | null;
+} {
   const m = GROUP_ATTR.exec(info);
   const language = (m ? info.replace(GROUP_ATTR, " ") : info).trim();
   return { language: language || null, group: m ? (m[1] as string) : null };
@@ -145,7 +149,12 @@ const codeGroupMarks = new Plugin({
   props: {
     decorations(state) {
       const out: Decoration[] = [];
-      const items: { pos: number; size: number; group: string | null; lang: string }[] = [];
+      const items: {
+        pos: number;
+        size: number;
+        group: string | null;
+        lang: string;
+      }[] = [];
       state.doc.forEach((n, pos) => {
         items.push({
           pos,
@@ -159,7 +168,12 @@ const codeGroupMarks = new Plugin({
         const first = items[i - 1]?.group !== it.group;
         const last = items[i + 1]?.group !== it.group;
         const pos = first && last ? "solo" : first ? "first" : last ? "last" : "mid";
-        out.push(Decoration.node(it.pos, it.pos + it.size, { class: `code-group code-group-${pos}`, "data-lang": it.lang }));
+        out.push(
+          Decoration.node(it.pos, it.pos + it.size, {
+            class: `code-group code-group-${pos}`,
+            "data-lang": it.lang,
+          }),
+        );
       });
       return out.length ? DecorationSet.create(state.doc, out) : DecorationSet.empty;
     },
@@ -214,7 +228,11 @@ const RichImage = Image.extend({
           const e = el as HTMLElement;
           const src = (e.getAttribute("src") ?? "").trim();
           if (!keepableImageSrc(src)) return false;
-          return { src, alt: e.getAttribute("alt") ?? "", title: e.getAttribute("title") || null };
+          return {
+            src,
+            alt: e.getAttribute("alt") ?? "",
+            title: e.getAttribute("title") || null,
+          };
         },
       },
     ];
@@ -228,7 +246,46 @@ const RichImage = Image.extend({
   },
 });
 
-export type RichOptions = { placeholder?: string; htmlLive?: AnyExtension; diagramEmbed?: AnyExtension };
+export type RichOptions = {
+  placeholder?: string;
+  htmlLive?: AnyExtension;
+  diagramEmbed?: AnyExtension;
+};
+
+/** A table in the one shape GFM holds: header cells in the first row only, plain cells below, no merged cells. */
+const RichTable = Table.extend({
+  addProseMirrorPlugins() {
+    return [
+      ...(this.parent?.() ?? []),
+      new Plugin({
+        appendTransaction: (trs, _old, state) => {
+          if (!trs.some((t) => t.docChanged)) return null;
+          const { tableHeader, tableCell } = state.schema.nodes;
+          if (!tableHeader || !tableCell) return null;
+          const tr = state.tr;
+          state.doc.descendants((table, pos) => {
+            if (table.type.name !== "table") return true;
+            table.forEach((row, rowOff, r) => {
+              row.forEach((cell, cellOff) => {
+                const want = r === 0 ? tableHeader : tableCell;
+                const at = pos + 1 + rowOff + 1 + cellOff;
+                if (cell.type !== want || cell.attrs.colspan !== 1 || cell.attrs.rowspan !== 1)
+                  tr.setNodeMarkup(at, want, {
+                    ...cell.attrs,
+                    colspan: 1,
+                    rowspan: 1,
+                    colwidth: null,
+                  });
+              });
+            });
+            return false;
+          });
+          return tr.docChanged ? tr : null;
+        },
+      }),
+    ];
+  },
+});
 
 /** The schema of the rich editor: what Markdown stories can hold, and nothing else. */
 export function richExtensions(o: RichOptions = {}): Extensions {
@@ -263,6 +320,11 @@ export function richExtensions(o: RichOptions = {}): Extensions {
     o.htmlLive ?? HtmlLive,
     o.diagramEmbed ?? DiagramEmbed,
     UploadPlaceholder,
+    // GFM tables: one paragraph per cell, since a Markdown cell holds only inline text
+    RichTable.configure({ resizable: false }),
+    TableRow,
+    TableHeader.extend({ content: "paragraph" }),
+    TableCell.extend({ content: "paragraph" }),
     Placeholder.configure({ placeholder: o.placeholder ?? "" }),
     Markdown,
   ];
@@ -301,7 +363,13 @@ const cleanTitle = (t: unknown): string | null =>
 function tidyMark(m: Mark): Mark {
   if (m.type !== "link") return m;
   const a = m.attrs ?? {};
-  return { type: "link", attrs: { href: encodeDest(String(a.href ?? "")), title: cleanTitle(a.title) } };
+  return {
+    type: "link",
+    attrs: {
+      href: encodeDest(String(a.href ?? "")),
+      title: cleanTitle(a.title),
+    },
+  };
 }
 
 const EMPHASIS = new Set(["bold", "italic", "strike"]);
@@ -436,7 +504,11 @@ function orderMarks(list: JSONContent[]): JSONContent[] {
     if (link && emph.length) {
       const linkLen = lenOf(i, (x) => linkKey(x) === linkKey(n));
       const longestEmph = Math.max(...emph.map((m) => lenOf(i, (x) => hasMark(x, m.type))));
-      if (linkLen > longestEmph) return { ...n, marks: [link, ...emph, ...marks.filter((m) => m !== link && !emph.includes(m))] as JSONContent["marks"] };
+      if (linkLen > longestEmph)
+        return {
+          ...n,
+          marks: [link, ...emph, ...marks.filter((m) => m !== link && !emph.includes(m))] as JSONContent["marks"],
+        };
     }
     return { ...n, marks: marks as JSONContent["marks"] };
   });
@@ -475,10 +547,18 @@ function tidyInline(nodes: JSONContent[], heading: boolean): JSONContent[] {
     if (n.type !== "text") return n;
     // code that holds a backtick or a backslash is written as plain text (parsers disagree on those)
     if (/[`\\]/.test(n.text ?? "") && n.marks?.some((m) => (m as Mark).type === "code"))
-      n = { ...n, marks: (n.marks as Mark[]).filter((m) => m.type !== "code") as JSONContent["marks"] };
+      n = {
+        ...n,
+        marks: (n.marks as Mark[]).filter((m) => m.type !== "code") as JSONContent["marks"],
+      };
     // a tab inside a line is read back as spaces
     const t = n.text?.includes("\t") ? { ...n, text: n.text.replace(/\t/g, " ") } : n;
-    return n.marks?.length ? { ...t, marks: (n.marks as Mark[]).map(tidyMark) as JSONContent["marks"] } : t;
+    return n.marks?.length
+      ? {
+          ...t,
+          marks: (n.marks as Mark[]).map(tidyMark) as JSONContent["marks"],
+        }
+      : t;
   });
   for (let round = 0; round < 4; round++) {
     const before = JSON.stringify(list);
@@ -509,7 +589,10 @@ function joinLists(blocks: JSONContent[]): JSONContent[] {
   for (const b of blocks) {
     const last = out[out.length - 1];
     if (last && b.type === last.type && (b.type === "bulletList" || b.type === "orderedList"))
-      out[out.length - 1] = { ...last, content: [...(last.content ?? []), ...(b.content ?? [])] };
+      out[out.length - 1] = {
+        ...last,
+        content: [...(last.content ?? []), ...(b.content ?? [])],
+      };
     else out.push(b);
   }
   return out;
@@ -525,10 +608,16 @@ function attachAfterLists(blocks: JSONContent[]): JSONContent[] {
     const lastItem = last?.content?.[last.content.length - 1];
     if (last && isList(last) && !isList(b) && lastItem) {
       const items = [...(last.content ?? [])];
-      items[items.length - 1] = { ...lastItem, content: attachAfterLists([...(lastItem.content ?? []), b]) };
+      items[items.length - 1] = {
+        ...lastItem,
+        content: attachAfterLists([...(lastItem.content ?? []), b]),
+      };
       out[out.length - 1] = { ...last, content: items };
     } else if (last?.type === "blockquote" && b.type === "blockquote")
-      out[out.length - 1] = { ...last, content: [...(last.content ?? []), ...(b.content ?? [])] };
+      out[out.length - 1] = {
+        ...last,
+        content: [...(last.content ?? []), ...(b.content ?? [])],
+      };
     else out.push(b);
   }
   return out;
@@ -580,7 +669,10 @@ function tidy(n: JSONContent): JSONContent | null {
       );
       return { ...n, content: items };
     }
-    return { ...n, content: n.type === "listItem" ? attachAfterLists(joinLists(real)) : joinLists(real) };
+    return {
+      ...n,
+      content: n.type === "listItem" ? attachAfterLists(joinLists(real)) : joinLists(real),
+    };
   }
   return { ...n, content: kids };
 }
@@ -623,7 +715,9 @@ export function escapeText(text: string, linked = false): string {
   return out;
 }
 
-type Patchable = { encodeTextForMarkdown: (text: string, node: JSONContent, parent?: JSONContent) => string };
+type Patchable = {
+  encodeTextForMarkdown: (text: string, node: JSONContent, parent?: JSONContent) => string;
+};
 /** Swaps the Markdown manager's text escaping for `escapeText` (the manager has no option for it). */
 export function patchEditor(ed: Editor): Editor {
   const m = ed.markdown as unknown as Patchable | undefined;
@@ -650,7 +744,19 @@ export const parseMarkdown = (md: string, ed: Editor = engine()): JSONContent =>
 /** A document to Markdown. */
 export const serializeDoc = (doc: JSONContent, ed: Editor = engine()): string => (ed.markdown?.serialize(cleanDoc(doc)) ?? "").replace(/[ \t\r\n]+$/, "");
 
-type Tok = { type?: string; raw?: string; text?: string; href?: string; depth?: number; loose?: boolean; task?: boolean; tokens?: Tok[]; items?: Tok[] };
+type Tok = {
+  type?: string;
+  header?: { tokens?: Tok[] }[];
+  rows?: { tokens?: Tok[] }[][];
+  raw?: string;
+  text?: string;
+  href?: string;
+  depth?: number;
+  loose?: boolean;
+  task?: boolean;
+  tokens?: Tok[];
+  items?: Tok[];
+};
 
 function scan(tokens: Tok[], nested: boolean, inLink = false): RichProblem | null {
   for (const t of tokens) {
@@ -689,9 +795,15 @@ function scan(tokens: Tok[], nested: boolean, inLink = false): RichProblem | nul
       case "html":
         p = "html";
         break;
-      case "table":
-        p = "table";
+      case "table": {
+        if (nested) p = "table";
+        else
+          for (const c of [...(t.header ?? []), ...(t.rows ?? []).flat()]) {
+            p = scan(c.tokens ?? [], true, inLink);
+            if (p) break;
+          }
         break;
+      }
       case "def":
         p = "definition";
         break;
@@ -723,7 +835,7 @@ const liveOfDoc = (doc: JSONContent) =>
 /**
  * Can the rich editor hold this Markdown without losing or changing anything that matters?
  * Parses to the editor's document, writes it back, parses that again, and requires both documents to be the same. Syntax the editor does not
- * model at all (raw HTML, tables, footnotes, reference links, tasks, other heading levels, unsafe links, loose lists) is refused up front,
+ * model at all (raw HTML, nested tables, footnotes, reference links, tasks, other heading levels, unsafe links, loose lists) is refused up front,
  * because parsing could silently drop it.
  */
 export function canRoundTrip(md: string): RoundTrip {

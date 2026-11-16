@@ -6,7 +6,11 @@ import { highlight, type Span } from "../domain/highlight";
 
 /** Highlighted source: runs of the code, classed by token. Plain text until (or unless) the grammar loads. */
 function Source({ code, lang }: CodeItem) {
-  const [spans, setSpans] = useState<{ code: string; lang: string; runs: Span[] } | null>(null);
+  const [spans, setSpans] = useState<{
+    code: string;
+    lang: string;
+    runs: Span[];
+  } | null>(null);
   useEffect(() => {
     let live = true;
     void highlight(code, lang).then((runs) => live && runs && setSpans({ code, lang, runs }));

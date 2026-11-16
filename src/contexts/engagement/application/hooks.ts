@@ -30,7 +30,8 @@ export function useClap(post: Pick<Post, "id" | "claps" | "my_claps">) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const send = useMutation({
     mutationFn: (n: number) => engagementRepository.clap(post.id, n),
-    onSuccess: (p) => patch(p.id, (old) => ({ ...old, claps: p.claps, my_claps: p.my_claps })),
+    // taps made while this request was in flight are not in the answer yet
+    onSuccess: (p) => patch(p.id, (old) => ({ ...old, claps: p.claps + pending.current, my_claps: p.my_claps + pending.current })),
   });
   return () => {
     const r = addClaps({ claps: post.claps, myClaps: post.my_claps }, 1);

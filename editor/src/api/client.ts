@@ -149,7 +149,9 @@ export class ApiClient {
         return await this.attempt<T>(method, path, o);
       } catch (e) {
         if (!(e instanceof ApiError)) throw e;
-        if (e.status === 403 && e.code === 'CSRF_INVALID' && !csrfRetried && method !== 'GET') {
+        // a bearer-token host (embedded editor) has no CSRF cookie session: /auth/me would be the wrong place to ask
+        const bearer = !!(this.o.headers?.() ?? {}).authorization || !!(this.o.headers?.() ?? {}).Authorization;
+        if (e.status === 403 && e.code === 'CSRF_INVALID' && !csrfRetried && method !== 'GET' && !bearer) {
           csrfRetried = true;
           try {
             await this.refreshCsrf();

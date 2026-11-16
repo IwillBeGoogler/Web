@@ -95,7 +95,12 @@ describe("what is written for a document", () => {
   it("writes two line breaks in a row as two breaks", () => {
     const doc = {
       type: "doc",
-      content: [{ type: "paragraph", content: [{ type: "text", text: "a" }, { type: "hardBreak" }, { type: "hardBreak" }, { type: "text", text: "b" }] }],
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "a" }, { type: "hardBreak" }, { type: "hardBreak" }, { type: "text", text: "b" }],
+        },
+      ],
     };
     expect(serializeDoc(doc)).toBe("a  \n\\\nb");
     expect(serializeDoc(parseMarkdown(serializeDoc(doc)))).toBe(serializeDoc(doc));

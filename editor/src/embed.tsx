@@ -10,7 +10,7 @@
  * palette (`./embed/theme.css` re-points the editor's tokens at the host's CSS variables). Only one editor may be mounted at a time:
  * its stores are module singletons.
  */
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import '@xyflow/react/dist/style.css';
 import './styles.css';
 import './embed/theme.css';
@@ -303,14 +303,18 @@ export function DiagramEditor({ fileId, commentId, shareToken, slug, apiBase = D
   // the root element: portals, the theme attribute and fullscreen all live inside it
   const themeRef = useRef(theme);
   themeRef.current = theme;
-  const paint = (node: HTMLElement) => {
+  const paint = useCallback((node: HTMLElement) => {
     node.dataset.theme = resolveTheme(themeRef.current, !!window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-  };
-  const setRoot = (node: HTMLDivElement | null) => {
-    if (node) paint(node); // before the editor renders: it reads the theme from this attribute
-    setHostRoot(node);
-    setEl(node);
-  };
+  }, []);
+  // stable identity: an inline ref callback would be called with null, then the node, on every render
+  const setRoot = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node) paint(node); // before the editor renders: it reads the theme from this attribute
+      setHostRoot(node);
+      setEl(node);
+    },
+    [paint],
+  );
   useEffect(() => {
     if (!el) return;
     const apply = () => paint(el);
@@ -319,7 +323,7 @@ export function DiagramEditor({ fileId, commentId, shareToken, slug, apiBase = D
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     mq.addEventListener?.('change', apply);
     return () => mq.removeEventListener?.('change', apply);
-  }, [el, theme]);
+  }, [el, theme, paint]);
 
   // leaving: save what is open, forget the project, hand the page back untouched
   useEffect(

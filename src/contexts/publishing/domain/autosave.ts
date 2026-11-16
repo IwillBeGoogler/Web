@@ -6,7 +6,7 @@ export const AUTOSAVE_IDLE_MS = 3_000;
 export const AUTOSAVE_MAX_MS = 30_000;
 
 /** "new" = not created on the server yet. */
-export type ServerStatus = "new" | "draft" | "published" | "scheduled";
+export type ServerStatus = "new" | "draft" | "published" | "unlisted" | "scheduled";
 
 /** Whether two forms hold the same story. `status` is ignored: it is the target of a save, not something typed. */
 export function sameStory(a: StoryForm, b: StoryForm): boolean {
@@ -73,7 +73,10 @@ export type SaveView = {
   lastSavedAt: number | null;
 };
 
-export type SaveStatus = { kind: "saving" | "failed" | "local" | "saved" | "none"; at?: number };
+export type SaveStatus = {
+  kind: "saving" | "failed" | "local" | "saved" | "none";
+  at?: number;
+};
 
 export function saveStatus(v: SaveView): SaveStatus {
   if (v.saving) return { kind: "saving" };

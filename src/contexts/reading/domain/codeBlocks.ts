@@ -12,7 +12,10 @@ const langOf = (code: Element): string | null => LANG_CLASS.exec(code.getAttribu
 const soleCode = (pre: Element): Element | null =>
   pre.tagName === "PRE" && pre.children.length === 1 && pre.firstElementChild?.tagName === "CODE" ? pre.firstElementChild : null;
 
-export function extractCode(html: string): { html: string; hosts: CodeItem[][] } {
+export function extractCode(html: string): {
+  html: string;
+  hosts: CodeItem[][];
+} {
   if (typeof DOMParser === "undefined" || !html.includes("language-")) return { html, hosts: [] };
   const root = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html").body.firstElementChild as HTMLElement;
   const doc = root.ownerDocument;
@@ -27,7 +30,10 @@ export function extractCode(html: string): { html: string; hosts: CodeItem[][] }
     const items: CodeItem[] = [];
     for (const pre of box.children) {
       const code = soleCode(pre);
-      items.push({ lang: (code && langOf(code)) ?? "", code: code?.textContent ?? "" });
+      items.push({
+        lang: (code && langOf(code)) ?? "",
+        code: code?.textContent ?? "",
+      });
     }
     if (items.length > 1 && [...box.children].every((c) => soleCode(c))) swap(box, items);
   }

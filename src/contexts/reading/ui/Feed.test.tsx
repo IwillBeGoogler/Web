@@ -10,7 +10,9 @@ describe("Feed", () => {
   it("renders cards with IWillBeGoogler-style meta and links", async () => {
     server.use(http.get(api("/posts"), () => page([makePost({ claps: 1200 })])));
     await renderRouted(<Feed source={{ kind: "latest" }} />);
-    const title = await screen.findByRole("heading", { name: "Hello IWillBeGoogler" });
+    const title = await screen.findByRole("heading", {
+      name: "Hello IWillBeGoogler",
+    });
     expect(title.closest("a")).toHaveAttribute("href", "/@ali/hello-iwillbegoogler");
     expect(screen.getAllByText("3 min").length).toBeGreaterThan(0);
     expect(screen.getByText("1.2K")).toBeInTheDocument();

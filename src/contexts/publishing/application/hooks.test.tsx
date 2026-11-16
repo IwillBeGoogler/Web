@@ -8,7 +8,15 @@ import { api, server } from "@/test/server";
 import { emptyStory } from "../domain/story";
 import { useDeleteStory, useSaveStory } from "./hooks";
 
-const post = { id: 5, title: "T", slug: "t-slug", status: "draft", author: "ali", created_at: "x", updated_at: "x" };
+const post = {
+  id: 5,
+  title: "T",
+  slug: "t-slug",
+  status: "draft",
+  author: "ali",
+  created_at: "x",
+  updated_at: "x",
+};
 const form = { ...emptyStory(), title: "T", body: "b" };
 
 const setup = () => {

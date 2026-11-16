@@ -14,9 +14,10 @@ const reduced = (): boolean => !!window.matchMedia?.('(prefers-reduced-motion: r
 /** briefly let nodes glide (CSS transition on transform) and edges fade in re-routed */
 function animate(): void {
   if (reduced()) return;
-  const el = document.documentElement;
-  el.setAttribute('data-arranging', '');
-  window.setTimeout(() => el.removeAttribute('data-arranging'), ARRANGE_MS + 80);
+  // standalone: the document element; embedded: the scoped CSS is written against the editor's own root
+  const els = [document.documentElement, ...document.querySelectorAll('.sdd-root')];
+  for (const el of els) el.setAttribute('data-arranging', '');
+  window.setTimeout(() => { for (const el of els) el.removeAttribute('data-arranging'); }, ARRANGE_MS + 80);
 }
 
 export interface RunResult { moved: number; ids: string[] }

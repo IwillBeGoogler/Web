@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CheckCircle2Icon, MailIcon, XCircleIcon } from "lucide-react";
-import { type ReactNode, useEffect } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { authDialog } from "@/contexts/identity/application/authDialog";
+import { meKey } from "@/contexts/identity/application/session";
 import { Button } from "@/shared/ui/button";
 import { Field, inputCls, PasswordInput, ServerError } from "@/shared/ui/form";
 import { Loading } from "@/shared/ui/states";
@@ -95,15 +96,22 @@ export function ResetPasswordPage({ token }: { token: string }) {
 /** Runs a one-shot request from an emailed link as soon as the page opens. */
 function useOnce(fn: () => Promise<void>, enabled: boolean) {
   const m = useMutation({ mutationFn: fn });
-  const { mutate, isIdle } = m;
+  const { mutate } = m;
+  const fired = useRef(false); // StrictMode runs effects twice; the link's code is single-use
   useEffect(() => {
-    if (enabled && isIdle) mutate();
-  }, [enabled, isIdle, mutate]);
+    if (!enabled || fired.current) return;
+    fired.current = true;
+    mutate();
+  }, [enabled, mutate]);
   return m;
 }
 
 export function VerifyEmailPage({ code }: { code: string }) {
-  const m = useOnce(() => repo.verifyEmail(code), !!code);
+  const qc = useQueryClient();
+  const m = useOnce(async () => {
+    await repo.verifyEmail(code);
+    await qc.invalidateQueries({ queryKey: meKey });
+  }, !!code);
   return (
     <Card title="Email verification">
       {!code || m.isError ? (

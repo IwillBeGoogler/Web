@@ -12,8 +12,22 @@ import {
 } from "./autosave";
 import { emptyStory, type StoryForm } from "./story";
 
-const form = (o: Partial<StoryForm> = {}): StoryForm => ({ ...emptyStory(), title: "T", body: "hello", ...o });
-const base: AutosaveInput = { serverStatus: "draft", ready: true, dirty: true, saveable: true, inFlight: false, blocked: false, sinceEdit: 0, sinceDirty: 0 };
+const form = (o: Partial<StoryForm> = {}): StoryForm => ({
+  ...emptyStory(),
+  title: "T",
+  body: "hello",
+  ...o,
+});
+const base: AutosaveInput = {
+  serverStatus: "draft",
+  ready: true,
+  dirty: true,
+  saveable: true,
+  inFlight: false,
+  blocked: false,
+  sinceEdit: 0,
+  sinceDirty: 0,
+};
 
 describe("autosaveDelay", () => {
   it("waits for typing to stop, then saves", () => {
@@ -22,8 +36,20 @@ describe("autosaveDelay", () => {
     expect(autosaveDelay({ ...base, sinceEdit: 5000 })).toBe(0);
   });
   it("saves at least every 30 s while the user keeps typing", () => {
-    expect(autosaveDelay({ ...base, sinceEdit: 100, sinceDirty: AUTOSAVE_MAX_MS - 500 })).toBe(500);
-    expect(autosaveDelay({ ...base, sinceEdit: 100, sinceDirty: AUTOSAVE_MAX_MS + 1 })).toBe(0);
+    expect(
+      autosaveDelay({
+        ...base,
+        sinceEdit: 100,
+        sinceDirty: AUTOSAVE_MAX_MS - 500,
+      }),
+    ).toBe(500);
+    expect(
+      autosaveDelay({
+        ...base,
+        sinceEdit: 100,
+        sinceDirty: AUTOSAVE_MAX_MS + 1,
+      }),
+    ).toBe(0);
   });
   it("a new story is saved as a draft", () => {
     expect(autosaveDelay({ ...base, serverStatus: "new" })).toBe(AUTOSAVE_IDLE_MS);
@@ -31,7 +57,14 @@ describe("autosaveDelay", () => {
   it("NEVER autosaves a published or scheduled story", () => {
     for (const serverStatus of ["published", "scheduled"] as const) {
       expect(canAutosave(serverStatus)).toBe(false);
-      expect(autosaveDelay({ ...base, serverStatus, sinceEdit: 99_999, sinceDirty: 99_999 })).toBeNull();
+      expect(
+        autosaveDelay({
+          ...base,
+          serverStatus,
+          sinceEdit: 99_999,
+          sinceDirty: 99_999,
+        }),
+      ).toBeNull();
     }
   });
   it("does nothing when clean, empty, loading, saving or waiting on a decision", () => {
@@ -61,7 +94,11 @@ describe("sameStory", () => {
 describe("reconcileSave: typing during a save is not lost", () => {
   it("clean when nothing was typed meanwhile", () => {
     const sent = form({ body: "one" });
-    expect(reconcileSave(sent, form({ body: "one" }))).toEqual({ baseline: sent, dirty: false, clearLocal: true });
+    expect(reconcileSave(sent, form({ body: "one" }))).toEqual({
+      baseline: sent,
+      dirty: false,
+      clearLocal: true,
+    });
   });
   it("keeps newer text, stays dirty and keeps the local copy", () => {
     const sent = form({ body: "one" });
@@ -74,12 +111,22 @@ describe("reconcileSave: typing during a save is not lost", () => {
 });
 
 describe("saveStatus", () => {
-  const v = { saving: false, failed: false, dirty: false, serverAutosave: true, localCopy: false, lastSavedAt: null };
+  const v = {
+    saving: false,
+    failed: false,
+    dirty: false,
+    serverAutosave: true,
+    localCopy: false,
+    lastSavedAt: null,
+  };
   it("orders states", () => {
     expect(saveStatus({ ...v, saving: true, failed: true }).kind).toBe("saving");
     expect(saveStatus({ ...v, failed: true }).kind).toBe("failed");
     expect(saveStatus({ ...v, dirty: true, serverAutosave: false, localCopy: true }).kind).toBe("local");
-    expect(saveStatus({ ...v, lastSavedAt: 5 })).toEqual({ kind: "saved", at: 5 });
+    expect(saveStatus({ ...v, lastSavedAt: 5 })).toEqual({
+      kind: "saved",
+      at: 5,
+    });
     expect(saveStatus({ ...v, dirty: true, lastSavedAt: 5 }).kind).toBe("none");
   });
 });

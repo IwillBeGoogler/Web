@@ -4,7 +4,11 @@ import { cleanEntry, entriesProblem, entryProblem, parseAliases, sameGlossary } 
 import { decodeCopy, encodeCopy } from "./localDraft";
 import { emptyStory } from "./story";
 
-const e = (term: string, aliases: string[] = [], definition = "def") => ({ term, aliases, definition });
+const e = (term: string, aliases: string[] = [], definition = "def") => ({
+  term,
+  aliases,
+  definition,
+});
 
 describe("glossary entries", () => {
   it("parses and cleans aliases", () => {
@@ -57,14 +61,24 @@ describe("glossary in autosave and local drafts", () => {
   it("is kept in the local copy, and old copies without it still load", () => {
     const f = { ...emptyStory(), glossary: [e("a", ["b"])] };
     expect(decodeCopy(encodeCopy(f, 1))?.form.glossary).toEqual(f.glossary);
-    const old = JSON.stringify({ v: 1, at: 1, form: { ...emptyStory(), glossary: undefined } });
+    const old = JSON.stringify({
+      v: 1,
+      at: 1,
+      form: { ...emptyStory(), glossary: undefined },
+    });
     expect(decodeCopy(old)?.form.glossary).toEqual([]);
   });
 });
 
 describe("cleanEntry aliases", () => {
   it("drops aliases repeating the term or each other, ignoring case", () => {
-    expect(cleanEntry({ term: "Cache", aliases: ["cache", "Caching", "CACHING"], definition: "d" }).aliases).toEqual(["Caching"]);
+    expect(
+      cleanEntry({
+        term: "Cache",
+        aliases: ["cache", "Caching", "CACHING"],
+        definition: "d",
+      }).aliases,
+    ).toEqual(["Caching"]);
     expect(entryProblem({ term: "Cache", aliases: ["cache"], definition: "d" }, [])).toBeUndefined();
   });
 });

@@ -9,13 +9,21 @@ const copySchema = z.object({
     title: z.string(),
     subtitle: z.string(),
     body: z.string(),
-    status: z.enum(["draft", "published", "scheduled"]),
+    status: z.enum(["draft", "published", "unlisted", "scheduled"]),
     publishAt: z.string(),
     publicationId: z.number(),
     coverUrl: z.string(),
     tags: z.array(z.string()),
     categoryIds: z.array(z.number()).default([]),
-    glossary: z.array(z.object({ term: z.string(), aliases: z.array(z.string()).default([]), definition: z.string() })).default([]),
+    glossary: z
+      .array(
+        z.object({
+          term: z.string(),
+          aliases: z.array(z.string()).default([]),
+          definition: z.string(),
+        }),
+      )
+      .default([]),
   }),
 });
 export type LocalCopy = z.infer<typeof copySchema>;

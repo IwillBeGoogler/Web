@@ -9,7 +9,12 @@ import { localDraft } from "../domain/localDraft";
 import { emptyStory, type StoryForm } from "../domain/story";
 import { useStorySaver } from "./useStorySaver";
 
-const calls: { kind: "create" | "update"; id?: number; body: string; status: string }[] = [];
+const calls: {
+  kind: "create" | "update";
+  id?: number;
+  body: string;
+  status: string;
+}[] = [];
 let release: (() => void)[] = [];
 let manual = false;
 let fail: boolean | Error = false;
@@ -44,7 +49,11 @@ const respond = (p: unknown) =>
   });
 
 const wrap = ({ children }: { children: ReactNode }) => <QueryClientProvider client={new QueryClient()}>{children}</QueryClientProvider>;
-const f = (o: Partial<StoryForm> = {}): StoryForm => ({ ...emptyStory(), title: "T", ...o });
+const f = (o: Partial<StoryForm> = {}): StoryForm => ({
+  ...emptyStory(),
+  title: "T",
+  ...o,
+});
 
 /** Holds the form the way EditorPage does: values the user types, a baseline the saves move. */
 function setup(serverStatus: ServerStatus, start: StoryForm, postId?: number, extra: { hold?: boolean } = {}) {
@@ -67,7 +76,12 @@ function setup(serverStatus: ServerStatus, start: StoryForm, postId?: number, ex
         releaseKey: props.releaseKey,
         onCreated: () => {},
       });
-      return { saver, values, saved, type: (b: string) => setValues((v) => ({ ...v, body: b })) };
+      return {
+        saver,
+        values,
+        saved,
+        type: (b: string) => setValues((v) => ({ ...v, body: b })),
+      };
     },
     { wrapper: wrap },
   );
@@ -200,7 +214,10 @@ describe("useStorySaver", () => {
     await tick(3100);
     expect(calls).toHaveLength(1);
     fail = false;
-    Object.defineProperty(document, "visibilityState", { value: "visible", configurable: true });
+    Object.defineProperty(document, "visibilityState", {
+      value: "visible",
+      configurable: true,
+    });
     await act(async () => void document.dispatchEvent(new Event("visibilitychange")));
     await tick(3100);
     expect(calls).toHaveLength(2);

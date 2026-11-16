@@ -15,7 +15,7 @@ import { Modal } from "@/shared/ui/modal";
 import { Bone, EmptyState } from "@/shared/ui/states";
 import { toast } from "@/shared/ui/toast";
 import { useDeleteStory } from "../application/hooks";
-import { bars, pct, totals } from "../domain/stats";
+import { bars, duration, pct, totals } from "../domain/stats";
 import { studioRepository } from "../infrastructure/storyRepository";
 
 const item = "flex cursor-pointer items-center gap-2 rounded px-3 py-2 text-sm outline-none data-[highlighted]:bg-surface-2";
@@ -32,7 +32,7 @@ function StoryRow({ p, pinned }: { p: Post; pinned: boolean }) {
     },
     onError: toast.error,
   });
-  const href = p.status === "published" ? postPath(p) : undefined;
+  const href = p.status === "published" || p.status === "unlisted" ? postPath(p) : undefined;
   return (
     <li className="flex items-start gap-3 border-b border-line py-5">
       <div className="min-w-0 flex-1">
@@ -50,7 +50,9 @@ function StoryRow({ p, pinned }: { p: Post; pinned: boolean }) {
             ? `Scheduled for ${shortDate(p.publish_at)}`
             : p.status === "draft"
               ? `Last edited ${shortDate(p.updated_at)}`
-              : `Live since ${shortDate(p.published_at)}`}
+              : p.status === "unlisted"
+                ? `Unlisted since ${shortDate(p.published_at)}`
+                : `Live since ${shortDate(p.published_at)}`}
           {pinned ? " · Pinned" : ""}
         </p>
       </div>
@@ -83,7 +85,11 @@ function StoryRow({ p, pinned }: { p: Post; pinned: boolean }) {
             <DropdownMenu.Item
               className={cn(item, "text-danger")}
               onSelect={() =>
-                confirm(`Delete “${p.title}”? This can't be undone.`) && del.mutate(p.id, { onSuccess: () => toast.ok("Story deleted"), onError: toast.error })
+                confirm(`Delete “${p.title}”? This can't be undone.`) &&
+                del.mutate(p.id, {
+                  onSuccess: () => toast.ok("Story deleted"),
+                  onError: toast.error,
+                })
               }
             >
               Delete story
@@ -96,10 +102,13 @@ function StoryRow({ p, pinned }: { p: Post; pinned: boolean }) {
 }
 
 /** Drafts / published / scheduled with edit, pin, stats and delete. */
-export function StoryList({ status }: { status: "draft" | "published" | "scheduled" }) {
+export function StoryList({ status }: { status: "draft" | "published" | "unlisted" | "scheduled" }) {
   const q = useInfiniteQuery(feedQuery({ kind: "mine", status }));
   const { me } = useMe();
-  const profile = useQuery({ ...profileQuery(me?.username ?? ""), enabled: !!me });
+  const profile = useQuery({
+    ...profileQuery(me?.username ?? ""),
+    enabled: !!me,
+  });
   const rows = q.data?.pages.flatMap((p) => p.items) ?? [];
   const pinnedId = profile.data?.pinned_post_id ?? 0;
   if (q.isPending) return <Bone className="mt-6 h-24 w-full" />;
@@ -165,14 +174,18 @@ export function ImportStory() {
   );
 }
 
-function Daily({ id }: { id: number }) {
+/** Views and reads per day for one story, or over all stories when id is left out. */
+function Daily({ id }: { id?: number }) {
   const [days, setDays] = useState(30);
-  const q = useQuery({ queryKey: ["stats", id, days], queryFn: ({ signal }) => studioRepository.daily(id, days, signal) });
+  const q = useQuery({
+    queryKey: ["stats", id ?? "all", days],
+    queryFn: ({ signal }) => (id === undefined ? studioRepository.authorDaily(days, signal) : studioRepository.daily(id, days, signal)),
+  });
   const b = bars(q.data?.days ?? []);
   return (
     <div className="rounded border border-line p-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium">Views and reads per day</p>
+        <p className="text-sm font-medium">{id === undefined ? "All stories: views and reads per day" : "Views and reads per day"}</p>
         <select
           aria-label="Period"
           className="h-8 rounded border border-line bg-surface px-2 text-sm"
@@ -224,21 +237,27 @@ export function StatsPage({ post }: { post?: number | undefined }) {
   return (
     <>
       <h1 className="font-display text-[32px] leading-tight font-bold tracking-tight md:text-[42px]">Stats</h1>
-      <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <dl className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
         {(
           [
-            ["Views", t.views],
-            ["Reads", t.reads],
-            ["Sparks", t.claps],
-            ["Notes", t.comments],
+            ["Views", compact(t.views)],
+            ["Reads", compact(t.reads)],
+            ["Time read", duration(t.readSeconds)],
+            ["Sparks", compact(t.claps)],
+            ["Notes", compact(t.comments)],
           ] as const
         ).map(([k, v]) => (
           <div key={k} className="rounded border border-line p-4">
             <dt className="text-xs text-muted">{k}</dt>
-            <dd className="mt-1 text-2xl font-bold tabular-nums">{compact(v)}</dd>
+            <dd className="mt-1 text-2xl font-bold tabular-nums">{v}</dd>
           </div>
         ))}
       </dl>
+      {rows.length ? (
+        <div className="mt-8">
+          <Daily />
+        </div>
+      ) : null}
       {q.isPending ? (
         <Bone className="mt-8 h-40 w-full" />
       ) : !rows.length ? (
@@ -253,6 +272,7 @@ export function StatsPage({ post }: { post?: number | undefined }) {
                 <th className="py-2 text-right font-normal">Views</th>
                 <th className="py-2 text-right font-normal">Reads</th>
                 <th className="py-2 text-right font-normal">Read ratio</th>
+                <th className="py-2 text-right font-normal">Avg time</th>
                 <th className="py-2 text-right font-normal">Sparks</th>
               </tr>
             </thead>
@@ -274,11 +294,14 @@ export function StatsPage({ post }: { post?: number | undefined }) {
                     <td className="py-3 text-right tabular-nums">{compact(r.views)}</td>
                     <td className="py-3 text-right tabular-nums">{compact(r.reads)}</td>
                     <td className="py-3 text-right tabular-nums">{pct(r.read_ratio)}</td>
+                    <td className="py-3 text-right tabular-nums" title={`${duration(r.read_seconds)} in total`}>
+                      {r.avg_read_seconds ? duration(r.avg_read_seconds) : "–"}
+                    </td>
                     <td className="py-3 text-right tabular-nums">{compact(r.claps)}</td>
                   </tr>
                   {open === r.post_id ? (
                     <tr>
-                      <td colSpan={5} className="py-4">
+                      <td colSpan={6} className="py-4">
                         <Daily id={r.post_id} />
                       </td>
                     </tr>
@@ -290,7 +313,7 @@ export function StatsPage({ post }: { post?: number | undefined }) {
         </div>
       )}
       <p className="mt-6 flex items-center gap-2 text-xs text-muted">
-        <PinIcon className="size-3.5" aria-hidden /> Reads count readers who got through most of a story.
+        <PinIcon className="size-3.5" aria-hidden /> Reads count readers who got through most of a story. Avg time is active reading per visit.
       </p>
     </>
   );

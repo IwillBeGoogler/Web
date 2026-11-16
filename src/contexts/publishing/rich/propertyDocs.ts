@@ -15,12 +15,78 @@ function rng(seed: number) {
 
 // biome-ignore format: a flat list reads better
 const NASTY = [
-  "*", "**", "_", "__", "[", "]", "#", "`", "``", "\\", "<", ">", "&", "&amp;", "&#35;", "|", "~", "~~", "!", "(", ")", ":", "-", "+", "=", ".", "1",
-  "1. ", "- ", "> ", "# ", "## ", "```", "---", "***", "===", "![", "](", "<b>", "</p>", "<script>", "http://x.com/a_b_(c)", "[^1]", "[a]: b", "www.x.com",
-  "a", "b", "word", "qalin", " ", "  ", "\t", " ", "я", "Ў", "o'z", "oʻz", "o‘z", "😀", "é", "日本",
+  "*",
+  "**",
+  "_",
+  "__",
+  "[",
+  "]",
+  "#",
+  "`",
+  "``",
+  "\\",
+  "<",
+  ">",
+  "&",
+  "&amp;",
+  "&#35;",
+  "|",
+  "~",
+  "~~",
+  "!",
+  "(",
+  ")",
+  ":",
+  "-",
+  "+",
+  "=",
+  ".",
+  "1",
+  "1. ",
+  "- ",
+  "> ",
+  "# ",
+  "## ",
+  "```",
+  "---",
+  "***",
+  "===",
+  "![",
+  "](",
+  "<b>",
+  "</p>",
+  "<script>",
+  "http://x.com/a_b_(c)",
+  "[^1]",
+  "[a]: b",
+  "www.x.com",
+  "a",
+  "b",
+  "word",
+  "qalin",
+  " ",
+  "  ",
+  "\t",
+  " ",
+  "я",
+  "Ў",
+  "o'z",
+  "oʻz",
+  "o‘z",
+  "😀",
+  "é",
+  "日本",
 ];
 // biome-ignore format: a flat list reads better
-const HREFS = ["https://example.com/a_b", "https://example.com/a_(b)", "https://example.com/a b", "https://example.com/x)y", "http://a.com/?q=1&r=2", "mailto:a@b.co", "/relative/path"];
+const HREFS = [
+  "https://example.com/a_b",
+  "https://example.com/a_(b)",
+  "https://example.com/a b",
+  "https://example.com/x)y",
+  "http://a.com/?q=1&r=2",
+  "mailto:a@b.co",
+  "/relative/path",
+];
 const SRCS = ["https://example.com/a.png", "https://example.com/a_(1).png", "/api/uploads/abc.png", "https://example.com/a b.png"];
 
 const SMALL = Boolean(process.env.SMALL);
@@ -43,7 +109,14 @@ function inline(r: R): JSONContent[] {
     const k = r();
     if (k < 0.08) out.push({ type: "hardBreak" });
     else if (k < 0.16)
-      out.push({ type: "image", attrs: { src: pick(r, SRCS), alt: chance(r, 0.5) ? oneLine(r) : "", title: chance(r, 0.3) ? oneLine(r) : null } });
+      out.push({
+        type: "image",
+        attrs: {
+          src: pick(r, SRCS),
+          alt: chance(r, 0.5) ? oneLine(r) : "",
+          title: chance(r, 0.3) ? oneLine(r) : null,
+        },
+      });
     else {
       const marks: NonNullable<JSONContent["marks"]> = [];
       if (chance(r, 0.15)) marks.push({ type: "code" });
@@ -51,15 +124,29 @@ function inline(r: R): JSONContent[] {
         if (chance(r, 0.25)) marks.push({ type: "bold" });
         if (chance(r, 0.25)) marks.push({ type: "italic" });
         if (chance(r, 0.1)) marks.push({ type: "strike" });
-        if (chance(r, 0.15)) marks.push({ type: "link", attrs: { href: pick(r, HREFS), title: chance(r, 0.2) ? oneLine(r) : null } });
+        if (chance(r, 0.15))
+          marks.push({
+            type: "link",
+            attrs: {
+              href: pick(r, HREFS),
+              title: chance(r, 0.2) ? oneLine(r) : null,
+            },
+          });
       }
-      out.push({ type: "text", text: text(r), ...(marks.length ? { marks } : {}) });
+      out.push({
+        type: "text",
+        text: text(r),
+        ...(marks.length ? { marks } : {}),
+      });
     }
   }
   return out;
 }
 
-const paragraph = (r: R): JSONContent => ({ type: "paragraph", content: inline(r) });
+const paragraph = (r: R): JSONContent => ({
+  type: "paragraph",
+  content: inline(r),
+});
 
 function listItem(r: R, depth: number): JSONContent {
   const content: JSONContent[] = [chance(r, 0.1) ? { type: "paragraph" } : paragraph(r)];
@@ -72,20 +159,38 @@ function list(r: R, depth: number): JSONContent {
   const items = Array.from({ length: 1 + Math.floor(r() * 3) }, () => listItem(r, depth));
   return chance(r, 0.5)
     ? { type: "bulletList", content: items }
-    : { type: "orderedList", attrs: { start: chance(r, 0.2) ? 3 : 1, type: null }, content: items };
+    : {
+        type: "orderedList",
+        attrs: { start: chance(r, 0.2) ? 3 : 1, type: null },
+        content: items,
+      };
 }
 
 function block(r: R, depth: number): JSONContent {
   const k = r();
   if (k < 0.4) return paragraph(r);
-  if (k < 0.5) return { type: "heading", attrs: { level: chance(r, 0.5) ? 2 : 3 }, content: [{ type: "text", text: oneLine(r) }] };
+  if (k < 0.5)
+    return {
+      type: "heading",
+      attrs: { level: chance(r, 0.5) ? 2 : 3 },
+      content: [{ type: "text", text: oneLine(r) }],
+    };
   if (k < 0.65) return list(r, depth);
-  if (k < 0.75 && depth < 2) return { type: "blockquote", content: Array.from({ length: 1 + Math.floor(r() * 2) }, () => block(r, depth + 1)) };
+  if (k < 0.75 && depth < 2)
+    return {
+      type: "blockquote",
+      content: Array.from({ length: 1 + Math.floor(r() * 2) }, () => block(r, depth + 1)),
+    };
   if (k < 0.85)
     return {
       type: "codeBlock",
       attrs: { language: pick(r, [null, "js", "bash"]) },
-      content: [{ type: "text", text: `${pick(r, ["", "```", "~~~", "a\n```\nb", "  x"])}${oneLine(r)}` }],
+      content: [
+        {
+          type: "text",
+          text: `${pick(r, ["", "```", "~~~", "a\n```\nb", "  x"])}${oneLine(r)}`,
+        },
+      ],
     };
   if (k < 0.9) return { type: "horizontalRule" };
   return paragraph(r);
@@ -93,7 +198,10 @@ function block(r: R, depth: number): JSONContent {
 
 export function randomDoc(seed: number): JSONContent {
   const r = rng(seed);
-  return { type: "doc", content: Array.from({ length: 1 + Math.floor(r() * 5) }, () => block(r, 0)) };
+  return {
+    type: "doc",
+    content: Array.from({ length: 1 + Math.floor(r() * 5) }, () => block(r, 0)),
+  };
 }
 
 /** The contract: whatever the editor holds, the Markdown written for it reads back as the same document, with no raw HTML or foreign syntax. */

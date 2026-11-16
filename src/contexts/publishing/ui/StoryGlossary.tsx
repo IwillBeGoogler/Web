@@ -52,7 +52,11 @@ export function GlossaryDialog({
     e.preventDefault();
     e.stopPropagation();
     if (!draft) return;
-    const entry: GlossaryEntry = { term, aliases: parseAliases(aliases), definition };
+    const entry: GlossaryEntry = {
+      term,
+      aliases: parseAliases(aliases),
+      definition,
+    };
     const problem = entryProblem(
       entry,
       terms.filter((_, i) => i !== draft.index),

@@ -15,7 +15,9 @@ function useEventStream(url: (() => Promise<string>) | null, onEvent: () => void
     let timer: ReturnType<typeof setTimeout>;
     const open = async () => {
       try {
-        es = new EventSource(await url());
+        const target = await url();
+        if (stopped) return; // unmounted while the ticket was in flight
+        es = new EventSource(target);
         es.onmessage = () => handler.current();
         es.onopen = () => {
           delay = 2000;

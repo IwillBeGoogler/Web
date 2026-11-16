@@ -195,12 +195,14 @@ function PublishDialog({
   form,
   onPublish,
   pending,
+  initialVisibility = "published",
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   form: ReturnType<typeof useForm<StoryForm>>;
-  onPublish: (when: "now" | "later") => void;
+  onPublish: (when: "now" | "later", visibility: "published" | "unlisted") => void;
   pending: boolean;
+  initialVisibility?: "published" | "unlisted";
 }) {
   const t = useT();
   const { me } = useMe();
@@ -208,6 +210,7 @@ function PublishDialog({
   const publicationId = useWatch({ control: form.control, name: "publicationId" });
   const publishAt = useWatch({ control: form.control, name: "publishAt" });
   const [later, setLater] = useState(!!publishAt);
+  const [visibility, setVisibility] = useState<"published" | "unlisted">(initialVisibility);
   const cover = useWatch({ control: form.control, name: "coverUrl" });
   const tags = useWatch({ control: form.control, name: "tags" });
   const categoryIds = useWatch({ control: form.control, name: "categoryIds" });
@@ -350,6 +353,24 @@ function PublishDialog({
                     ["later", "Schedule"],
                   ]}
                 />
+                {!later ? (
+                  <div className="mt-4">
+                    <Lens
+                      label="Who can read it"
+                      value={visibility}
+                      onChange={(v) => setVisibility(v === "unlisted" ? "unlisted" : "published")}
+                      items={[
+                        ["published", "Public"],
+                        ["unlisted", "Unlisted"],
+                      ]}
+                    />
+                    <p className="mt-2 font-mono text-[11px] text-muted">
+                      {visibility === "unlisted"
+                        ? "Only people with the link can read it. Hidden from the feed, search, topics and your profile, and search engines skip it."
+                        : "Anyone can find it in the feed, search and your profile."}
+                    </p>
+                  </div>
+                ) : null}
                 {later ? (
                   <label className="mt-3 block font-mono text-[11px] tracking-[0.1em] text-muted uppercase">
                     Go live at
@@ -369,8 +390,14 @@ function PublishDialog({
             </li>
           </ol>
           <div className="sticky bottom-0 -mx-6 mt-8 border-t border-line-strong bg-card px-6 py-4 md:-mx-8 md:px-8">
-            <Button variant="accent" className="w-full" loading={pending} disabled={later && !publishAt} onClick={() => onPublish(later ? "later" : "now")}>
-              {later ? "Schedule" : "Ship now"}
+            <Button
+              variant="accent"
+              className="w-full"
+              loading={pending}
+              disabled={later && !publishAt}
+              onClick={() => onPublish(later ? "later" : "now", visibility)}
+            >
+              {later ? "Schedule" : visibility === "unlisted" ? "Publish unlisted" : "Ship now"}
             </Button>
           </div>
         </Dialog.Content>
@@ -470,7 +497,7 @@ function Revisions({
   );
 }
 
-const toServerStatus = (s: string): ServerStatus => (s === "draft" ? "draft" : s === "scheduled" ? "scheduled" : "published");
+const toServerStatus = (s: string): ServerStatus => (s === "draft" ? "draft" : s === "scheduled" ? "scheduled" : s === "unlisted" ? "unlisted" : "published");
 
 export function EditorPage({ id: routeId }: { id?: number }) {
   // the id this editor opened with; the route's id changes once a new story is created, and nothing must reload then
@@ -490,7 +517,13 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const [diagramPicker, setDiagramPicker] = useState(false);
   const [glossaryDraft, setGlossaryDraft] = useState<GlossaryDraft | null>(null);
   // why the visual editor's text is not exactly what the author sees (null: it is); while set, nothing is sent to the server on its own
-  const [lossy, setLossy] = useState<RichProblem | null>(null);
+  const [lossy, setLossyState] = useState<RichProblem | null>(null);
+  // the ref is current the moment flush() reports, before React re-renders: save/submit read it right after flushing
+  const lossyRef = useRef<RichProblem | null>(null);
+  const setLossy = useCallback((p: RichProblem | null) => {
+    lossyRef.current = p;
+    setLossyState(p);
+  }, []);
   const t = useT();
   const { me } = useMe();
   const values = useWatch({ control: form.control }) as StoryForm;
@@ -512,7 +545,8 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const loaded = useRef(false);
   const leaving = useRef(false);
 
-  const isPublished = existing.data?.status === "published";
+  const isUnlisted = existing.data?.status === "unlisted";
+  const isPublished = existing.data?.status === "published" || isUnlisted;
   // a story loaded from the server is saved over only by the user's own action unless it is a draft
   const serverStatus: ServerStatus = !postId ? "new" : id ? (existing.data ? toServerStatus(existing.data.status) : "published") : "draft";
 
@@ -523,30 +557,33 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   }, [form]);
 
   /** New content arrived from outside the editor (load, restore, revision): is it safe to show visually? */
-  const evaluate = useCallback(async (text: string) => {
-    const seq = ++checkSeq.current;
-    setLossy(null);
-    if (readPref(MODE_KEY) === "md") {
-      setProblem(null);
-      setChecking(false);
+  const evaluate = useCallback(
+    async (text: string) => {
+      const seq = ++checkSeq.current;
+      setLossy(null);
+      if (readPref(MODE_KEY) === "md") {
+        setProblem(null);
+        setChecking(false);
+        setEpoch((n) => n + 1);
+        return;
+      }
+      setChecking(true);
+      let p: RichProblem | null = null;
+      try {
+        const [m] = await Promise.all([loadRichMarkdown(), loadRichEditor()]);
+        const r = m.canRoundTrip(text);
+        p = r.ok ? null : r.problem;
+      } catch {
+        p = "error";
+      }
+      if (seq !== checkSeq.current) return;
+      setRefused(null);
+      setProblem(p);
       setEpoch((n) => n + 1);
-      return;
-    }
-    setChecking(true);
-    let p: RichProblem | null = null;
-    try {
-      const [m] = await Promise.all([loadRichMarkdown(), loadRichEditor()]);
-      const r = m.canRoundTrip(text);
-      p = r.ok ? null : r.problem;
-    } catch {
-      p = "error";
-    }
-    if (seq !== checkSeq.current) return;
-    setRefused(null);
-    setProblem(p);
-    setEpoch((n) => n + 1);
-    setChecking(false);
-  }, []);
+      setChecking(false);
+    },
+    [setLossy],
+  );
 
   const saver = useStorySaver({
     values,
@@ -610,7 +647,9 @@ export function EditorPage({ id: routeId }: { id?: number }) {
           : st.kind === "saved" && !isPublished
             ? t("editor.savedAt", { time: clockTime(st.at ?? Date.now()) })
             : isPublished
-              ? "Live"
+              ? isUnlisted
+                ? "Unlisted"
+                : "Live"
               : ready && (id || postId)
                 ? "Saved"
                 : "Draft";
@@ -641,12 +680,20 @@ export function EditorPage({ id: routeId }: { id?: number }) {
     enableBeforeUnload: () => unsaved(),
   });
 
+  // a story opened (or a revision restored) fills the fields without typing: fit them to their text
+  const titleText = form.watch("title");
+  const subtitleText = form.watch("subtitle");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the texts are what changes the needed height
+  useEffect(() => {
+    for (const el of document.querySelectorAll<HTMLTextAreaElement>('textarea[aria-label="Title"], textarea[aria-label="Subtitle"]')) grow(el);
+  }, [titleText, subtitleText]);
+
   // Cmd/Ctrl+S saves now. It only ever saves a draft; published and scheduled stories keep a copy on this device until "Update".
   const saveNow = useRef(() => {});
   saveNow.current = () => {
     richRef.current?.flush();
     saver.flushLocal();
-    if (banner || lossy || !canAutosave(serverStatus) || !saver.saveable()) return;
+    if (banner || lossyRef.current || !canAutosave(serverStatus) || !saver.saveable()) return;
     saver.run(form.getValues(), "draft", "manual").catch(toast.error);
   };
   useEffect(() => {
@@ -660,10 +707,10 @@ export function EditorPage({ id: routeId }: { id?: number }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const submit = (s: "draft" | "published" | "scheduled") => {
-    const target = isPublished && s === "draft" ? "published" : s;
+  const submit = (s: "draft" | "published" | "unlisted" | "scheduled") => {
+    const target = isPublished && s === "draft" ? (isUnlisted ? "unlisted" : "published") : s;
     richRef.current?.flush();
-    if (lossy) {
+    if (lossyRef.current) {
       toast.error(t("rich.lossy.saveBlocked"));
       setPublishing(false);
       return;
@@ -678,9 +725,15 @@ export function EditorPage({ id: routeId }: { id?: number }) {
             leaving.current = true;
             toast.ok(`Scheduled for ${shortDate(v.publishAt)}`);
             void nav({ to: "/me/stories" });
-          } else if (target === "published") {
+          } else if (target === "published" || target === "unlisted") {
             leaving.current = true;
-            toast.ok(isPublished ? "Your story is updated" : "Your story is live");
+            toast.ok(
+              isPublished
+                ? "Your story is updated"
+                : target === "unlisted"
+                  ? "Your story is unlisted: only people with the link can read it"
+                  : "Your story is live",
+            );
             void nav({ to: postPath(p) as "/" });
           }
         } catch (e) {
@@ -1018,7 +1071,8 @@ export function EditorPage({ id: routeId }: { id?: number }) {
         onOpenChange={setPublishing}
         form={form}
         pending={saver.saving}
-        onPublish={(when) => submit(when === "later" ? "scheduled" : "published")}
+        onPublish={(when, visibility) => submit(when === "later" ? "scheduled" : visibility)}
+        initialVisibility={isUnlisted ? "unlisted" : "published"}
       />
       {postId ? (
         <Revisions

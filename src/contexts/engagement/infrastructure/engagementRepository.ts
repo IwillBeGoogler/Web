@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { type Post, postSchema } from "@/contexts/reading/domain/post";
-import { http, tokens } from "@/shared/api";
+import { http } from "@/shared/api";
 import { ApiError, dataEnvelope, type Page, type PageRequest, pageEnvelope } from "@/shared/http";
 import { type Comment, type CommentInput, commentSchema } from "../domain/engagement";
 import type { FeedbackPayload } from "../domain/feedback";
@@ -71,10 +71,9 @@ export const engagementRepository = {
   async upload(file: File): Promise<string> {
     const fd = new FormData();
     fd.set("file", file);
-    const t = tokens.get();
-    const r = await fetch("/api/uploads", { method: "POST", body: fd, headers: t ? { Authorization: `Bearer ${t.token}` } : {} });
-    const body = (await r.json().catch(() => ({}))) as { data?: { url?: string } };
-    if (!r.ok || !body.data?.url) throw new ApiError(r.status, body as never);
+    // through the shared client: a 401 refreshes the session and retries
+    const body = (await http("/uploads", { method: "POST", body: fd })) as { data?: { url?: string } } | null;
+    if (!body?.data?.url) throw new ApiError(502, {});
     return body.data.url;
   },
 };

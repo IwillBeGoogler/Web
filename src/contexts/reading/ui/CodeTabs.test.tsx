@@ -78,7 +78,10 @@ describe("code in an article", () => {
   });
 
   it("survives a clipboard that refuses", async () => {
-    vi.stubGlobal("navigator", { ...navigator, clipboard: { writeText: vi.fn().mockRejectedValue(new Error("no")) } });
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: vi.fn().mockRejectedValue(new Error("no")) },
+    });
     render(<ArticleBody html={safeHtml(pre("go", "y"))} />);
     const btn = screen.getByRole("button", { name: /copy/i });
     await act(async () => {

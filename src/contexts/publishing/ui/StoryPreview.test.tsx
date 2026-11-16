@@ -20,7 +20,13 @@ describe("StoryPreview", () => {
   });
 
   it("renders the sanitized server HTML after the debounce", async () => {
-    server.use(http.post(api("/posts/preview"), () => HttpResponse.json({ data: { body_html: "<p>Rendered <script>x()</script>text</p>" } })));
+    server.use(
+      http.post(api("/posts/preview"), () =>
+        HttpResponse.json({
+          data: { body_html: "<p>Rendered <script>x()</script>text</p>" },
+        }),
+      ),
+    );
     render(ui("hello"));
     expect(await screen.findByText(/Rendered/, {}, { timeout: 3000 })).toBeInTheDocument();
     expect(document.querySelector("script")).toBeNull();
@@ -29,13 +35,31 @@ describe("StoryPreview", () => {
   it("shows an alert when the preview request fails", async () => {
     server.use(http.post(api("/posts/preview"), () => HttpResponse.json({ status: 500, detail: "x" }, { status: 500 })));
     render(ui("hello"));
-    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument(), { timeout: 3000 });
+    await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument(), {
+      timeout: 3000,
+    });
   });
 
   it("underlines the story's own and the site's glossary terms", async () => {
     server.use(
-      http.post(api("/posts/preview"), () => HttpResponse.json({ data: { body_html: "<p>A cache with a TTL.</p>" } })),
-      http.get(api("/glossary"), () => HttpResponse.json({ data: [{ id: 1, term: "Cache", aliases: [], definition: "Fast store", lang: "" }] })),
+      http.post(api("/posts/preview"), () =>
+        HttpResponse.json({
+          data: { body_html: "<p>A cache with a TTL.</p>" },
+        }),
+      ),
+      http.get(api("/glossary"), () =>
+        HttpResponse.json({
+          data: [
+            {
+              id: 1,
+              term: "Cache",
+              aliases: [],
+              definition: "Fast store",
+              lang: "",
+            },
+          ],
+        }),
+      ),
     );
     render(ui("hello", [{ term: "TTL", aliases: [], definition: "Time to live" }]));
     await waitFor(() => expect(document.querySelectorAll(".glossary-term")).toHaveLength(2), { timeout: 3000 });

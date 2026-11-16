@@ -42,7 +42,15 @@ export const HtmlLive = Node.create({
     ];
   },
   renderHTML({ node }) {
-    return ["div", { "data-html-live": "", "data-code": node.attrs.code, "data-height": node.attrs.height ?? "", "data-fence": node.attrs.fence }];
+    return [
+      "div",
+      {
+        "data-html-live": "",
+        "data-code": node.attrs.code,
+        "data-height": node.attrs.height ?? "",
+        "data-fence": node.attrs.fence,
+      },
+    ];
   },
   markdownTokenName: "htmlLive",
   markdownTokenizer: {
@@ -70,10 +78,21 @@ export const HtmlLive = Node.create({
       }
       if (end < 0) return undefined; // unclosed: the page runs it to the end of the text; keep that case in Markdown mode
       const raw = lines.slice(0, end + 1).join("\n") + (end + 1 < lines.length ? "\n" : "");
-      return { type: "htmlLive", raw, code: code.join("\n"), height: live.height, fence };
+      return {
+        type: "htmlLive",
+        raw,
+        code: code.join("\n"),
+        height: live.height,
+        fence,
+      };
     },
   },
-  parseMarkdown: (token, h) => h.createNode("htmlLive", { code: token.code ?? "", height: token.height ?? null, fence: token.fence ?? "```" }),
+  parseMarkdown: (token, h) =>
+    h.createNode("htmlLive", {
+      code: token.code ?? "",
+      height: token.height ?? null,
+      fence: token.fence ?? "```",
+    }),
   renderMarkdown: (node) => {
     const code = String(node.attrs?.code ?? "");
     const height = node.attrs?.height as number | null | undefined;
@@ -125,7 +144,11 @@ export const DiagramEmbed = Node.create({
       const first = nl < 0 ? src : src.slice(0, nl);
       const m = DIAGRAM_LINE.exec(first);
       if (!m) return undefined;
-      return { type: "diagramEmbed", raw: nl < 0 ? src : src.slice(0, nl + 1), line: m[1] };
+      return {
+        type: "diagramEmbed",
+        raw: nl < 0 ? src : src.slice(0, nl + 1),
+        line: m[1],
+      };
     },
   },
   parseMarkdown: (token, h) => h.createNode("diagramEmbed", { line: token.line }),
@@ -146,7 +169,15 @@ export const UploadPlaceholder = Node.create({
     return [];
   },
   renderHTML({ node }) {
-    return ["span", { "data-upload": node.attrs.id, class: "rich-upload", contenteditable: "false" }, `${node.attrs.name || "image"}…`];
+    return [
+      "span",
+      {
+        "data-upload": node.attrs.id,
+        class: "rich-upload",
+        contenteditable: "false",
+      },
+      `${node.attrs.name || "image"}…`,
+    ];
   },
   renderMarkdown: () => "",
 });

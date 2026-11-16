@@ -100,7 +100,9 @@ describe("TermTooltip", () => {
     fireEvent.pointerDown(pod, { pointerType: "touch" });
     fireEvent.click(pod);
     await flush();
-    fireEvent.pointerDown(container.querySelectorAll("p")[1] as Element, { pointerType: "touch" });
+    fireEvent.pointerDown(container.querySelectorAll("p")[1] as Element, {
+      pointerType: "touch",
+    });
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
 
@@ -108,7 +110,9 @@ describe("TermTooltip", () => {
     const { pod } = setup();
     fireEvent.keyDown(pod, { key: "Enter" });
     await flush();
-    fireEvent.pointerDown(screen.getByRole("tooltip"), { pointerType: "touch" });
+    fireEvent.pointerDown(screen.getByRole("tooltip"), {
+      pointerType: "touch",
+    });
     expect(screen.queryByRole("tooltip")).not.toBeNull();
   });
 
@@ -117,7 +121,17 @@ describe("TermTooltip", () => {
     fireEvent.keyDown(pod, { key: "Enter" });
     await flush();
     expect(screen.getByRole("tooltip")).toBeInTheDocument();
-    pod.getBoundingClientRect = () => ({ top: -200, bottom: -100, left: 0, right: 10, width: 10, height: 100, x: 0, y: -200, toJSON: () => ({}) });
+    pod.getBoundingClientRect = () => ({
+      top: -200,
+      bottom: -100,
+      left: 0,
+      right: 10,
+      width: 10,
+      height: 100,
+      x: 0,
+      y: -200,
+      toJSON: () => ({}),
+    });
     fireEvent.scroll(window);
     await flush();
     await flush();

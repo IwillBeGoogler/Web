@@ -1,6 +1,6 @@
 ## Why queues
 
-A queue decouples **producers** from *consumers*. It is not a `database`, and it is not magic.
+A queue decouples **producers** from _consumers_. It is not a `database`, and it is not magic.
 
 Second paragraph with a [link](https://example.com/page?a=1&b=2) and an autolink https://example.org/docs.
 

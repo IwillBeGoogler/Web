@@ -1,4 +1,4 @@
-import { devices, expect, type Page, request, test } from "@playwright/test";
+import { type APIRequestContext, devices, expect, type Page, request, test } from "@playwright/test";
 
 /**
  * The story editor against the compose stack: autosave of drafts, the local copy and restore banner, published stories that stay
@@ -32,18 +32,33 @@ const idOf = (url: string) => Number(/\/p\/(\d+)\/edit/.exec(url)?.[1]);
 test.beforeAll(async () => {
   const ctx = await request.newContext({ baseURL });
   token = (await (await ctx.post("/api/auth/login", { data: { login: ADMIN.login, password: ADMIN.password } })).json()).data.token;
+  await resetLang(ctx);
   await ctx.dispose();
 });
 
 test.afterAll(async () => {
   const ctx = await request.newContext({ baseURL });
   for (const id of made) await ctx.delete(`/api/posts/${id}`, { headers: auth() });
+  await resetLang(ctx);
   await ctx.dispose();
 });
 
+// The language test switches the UI to uz/ru; the signed-in account syncs that language (web.lang), which would leave every
+// later signed-in test (and run) in the wrong language. Put it back to English.
+const resetLang = (ctx: APIRequestContext) =>
+  ctx.patch("/api/diagrams/me/prefs", { data: { "web.lang": "en" }, headers: auth() });
+
 async function signIn(page: Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  const topBarSignIn = page.getByRole("banner").getByRole("button", { name: "Sign in" });
+  const signUp = page.getByRole("banner").getByRole("button", { name: /^(Get started|Join free)$/ });
+  await expect(topBarSignIn.or(signUp).first()).toBeVisible(); // isVisible() alone does not wait for the top bar
+  if (await topBarSignIn.isVisible()) await topBarSignIn.click();
+  else {
+    // narrow screens hide the top-bar button: open sign-up and switch to sign-in from inside the dialog
+    await signUp.click();
+    await page.getByRole("dialog").getByRole("button", { name: "Sign in" }).click();
+  }
   await page.getByLabel("Email or username").fill(ADMIN.login);
   await page.getByLabel("Password", { exact: true }).fill(ADMIN.password);
   await page.getByRole("dialog").getByRole("button", { name: "Sign in" }).click();
@@ -308,7 +323,7 @@ test("rich: toolbar formatting, published, reads correctly on the article", asyn
   await expect(art.locator('a[href="https://example.com/page"]')).toBeVisible();
   await expect(art.locator("ul li")).toHaveText(["first item", "second item"]);
   await expect(art.locator("blockquote")).toContainText("A wise quote");
-  await expect(art.locator("pre code.language-javascript")).toContainText("const a = 1;");
+  await expect(art.locator("pre")).toContainText("const a = 1;"); // CodeTabs renders its own pre/code, without the language class
 });
 
 test("rich: Cmd/Ctrl+Z undoes and Shift redoes", async ({ page }) => {
@@ -334,7 +349,7 @@ test("rich: slash menu inserts blocks, is keyboard driven and closes with Esc", 
   await page.keyboard.type("/");
   const menu = page.getByRole("listbox", { name: "Insert a block" });
   await expect(menu).toBeVisible();
-  await expect(menu.getByRole("option")).toHaveCount(10);
+  await expect(menu.getByRole("option")).toHaveCount(12);
   await page.keyboard.type("quo");
   await expect(menu.getByRole("option")).toHaveText(["Quote"]);
   await page.keyboard.press("Escape");
@@ -361,6 +376,26 @@ test("rich: slash menu inserts blocks, is keyboard driven and closes with Esc", 
   await expect(rich(page).locator("hr")).toHaveCount(2);
 });
 
+test("rich: /table inserts a table that is edited with Tab and published as a GFM table", async ({ page }) => {
+  await page.goto("/new-story");
+  await page.getByLabel("Title", { exact: true }).fill(uniq());
+  await rich(page).click();
+  await page.keyboard.type("/table");
+  await page.keyboard.press("Enter");
+  await expect(rich(page).locator("table tr")).toHaveCount(3);
+  await expect(rich(page).locator("table tr").first().locator("th")).toHaveCount(3);
+  for (const cell of ["Name", "Kind", "Note", "Redis", "cache", "fast"]) {
+    await page.keyboard.type(cell);
+    await page.keyboard.press("Tab");
+  }
+  await expect(rich(page).locator("th")).toHaveText(["Name", "Kind", "Note"]);
+  await page.getByRole("button", { name: "Ship it" }).click();
+  await page.getByRole("button", { name: "Ship now" }).click();
+  const art = page.locator(".prose-article");
+  await expect(art.locator("table th")).toHaveText(["Name", "Kind", "Note"], { timeout: 15_000 });
+  await expect(art.locator("table tbody tr").first().locator("td")).toHaveText(["Redis", "cache", "fast"]);
+});
+
 test("rich: pasted web HTML keeps only supported nodes (no scripts, handlers or styles)", async ({ page }) => {
   await page.goto("/new-story");
   await rich(page).click();
@@ -368,8 +403,10 @@ test("rich: pasted web HTML keeps only supported nodes (no scripts, handlers or 
     html: '<meta charset="utf-8"><h1 style="color:red">Big</h1><p onclick="window.__z=1" style="font-size:40px">ok <b onmouseover="window.__w=1">bold</b> <a href="javascript:window.__a=1">bad</a> <a href="https://example.com/x">good</a></p><script>window.__x=1</script><style>p{display:none}</style><img src="https://example.com/p.png" onerror="window.__y=1"><table><tr><td>cell</td></tr></table><iframe src="https://evil.example"></iframe>',
   });
   await expect(rich(page)).toContainText("ok bold");
-  await expect(rich(page).locator("script, style, iframe, table")).toHaveCount(0);
-  const html = await rich(page).evaluate((el) => el.innerHTML);
+  await expect(rich(page).locator("script, style, iframe")).toHaveCount(0);
+  await expect(rich(page).locator("table")).toContainText("cell"); // tables are a supported node now (a lone row becomes the header)
+  // the table node sizes itself with its own inline style; strip those tags so only pasted styles can match
+  const html = (await rich(page).evaluate((el) => el.innerHTML)).replace(/<(table|col)\b[^>]*>/g, "<$1>");
   expect(html).not.toMatch(/onclick|onerror|onmouseover|style=|javascript:|<script|evil\.example/i);
   await expect(rich(page).locator('a[href="https://example.com/x"]')).toHaveText("good");
   expect(await page.evaluate(() => Object.keys(window).filter((k) => /^__[a-z]$/.test(k)))).toEqual([]);
@@ -725,7 +762,7 @@ for (const c of PASTES)
     await publishFromEditor(page);
     const art = page.locator(".prose-article");
     await expect(art).toContainText(c.text);
-    const text = await art.innerText();
+    const text = (await art.textContent()) ?? ""; // innerText drops a space after the drop-cap first letter
     if (c.name.includes("literal")) expect(text).toContain("2 * 3 * 4 _x_ [a] #b");
     else if (!c.name.includes("line that looks")) expect(text).not.toMatch(/\*\*|\\(?![\\`])/);
     expect(await page.evaluate(() => (window as unknown as { __z?: number }).__z)).toBeUndefined();

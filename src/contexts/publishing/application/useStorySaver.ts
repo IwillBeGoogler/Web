@@ -197,6 +197,22 @@ export function useStorySaver(o: StorySaverOptions) {
   }, []);
 
   const serverAutosave = (o.serverStatus === "new" || o.serverStatus === "draft") && saveable(o.values);
-  const status = saveStatus({ saving, failed, dirty, serverAutosave, localCopy, lastSavedAt });
-  return { run, flushLocal, status, saving, dirty, serverAutosave, error: failed ? error : null, saveable: () => saveable(opts.current.getLatest()) };
+  const status = saveStatus({
+    saving,
+    failed,
+    dirty,
+    serverAutosave,
+    localCopy,
+    lastSavedAt,
+  });
+  return {
+    run,
+    flushLocal,
+    status,
+    saving,
+    dirty,
+    serverAutosave,
+    error: failed ? error : null,
+    saveable: () => saveable(opts.current.getLatest()),
+  };
 }

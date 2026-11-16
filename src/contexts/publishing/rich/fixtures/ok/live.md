@@ -1,6 +1,6 @@
 Intro paragraph.
 
-```html-live height=240
+````html-live height=240
 <style>
   body { margin: 0; }
 	.tab { color: red; }
@@ -9,7 +9,7 @@ Intro paragraph.
 <script>
   const x = "`"; // backticks ``` inside? no
 </script>
-```
+````
 
 Between.
 
@@ -20,8 +20,8 @@ Between.
 <p>blank lines kept</p>
 ```
 
-~~~html-live height=500
+```html-live height=500
 <b>tilde fence</b>
-~~~
+```
 
 End.

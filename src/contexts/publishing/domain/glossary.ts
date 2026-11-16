@@ -3,7 +3,12 @@ import type { GlossaryEntry } from "@/contexts/reading/domain/post";
 export type { GlossaryEntry };
 
 /** Same limits as glossary.NormalizeEntries on the server. */
-export const GLOSSARY_LIMITS = { term: 80, definition: 600, aliases: 10, entries: 50 } as const;
+export const GLOSSARY_LIMITS = {
+  term: 80,
+  definition: 600,
+  aliases: 10,
+  entries: 50,
+} as const;
 
 const chars = (s: string) => [...s].length;
 const norm = (s: string) => s.trim().toLowerCase();

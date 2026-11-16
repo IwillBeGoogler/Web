@@ -11,7 +11,6 @@ import { Responses } from "@/contexts/engagement/ui/Responses";
 import { useMe } from "@/contexts/identity/application/session";
 import { useReadingPrefs } from "@/contexts/preferences/application/store";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
-import { bionicHtml } from "@/contexts/preferences/ui/bionic";
 import { glossaryQuery, postQuery, profileQuery, relatedQuery } from "@/contexts/reading/application/queries";
 import { mergeTerms } from "@/contexts/reading/domain/glossary";
 import { excerpt, type Post, postPath, readTime } from "@/contexts/reading/domain/post";
@@ -281,7 +280,7 @@ export function ArticlePage({ slug }: { slug: string }) {
               </figure>
             ) : null}
             {post.body_html ? (
-              <ArticleBody html={prefs.bionic ? bionicHtml(safeHtml(post.body_html)) : safeHtml(post.body_html)} bodyRef={bodyRef} terms={terms} />
+              <ArticleBody html={safeHtml(post.body_html)} bionic={prefs.bionic} bodyRef={bodyRef} terms={terms} />
             ) : (
               <div ref={bodyRef} className="prose-article mt-10 whitespace-pre-wrap">
                 {post.body}

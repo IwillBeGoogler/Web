@@ -14,7 +14,11 @@ function HtmlLiveView({ node, updateAttributes, deleteNode, selected }: NodeView
   const attrs = node.attrs as { code: string; height: number | null };
   const [code, setCode] = useState(attrs.code);
   const sent = useRef(attrs.code);
-  const [shown, setShown] = useState({ code: attrs.code, height: attrs.height ?? 400, n: 0 });
+  const [shown, setShown] = useState({
+    code: attrs.code,
+    height: attrs.height ?? 400,
+    n: 0,
+  });
   // the block changed from outside (undo, redo, paste): follow it
   useEffect(() => {
     if (attrs.code !== sent.current) {
@@ -24,7 +28,15 @@ function HtmlLiveView({ node, updateAttributes, deleteNode, selected }: NodeView
   }, [attrs.code]);
   // the frame is rebuilt only after the author pauses
   useEffect(() => {
-    const id = setTimeout(() => setShown((s) => ({ code: attrs.code, height: attrs.height ?? 400, n: s.n + 1 })), 500);
+    const id = setTimeout(
+      () =>
+        setShown((s) => ({
+          code: attrs.code,
+          height: attrs.height ?? 400,
+          n: s.n + 1,
+        })),
+      500,
+    );
     return () => clearTimeout(id);
   }, [attrs.code, attrs.height]);
   return (
@@ -44,7 +56,9 @@ function HtmlLiveView({ node, updateAttributes, deleteNode, selected }: NodeView
             value={attrs.height ?? ""}
             onChange={(e) => {
               const n = Math.trunc(Number(e.target.value));
-              updateAttributes({ height: e.target.value === "" || !Number.isFinite(n) || n < 1 ? null : Math.min(n, 99999) });
+              updateAttributes({
+                height: e.target.value === "" || !Number.isFinite(n) || n < 1 ? null : Math.min(n, 99999),
+              });
             }}
           />
         </label>
@@ -76,7 +90,12 @@ function HtmlLiveView({ node, updateAttributes, deleteNode, selected }: NodeView
 /** `::diagram{slug=x}` / `file=x` → the reference worth showing. */
 export function diagramRef(line: string): { kind: "slug" | "file"; value: string } | null {
   const m = /(slug|file)=("[^"]*"|[^\s}]+)/.exec(line);
-  return m ? { kind: m[1] as "slug" | "file", value: (m[2] as string).replace(/^"|"$/g, "") } : null;
+  return m
+    ? {
+        kind: m[1] as "slug" | "file",
+        value: (m[2] as string).replace(/^"|"$/g, ""),
+      }
+    : null;
 }
 
 function DiagramView({ node, deleteNode, selected }: NodeViewProps) {

@@ -444,6 +444,7 @@ export const uz: Record<keyof typeof en, string> = {
   "rich.slash.ul": "Markerli ro‘yxat",
   "rich.slash.ol": "Raqamli ro‘yxat",
   "rich.slash.hr": "Ajratgich",
+  "rich.slash.table": "Jadval",
   "rich.slash.diagram": "Diagramma",
   "rich.slash.live": "Animatsiya",
   "rich.slash.codegroup": "Bir nechta tilda kod",

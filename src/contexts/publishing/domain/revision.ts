@@ -20,7 +20,10 @@ export const revisionSchema = z.object({
 });
 export type Revision = z.infer<typeof revisionSchema>;
 
-export const diffOpSchema = z.object({ op: z.enum(["=", "+", "-"]), text: z.string() });
+export const diffOpSchema = z.object({
+  op: z.enum(["=", "+", "-"]),
+  text: z.string(),
+});
 export type DiffOp = z.infer<typeof diffOpSchema>;
 
 export const diffStats = (ops: DiffOp[]) => ({

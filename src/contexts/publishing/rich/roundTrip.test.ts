@@ -2,9 +2,25 @@ import { describe, expect, it } from "vitest";
 import { scanLive } from "./liveScan";
 import { canRoundTrip, parseMarkdown, type RichProblem, serializeDoc } from "./markdown";
 
-const load = (g: Record<string, string>) => Object.entries(g).map(([path, text]) => ({ name: path.split("/").pop() as string, text }));
-const ok = load(import.meta.glob("./fixtures/ok/*.md", { eager: true, query: "?raw", import: "default" }) as Record<string, string>);
-const mdOnly = load(import.meta.glob("./fixtures/md-only/*.md", { eager: true, query: "?raw", import: "default" }) as Record<string, string>);
+const load = (g: Record<string, string>) =>
+  Object.entries(g).map(([path, text]) => ({
+    name: path.split("/").pop() as string,
+    text,
+  }));
+const ok = load(
+  import.meta.glob("./fixtures/ok/*.md", {
+    eager: true,
+    query: "?raw",
+    import: "default",
+  }) as Record<string, string>,
+);
+const mdOnly = load(
+  import.meta.glob("./fixtures/md-only/*.md", {
+    eager: true,
+    query: "?raw",
+    import: "default",
+  }) as Record<string, string>,
+);
 
 const roundTrip = (md: string) => serializeDoc(parseMarkdown(md));
 

@@ -65,6 +65,9 @@ describe("splitLive", () => {
       expect(splitLive(body).every((p) => p.kind === "text")).toBe(true);
   });
   it("clamps height", () => {
-    expect(splitLive("```html-live height=9\nz\n```")[0]).toMatchObject({ kind: "live", height: 100 });
+    expect(splitLive("```html-live height=9\nz\n```")[0]).toMatchObject({
+      kind: "live",
+      height: 100,
+    });
   });
 });

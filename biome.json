@@ -4,7 +4,19 @@
     "enabled": false
   },
   "files": {
-    "includes": ["**", "!node_modules", "!dist", "!legacy-js", "!editor", "!DESIGN.md", "!public", "!test-results", "!playwright-report", "!coverage"]
+    "includes": [
+      "**",
+      "!node_modules",
+      "!dist",
+      "!legacy-js",
+      "!editor",
+      "!DESIGN.md",
+      "!public",
+      "!test-results",
+      "!playwright-report",
+      "!coverage",
+      "!.vitest"
+    ]
   },
   "formatter": {
     "enabled": true,

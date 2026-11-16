@@ -36,14 +36,21 @@ export function takeSsoStarted(now = Date.now()): boolean {
   }
 }
 
+let ssoResult: { hash: string; r: ReturnType<typeof parseSsoFragment> | { error: string } } | null = null;
+
 /** Landing page of a single sign-on: store the token like a normal login, scrub it from the address bar, go home. */
 export function SsoCallbackPage() {
   const t = useT();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [result] = useState(() => {
-    const r = parseSsoFragment(window.location.hash);
-    return "token" in r && !takeSsoStarted() ? { error: "failed" } : r;
+    // StrictMode runs this initializer twice and takeSsoStarted() is single-use: answer the same hash once
+    const hash = window.location.hash;
+    if (ssoResult?.hash === hash) return ssoResult.r;
+    const p = parseSsoFragment(hash);
+    const r = "token" in p && !takeSsoStarted() ? { error: "failed" } : p;
+    ssoResult = { hash, r };
+    return r;
   });
   useEffect(() => {
     window.history.replaceState(null, "", window.location.pathname);

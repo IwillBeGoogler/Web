@@ -10,14 +10,39 @@ import { TopicChips } from "./TopicChips";
 
 describe("PostCard variants", () => {
   it("renders a bare story: no index, no tags, no author, no stats, no cover", async () => {
-    await renderRouted(<PostCard post={makePost({ tags: [], author: "", user_id: 0, claps: 0, comments_count: 0, cover_url: "", subtitle: "" }) as never} />);
+    await renderRouted(
+      <PostCard
+        post={
+          makePost({
+            tags: [],
+            author: "",
+            user_id: 0,
+            claps: 0,
+            comments_count: 0,
+            cover_url: "",
+            subtitle: "",
+          }) as never
+        }
+      />,
+    );
     expect(screen.getByText("Story")).toBeInTheDocument();
     expect(document.querySelector("[data-cover]")).toBeNull();
     expect(screen.queryByText(/sparks/)).toBeNull();
   });
   it("renders index, tag, subtitle, stats, cover and hides a broken cover", async () => {
     await renderRouted(
-      <PostCard index={4} post={makePost({ tags: ["go", "db"], subtitle: "Sub", claps: 5, comments_count: 3, cover_url: "/c.png" }) as never} />,
+      <PostCard
+        index={4}
+        post={
+          makePost({
+            tags: ["go", "db"],
+            subtitle: "Sub",
+            claps: 5,
+            comments_count: 3,
+            cover_url: "/c.png",
+          }) as never
+        }
+      />,
     );
     expect(screen.getByText("05")).toBeInTheDocument();
     expect(screen.getByText("Sub")).toBeInTheDocument();
@@ -34,7 +59,18 @@ describe("PostCard variants", () => {
 
 describe("PostCard edges", () => {
   it("falls back to created_at when unpublished and omits empty text", async () => {
-    await renderRouted(<PostCard post={makePost({ published_at: null, subtitle: "", body: "", created_at: "2026-09-05T00:00:00Z" }) as never} />);
+    await renderRouted(
+      <PostCard
+        post={
+          makePost({
+            published_at: null,
+            subtitle: "",
+            body: "",
+            created_at: "2026-09-05T00:00:00Z",
+          }) as never
+        }
+      />,
+    );
     expect(document.querySelector("time")).toHaveAttribute("datetime", "2026-09-05T00:00:00Z");
     expect(document.querySelector("a p")).toBeNull();
   });

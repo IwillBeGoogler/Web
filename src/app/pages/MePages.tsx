@@ -53,7 +53,7 @@ export function LibraryPage() {
   );
 }
 
-type StoriesTab = "draft" | "published" | "scheduled" | "series";
+type StoriesTab = "draft" | "published" | "unlisted" | "scheduled" | "series";
 
 export function StoriesPage() {
   const [tab, setTab] = useState<StoriesTab>("draft");
@@ -75,6 +75,7 @@ export function StoriesPage() {
         items={[
           ["draft", "Drafts"],
           ["published", "Live"],
+          ["unlisted", "Unlisted"],
           ["scheduled", "Scheduled"],
           ["series", "Series"],
         ]}

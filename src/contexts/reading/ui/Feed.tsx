@@ -13,7 +13,13 @@ export function Feed({
   empty,
 }: {
   source: FeedSource;
-  empty?: { icon?: LucideIcon; code?: string; title: string; body?: string; action?: ReactNode };
+  empty?: {
+    icon?: LucideIcon;
+    code?: string;
+    title: string;
+    body?: string;
+    action?: ReactNode;
+  };
 }) {
   const q = useInfiniteQuery(feedQuery(source));
   const end = useRef<HTMLDivElement>(null);

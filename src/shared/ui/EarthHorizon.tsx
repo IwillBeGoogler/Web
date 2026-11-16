@@ -138,7 +138,9 @@ export default function EarthHorizon({ brand, satellite = false }: { brand?: str
     const closest = closestT(from, to);
     const brand = brandRef.current;
     const pmrem = brand ? new PMREMGenerator(renderer) : null;
-    const env = pmrem ? pmrem.fromScene(new RoomEnvironment(), 0.04).texture : null;
+    const room = pmrem ? new RoomEnvironment() : null;
+    const env = pmrem && room ? pmrem.fromScene(room, 0.04).texture : null;
+    room?.dispose(); // its geometries and materials are baked into the env map
     const sat = brand ? createSatellite(brand, env) : null;
     if (sat) {
       sat.object.scale.setScalar(0.09);

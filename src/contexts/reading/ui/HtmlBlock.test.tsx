@@ -34,7 +34,9 @@ describe("HtmlBlock", () => {
     expect(frame.getAttribute("srcdoc")).toBeNull();
     expect(frame.style.height).toBe("300px");
     const post = vi.fn();
-    Object.defineProperty(frame, "contentWindow", { value: { postMessage: post } });
+    Object.defineProperty(frame, "contentWindow", {
+      value: { postMessage: post },
+    });
     fireEvent.load(frame);
     expect(post).toHaveBeenCalledWith("<script>1</script>", "*");
     // the markup is never put in this page

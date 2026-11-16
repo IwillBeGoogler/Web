@@ -444,6 +444,7 @@ export const ru: Record<keyof typeof en, string> = {
   "rich.slash.ul": "Маркированный список",
   "rich.slash.ol": "Нумерованный список",
   "rich.slash.hr": "Разделитель",
+  "rich.slash.table": "Таблица",
   "rich.slash.diagram": "Диаграмма",
   "rich.slash.live": "Анимация",
   "rich.slash.codegroup": "Код на нескольких языках",

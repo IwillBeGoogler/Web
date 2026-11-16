@@ -2,9 +2,19 @@ import type { JSONContent } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
 import { canRoundTrip, cleanDoc, encodeDest, escapeText, parseMarkdown, sameRichDoc, serializeDoc } from "./markdown";
 
-const doc = (...content: JSONContent[]): JSONContent => ({ type: "doc", content });
-const p = (...content: JSONContent[]): JSONContent => ({ type: "paragraph", content });
-const t = (text: string, marks?: JSONContent["marks"]): JSONContent => ({ type: "text", text, marks });
+const doc = (...content: JSONContent[]): JSONContent => ({
+  type: "doc",
+  content,
+});
+const p = (...content: JSONContent[]): JSONContent => ({
+  type: "paragraph",
+  content,
+});
+const t = (text: string, marks?: JSONContent["marks"]): JSONContent => ({
+  type: "text",
+  text,
+  marks,
+});
 
 describe("markdown defensive paths", () => {
   it("encodeDest balances or escapes parentheses", () => {
@@ -19,8 +29,17 @@ describe("markdown defensive paths", () => {
       doc(p({ type: "text", marks: [{ type: "link" }] } as JSONContent)),
       doc(p(t("x", [{ type: "link" }]))),
       doc(p({ type: "image" })),
-      doc(p({ type: "image", attrs: { src: "https://a.b/c.png", alt: "a`[^b]\n c", title: "T" } })),
-      doc({ type: "heading", attrs: { level: 2 }, content: [t("a"), { type: "hardBreak" }, t("b")] }),
+      doc(
+        p({
+          type: "image",
+          attrs: { src: "https://a.b/c.png", alt: "a`[^b]\n c", title: "T" },
+        }),
+      ),
+      doc({
+        type: "heading",
+        attrs: { level: 2 },
+        content: [t("a"), { type: "hardBreak" }, t("b")],
+      }),
       doc(p(t("a"), { type: "hardBreak" }, t("b"))),
       doc({ type: "codeBlock", content: [{ type: "text" }] }),
       doc({ type: "codeBlock", content: [t("  \n ")] }),
@@ -37,16 +56,44 @@ describe("markdown defensive paths", () => {
           { type: "blockquote", content: [p(t("b"))] },
         ],
       }),
-      doc({ type: "bulletList", content: [{ type: "listItem", content: [p(t("a")), { type: "blockquote", content: [p(t("q"))] }] }] }),
       doc({
         type: "bulletList",
-        content: [{ type: "listItem", content: [{ type: "bulletList", content: [{ type: "listItem", content: [p(t("n"))] }] }, p(t("after"))] }],
+        content: [
+          {
+            type: "listItem",
+            content: [p(t("a")), { type: "blockquote", content: [p(t("q"))] }],
+          },
+        ],
+      }),
+      doc({
+        type: "bulletList",
+        content: [
+          {
+            type: "listItem",
+            content: [
+              {
+                type: "bulletList",
+                content: [{ type: "listItem", content: [p(t("n"))] }],
+              },
+              p(t("after")),
+            ],
+          },
+        ],
       }),
       doc(
-        { type: "bulletList", content: [{ type: "listItem", content: [p(t("a"))] }] },
-        { type: "bulletList", content: [{ type: "listItem", content: [p(t("b"))] }] },
+        {
+          type: "bulletList",
+          content: [{ type: "listItem", content: [p(t("a"))] }],
+        },
+        {
+          type: "bulletList",
+          content: [{ type: "listItem", content: [p(t("b"))] }],
+        },
       ),
-      doc({ type: "orderedList", content: [{ type: "listItem", content: [{ type: "bulletList" }] }] }),
+      doc({
+        type: "orderedList",
+        content: [{ type: "listItem", content: [{ type: "bulletList" }] }],
+      }),
       doc({ type: "uploadPlaceholder" }, p(t("kept"))),
       doc({ type: "htmlLive" }),
       doc({ type: "htmlLive", attrs: { height: 300, code: "<b>x</b>" } }),

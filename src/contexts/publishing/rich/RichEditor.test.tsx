@@ -5,8 +5,23 @@ import RichEditor, { type RichHandle } from "./RichEditor";
 
 // ProseMirror measures; jsdom has no layout
 beforeAll(() => {
-  const rect = { x: 0, y: 0, top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0, toJSON: () => ({}) };
-  Range.prototype.getClientRects = () => ({ length: 0, item: () => null, [Symbol.iterator]: [][Symbol.iterator] }) as unknown as DOMRectList;
+  const rect = {
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+    toJSON: () => ({}),
+  };
+  Range.prototype.getClientRects = () =>
+    ({
+      length: 0,
+      item: () => null,
+      [Symbol.iterator]: [][Symbol.iterator],
+    }) as unknown as DOMRectList;
   Range.prototype.getBoundingClientRect = () => rect as DOMRect;
   document.elementFromPoint = () => null;
 });
@@ -20,7 +35,12 @@ function setup(value: string, epoch = 0) {
   const ref = createRef<RichHandle>();
   const ui = (v: string, e: number) => <RichEditor ref={ref} value={v} epoch={e} onChange={onChange} onLossy={onLossy} onDiagram={() => {}} />;
   const r = render(ui(value, epoch));
-  return { onChange, onLossy, ref, rerender: (v: string, e = epoch) => r.rerender(ui(v, e)) };
+  return {
+    onChange,
+    onLossy,
+    ref,
+    rerender: (v: string, e = epoch) => r.rerender(ui(v, e)),
+  };
 }
 
 // three levels of lists with a quote at the bottom: the one shape here that no Markdown parser reads back the same way

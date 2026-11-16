@@ -22,6 +22,7 @@ import {
   XIcon,
 } from "lucide-react";
 import { type ReactNode, type Ref, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { engagementRepository } from "@/contexts/engagement/infrastructure/engagementRepository";
 import { LIVE_STARTER } from "@/contexts/publishing/domain/insert";
 import { type ImageResult, imageFiles, uploadImages } from "@/contexts/publishing/domain/uploadImages";
@@ -197,8 +198,17 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
   });
   const [link, setLink] = useState<{ href: string; error: boolean } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const [slashUi, setSlashUi] = useState<{ items: SlashId[]; x: number; y: number } | null>(null);
-  const slash = useRef({ items: [] as SlashId[], index: 0, open: false, dismissed: false });
+  const [slashUi, setSlashUi] = useState<{
+    items: SlashId[];
+    x: number;
+    y: number;
+  } | null>(null);
+  const slash = useRef({
+    items: [] as SlashId[],
+    index: 0,
+    open: false,
+    dismissed: false,
+  });
   const [slashIndex, setSlashIndex] = useState(0);
   const editorRef = useRef<Editor | null>(null);
 
@@ -264,7 +274,10 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
       place: (id, _ph, file) => {
         ed.chain()
           .focus()
-          .insertContent({ type: "uploadPlaceholder", attrs: { id, name: file.name || "image" } })
+          .insertContent({
+            type: "uploadPlaceholder",
+            attrs: { id, name: file.name || "image" },
+          })
           .run();
       },
       settle: (id, md) => {
@@ -298,7 +311,10 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
     editorRef.current
       ?.chain()
       .focus()
-      .insertContent({ type: "htmlLive", attrs: { code: s.code, height: s.height, fence: "```" } })
+      .insertContent({
+        type: "htmlLive",
+        attrs: { code: s.code, height: s.height, fence: "```" },
+      })
       .run();
   }, []);
 
@@ -334,6 +350,8 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
         }
         case "hr":
           return void c.setHorizontalRule().run();
+        case "table":
+          return void c.insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
         case "image":
           c.run();
           return void fileInput.current?.click();
@@ -351,12 +369,23 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
   runSlashRef.current = runSlash;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: the placeholder text is read once
-  const extensions = useMemo(() => richExtensions({ placeholder: t("rich.placeholder"), htmlLive: HtmlLiveNode, diagramEmbed: DiagramNode }), []);
+  const extensions = useMemo(
+    () =>
+      richExtensions({
+        placeholder: t("rich.placeholder"),
+        htmlLive: HtmlLiveNode,
+        diagramEmbed: DiagramNode,
+      }),
+    [],
+  );
 
   const openLink = useCallback(() => {
     const ed = editorRef.current;
     if (!ed) return;
-    setLink({ href: (ed.getAttributes("link").href as string | undefined) ?? "", error: false });
+    setLink({
+      href: (ed.getAttributes("link").href as string | undefined) ?? "",
+      error: false,
+    });
   }, []);
   const openLinkRef = useRef(openLink);
   openLinkRef.current = openLink;
@@ -369,7 +398,13 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
       // the caret scrolls into view below the page's sticky header, not under it
       scrollMargin: { top: 104, bottom: 24, left: 0, right: 0 },
       scrollThreshold: { top: 104, bottom: 24, left: 0, right: 0 },
-      attributes: { class: "prose-article rich-body", role: "textbox", "aria-multiline": "true", "aria-label": t("rich.body"), spellcheck: "true" },
+      attributes: {
+        class: "prose-article rich-body",
+        role: "textbox",
+        "aria-multiline": "true",
+        "aria-label": t("rich.body"),
+        spellcheck: "true",
+      },
       handleKeyDown: (_view, e) => {
         const s = slash.current;
         if (s.open) {
@@ -443,7 +478,10 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
     b.base = value;
     b.last = value;
     b.recent = new Set([value]);
-    editor.commands.setContent(value, { contentType: "markdown", emitUpdate: false });
+    editor.commands.setContent(value, {
+      contentType: "markdown",
+      emitUpdate: false,
+    });
     b.baseDoc = editor.getJSON();
     if (b.why) {
       b.why = null;
@@ -470,7 +508,10 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
     [flush, insertLive],
   );
 
-  const st = useEditorState({ editor, selector: ({ editor: ed }) => (ed ? toolbarState(ed) : null) });
+  const st = useEditorState({
+    editor,
+    selector: ({ editor: ed }) => (ed ? toolbarState(ed) : null),
+  });
 
   if (!editor) return <p className="mt-6 text-muted">{t("rich.loading")}</p>;
   const chain = () => editor.chain().focus();
@@ -479,7 +520,11 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
     if (!href) return setLink({ href: raw, error: true });
     if (editor.state.selection.empty && !editor.isActive("link"))
       chain()
-        .insertContent({ type: "text", text: href, marks: [{ type: "link", attrs: { href } }] })
+        .insertContent({
+          type: "text",
+          text: href,
+          marks: [{ type: "link", attrs: { href } }],
+        })
         .run();
     else chain().extendMarkRange("link").setLink({ href }).run();
     setLink(null);
@@ -540,7 +585,9 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
                 editor
                   .chain()
                   .focus()
-                  .updateAttributes("codeBlock", { language: e.target.value || null })
+                  .updateAttributes("codeBlock", {
+                    language: e.target.value || null,
+                  })
                   .run()
               }
             >
@@ -669,37 +716,43 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
 
       <EditorContent editor={editor} className="rich-content" />
 
-      {slashUi ? (
-        <div
-          role="listbox"
-          aria-label={t("rich.slash.label")}
-          id="rich-slash"
-          className="rich-slash"
-          style={{ left: Math.max(8, Math.min(slashUi.x, (typeof window === "undefined" ? 1000 : window.innerWidth) - 248)), top: slashUi.y + 6 }}
-        >
-          {slashUi.items.length ? (
-            slashUi.items.map((id, i) => (
-              <div
-                key={id}
-                id={`rich-slash-${id}`}
-                role="option"
-                tabIndex={-1}
-                aria-selected={i === slashIndex}
-                className={cn("rich-slash-item", i === slashIndex && "is-active")}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  runSlash(id);
-                }}
-                onKeyDown={() => {}}
-              >
-                {t(`rich.slash.${id}` as MessageKey)}
-              </div>
-            ))
-          ) : (
-            <p className="px-3 py-2 text-sm text-muted">{t("rich.slash.empty")}</p>
-          )}
-        </div>
-      ) : null}
+      {slashUi
+        ? createPortal(
+            <div
+              role="listbox"
+              aria-label={t("rich.slash.label")}
+              id="rich-slash"
+              className="rich-slash"
+              style={{
+                left: Math.max(8, Math.min(slashUi.x, (typeof window === "undefined" ? 1000 : window.innerWidth) - 248)),
+                top: slashUi.y + 6,
+              }}
+            >
+              {slashUi.items.length ? (
+                slashUi.items.map((id, i) => (
+                  <div
+                    key={id}
+                    id={`rich-slash-${id}`}
+                    role="option"
+                    tabIndex={-1}
+                    aria-selected={i === slashIndex}
+                    className={cn("rich-slash-item", i === slashIndex && "is-active")}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      runSlash(id);
+                    }}
+                    onKeyDown={() => {}}
+                  >
+                    {t(`rich.slash.${id}` as MessageKey)}
+                  </div>
+                ))
+              ) : (
+                <p className="px-3 py-2 text-sm text-muted">{t("rich.slash.empty")}</p>
+              )}
+            </div>,
+            document.body, // out of .reading-glass: its backdrop-filter would re-anchor this fixed menu
+          )
+        : null}
 
       <input
         ref={fileInput}

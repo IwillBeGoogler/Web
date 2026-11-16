@@ -27,7 +27,11 @@ describe("StoryList", () => {
     signIn();
     server.use(
       http.get(api("/me/posts"), () => page([])),
-      http.get(api("/users/admin"), () => HttpResponse.json({ data: { id: 3, username: "admin", created_at: "x" } })),
+      http.get(api("/users/admin"), () =>
+        HttpResponse.json({
+          data: { id: 3, username: "admin", created_at: "x" },
+        }),
+      ),
     );
     await renderRouted(<StoryList status="draft" />);
     expect(await screen.findByText("You have no drafts.")).toBeInTheDocument();
@@ -45,12 +49,33 @@ describe("StoryList", () => {
     server.use(
       http.get(api("/me/posts"), () =>
         page([
-          makePost({ id: 1, title: "Pub", status: "published", slug: "pub", author: "admin" }),
+          makePost({
+            id: 1,
+            title: "Pub",
+            status: "published",
+            slug: "pub",
+            author: "admin",
+          }),
           makePost({ id: 2, title: "Dr", status: "draft", slug: "dr" }),
-          makePost({ id: 3, title: "", status: "scheduled", slug: "sc", publish_at: "2030-01-01T00:00:00Z" }),
+          makePost({
+            id: 3,
+            title: "",
+            status: "scheduled",
+            slug: "sc",
+            publish_at: "2030-01-01T00:00:00Z",
+          }),
         ]),
       ),
-      http.get(api("/users/admin"), () => HttpResponse.json({ data: { id: 3, username: "admin", created_at: "x", pinned_post_id: 1 } })),
+      http.get(api("/users/admin"), () =>
+        HttpResponse.json({
+          data: {
+            id: 3,
+            username: "admin",
+            created_at: "x",
+            pinned_post_id: 1,
+          },
+        }),
+      ),
     );
     await renderRouted(<StoryList status="published" />);
     expect(await screen.findByRole("link", { name: "Pub" })).toHaveAttribute("href", "/@admin/pub");
@@ -66,7 +91,10 @@ describe("StoryList", () => {
       http.get(api("/me/posts"), ({ request }) =>
         new URL(request.url).searchParams.get("cursor")
           ? page([makePost({ id: 9, title: "Second", slug: "s" })])
-          : page([makePost({ id: 1, title: "First" })], { has_more: true, next_cursor: "c" }),
+          : page([makePost({ id: 1, title: "First" })], {
+              has_more: true,
+              next_cursor: "c",
+            }),
       ),
     );
     const { user } = await renderRouted(<StoryList status="published" />);
@@ -79,7 +107,16 @@ describe("StoryList", () => {
     const calls: string[] = [];
     server.use(
       http.get(api("/me/posts"), () => page([makePost({ id: 1, title: "Pub", author: "admin" })])),
-      http.get(api("/users/admin"), () => HttpResponse.json({ data: { id: 3, username: "admin", created_at: "x", pinned_post_id: 0 } })),
+      http.get(api("/users/admin"), () =>
+        HttpResponse.json({
+          data: {
+            id: 3,
+            username: "admin",
+            created_at: "x",
+            pinned_post_id: 0,
+          },
+        }),
+      ),
       http.put(api("/me/pin"), () => (calls.push("pin"), new HttpResponse(null, { status: 204 }))),
       http.delete(api("/me/pin"), () => (calls.push("unpin"), new HttpResponse(null, { status: 204 }))),
       http.delete(api("/posts/1"), () => (calls.push("delete"), new HttpResponse(null, { status: 204 }))),
@@ -107,7 +144,16 @@ describe("StoryList", () => {
     let fail = false;
     server.use(
       http.get(api("/me/posts"), () => page([makePost({ id: 1, title: "Pub", author: "admin" }), makePost({ id: 2, title: "Dr", status: "draft" })])),
-      http.get(api("/users/admin"), () => HttpResponse.json({ data: { id: 3, username: "admin", created_at: "x", pinned_post_id: 1 } })),
+      http.get(api("/users/admin"), () =>
+        HttpResponse.json({
+          data: {
+            id: 3,
+            username: "admin",
+            created_at: "x",
+            pinned_post_id: 1,
+          },
+        }),
+      ),
       http.delete(api("/me/pin"), () => (fail ? HttpResponse.json({ status: 500, detail: "no" }, { status: 500 }) : new HttpResponse(null, { status: 204 }))),
     );
     const { user } = await renderRouted(<StoryList status="published" />);
@@ -164,19 +210,32 @@ describe("StatsPage", () => {
   it("totals, rows, and the per-day chart toggle with period switch", async () => {
     server.use(
       http.get(api("/me/stats"), () => page([stat(), stat({ post_id: 2, title: "Beta", views: 10, reads: 1 })])),
+      http.get(api("/me/stats/daily"), () =>
+        HttpResponse.json({
+          data: { days: [{ date: "2026-10-01", views: 5, reads: 2 }] },
+        }),
+      ),
       http.get(api("/me/stats/1"), ({ request }) => {
         const days = Number(new URL(request.url).searchParams.get("days"));
-        return HttpResponse.json({ data: { post_id: 1, days: [{ date: "2026-10-01", views: days, reads: 1 }] } });
+        return HttpResponse.json({
+          data: {
+            post_id: 1,
+            days: [{ date: "2026-10-01", views: days, reads: 1 }],
+          },
+        });
       }),
     );
     const { user } = await renderRouted(<StatsPage post={1} />);
     expect(await screen.findByRole("button", { name: "Alpha" })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getAllByText("25%")).toHaveLength(2);
     expect(await screen.findByRole("img", { name: /last 30 days, max 30/ })).toBeInTheDocument();
-    await user.selectOptions(screen.getByLabelText("Period"), "7");
+    expect(await screen.findByRole("img", { name: /last 30 days, max 5/ })).toBeInTheDocument();
+    const periods = screen.getAllByLabelText("Period");
+    expect(periods).toHaveLength(2);
+    await user.selectOptions(periods[1]!, "7");
     expect(await screen.findByRole("img", { name: /last 7 days, max 7/ })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Alpha" }));
-    expect(screen.queryByLabelText("Period")).toBeNull();
+    expect(screen.getAllByLabelText("Period")).toHaveLength(1);
     await user.click(screen.getByRole("button", { name: "Beta" }));
     expect(screen.getByRole("button", { name: "Beta" })).toHaveAttribute("aria-expanded", "true");
   });

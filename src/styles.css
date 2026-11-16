@@ -1346,6 +1346,17 @@ html.dark .reading-glass .prose-article code {
   .rich-body :where(img) {
     max-width: 100%;
   }
+  .rich-body :where(td, th) {
+    min-width: 4rem;
+    border: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .rich-body :where(td, th) > p {
+    margin: 0;
+  }
+  .rich-body .selectedCell {
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+  }
   .rich-body .rich-upload {
     display: inline-block;
     border: 1px dashed var(--line-strong);

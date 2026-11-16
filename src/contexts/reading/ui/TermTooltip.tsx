@@ -128,7 +128,9 @@ export function TermTooltip({ container, terms, tipId }: { container: RefObject<
       floating.style.top = `${y}px`;
     };
     el.setAttribute("aria-describedby", tipId);
-    return autoUpdate(el, floating, () => void place(), { animationFrame: false });
+    return autoUpdate(el, floating, () => void place(), {
+      animationFrame: false,
+    });
   }, [active, tipId]);
 
   if (!active) return null;

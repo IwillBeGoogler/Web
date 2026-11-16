@@ -3,7 +3,15 @@ import { describe, expect, it } from "vitest";
 import { api, server } from "@/test/server";
 import { previewBody, storyRepository, studioRepository } from "./storyRepository";
 
-const post = { id: 1, title: "T", slug: "t", status: "draft", author: "ali", created_at: "x", updated_at: "x" };
+const post = {
+  id: 1,
+  title: "T",
+  slug: "t",
+  status: "draft",
+  author: "ali",
+  created_at: "x",
+  updated_at: "x",
+};
 const ok = () => new HttpResponse(null, { status: 204 });
 const rev = { id: 1, post_id: 1, version: 2, title: "T", created_at: "x" };
 
@@ -28,9 +36,19 @@ describe("storyRepository", () => {
 describe("studioRepository", () => {
   it("stats and daily", async () => {
     server.use(
-      http.get(api("/me/stats"), () => HttpResponse.json({ data: [{ post_id: 1, title: "T", slug: "t", status: "published" }], meta: {} })),
+      http.get(api("/me/stats"), () =>
+        HttpResponse.json({
+          data: [{ post_id: 1, title: "T", slug: "t", status: "published" }],
+          meta: {},
+        }),
+      ),
       http.get(api("/me/stats/1"), ({ request }) =>
-        HttpResponse.json({ data: { post_id: 1, days: new URL(request.url).searchParams.get("days") === "7" ? null : [] } }),
+        HttpResponse.json({
+          data: {
+            post_id: 1,
+            days: new URL(request.url).searchParams.get("days") === "7" ? null : [],
+          },
+        }),
       ),
     );
     expect((await studioRepository.stats({})).items).toHaveLength(1);

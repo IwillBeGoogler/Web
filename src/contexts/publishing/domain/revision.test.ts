@@ -16,8 +16,17 @@ describe("revision", () => {
     expect(diffStats([])).toEqual({ added: 0, removed: 0 });
   });
   it("detail defaults null or missing diff lists to empty", () => {
-    const d = revisionDetailSchema.parse({ ...rev, diff: { title: null, body: [{ op: "+", text: "x" }] } });
-    expect(d.diff).toEqual({ title: [], subtitle: [], body: [{ op: "+", text: "x" }], added: 0, removed: 0 });
+    const d = revisionDetailSchema.parse({
+      ...rev,
+      diff: { title: null, body: [{ op: "+", text: "x" }] },
+    });
+    expect(d.diff).toEqual({
+      title: [],
+      subtitle: [],
+      body: [{ op: "+", text: "x" }],
+      added: 0,
+      removed: 0,
+    });
     expect(d.subtitle).toBe("");
   });
 });

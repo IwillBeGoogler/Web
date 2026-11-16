@@ -163,8 +163,14 @@ export default function HeroScene() {
     const cloudOffset = { value: 0 };
     let textures: Texture[] = [];
     let ready = false;
+    let disposed = false;
     Promise.all(["albedo", "bump", "clouds", "ocean", "lights"].map(load))
       .then(([albedo, bump, cloudTex, ocean, lights]) => {
+        if (disposed) {
+          // unmounted while the textures were loading: nobody will dispose them later
+          for (const t of [albedo, bump, cloudTex, ocean, lights]) t?.dispose();
+          return;
+        }
         if (!albedo || !bump || !cloudTex || !ocean || !lights) return;
         textures = [albedo, bump, cloudTex, ocean, lights];
         albedo.colorSpace = SRGBColorSpace;
@@ -339,6 +345,7 @@ export default function HeroScene() {
       canvas.removeEventListener("webglcontextlost", onLost);
       removeEventListener("pointermove", onPointer);
       removeEventListener("deviceorientation", onTilt);
+      disposed = true;
       for (const t of textures) t.dispose();
       earthGeo.dispose();
       earthMat.dispose();
@@ -349,7 +356,8 @@ export default function HeroScene() {
       ptsGeo.dispose();
       ptsMat.dispose();
       renderer.dispose();
-      renderer.forceContextLoss();
+      // StrictMode re-runs this effect on the same canvas in dev: a lost context could not be used again
+      if (!import.meta.env.DEV) renderer.forceContextLoss();
     };
   }, []);
 

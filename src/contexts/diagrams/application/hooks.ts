@@ -195,7 +195,7 @@ export function useDiagramClap(d: Pick<PublicDiagram, "slug" | "claps">, mine: n
   };
   const send = useMutation({
     mutationFn: (n: number) => diagramRepository.clapDiagram(d.slug, n),
-    onSuccess: (r) => setClaps(r.claps, r.my_claps),
+    onSuccess: (r) => setClaps(r.claps + pending.current, r.my_claps + pending.current), // taps still queued are not in the answer
   });
   return () => {
     const r = addClaps({ claps: d.claps, myClaps: mine }, 1);

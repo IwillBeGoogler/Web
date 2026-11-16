@@ -51,7 +51,13 @@ describe("matching", () => {
 });
 
 describe("mergeTerms", () => {
-  const g = (id: number, term: string, aliases: string[] = []): GlobalTerm => ({ id, term, aliases, definition: `global ${term}`, lang: "" });
+  const g = (id: number, term: string, aliases: string[] = []): GlobalTerm => ({
+    id,
+    term,
+    aliases,
+    definition: `global ${term}`,
+    lang: "",
+  });
   it("the article's term wins over a site term with the same name or alias", () => {
     const m = mergeTerms([{ term: "Pod", aliases: [], definition: "mine" }], [g(1, "pod"), g(2, "Node")]);
     expect(m.map((t) => [t.id, t.definition])).toEqual([
@@ -61,7 +67,10 @@ describe("mergeTerms", () => {
   });
   it("matches across apostrophe variants and keeps the unused names of a site term", () => {
     const m = mergeTerms([{ term: "o'zgaruvchi", aliases: [], definition: "mine" }], [g(1, "oʻzgaruvchi", ["var"])]);
-    expect(m.find((t) => t.id === "g:1")).toMatchObject({ term: "var", aliases: [] });
+    expect(m.find((t) => t.id === "g:1")).toMatchObject({
+      term: "var",
+      aliases: [],
+    });
   });
   it("ignores blank entries and a site term fully covered", () => {
     expect(mergeTerms([{ term: " ", aliases: [], definition: "x" }], [g(1, " ")])).toEqual([]);
@@ -74,7 +83,14 @@ describe("mergeTerms", () => {
 
 describe("globalTermSchema", () => {
   it("defaults aliases and lang", () => {
-    expect(globalTermSchema.parse({ id: 1, term: "a", aliases: null, definition: "d" })).toEqual({ id: 1, term: "a", aliases: [], definition: "d", lang: "" });
+    expect(
+      globalTermSchema.parse({
+        id: 1,
+        term: "a",
+        aliases: null,
+        definition: "d",
+      }),
+    ).toEqual({ id: 1, term: "a", aliases: [], definition: "d", lang: "" });
   });
 });
 
