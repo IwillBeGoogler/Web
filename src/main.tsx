@@ -12,8 +12,10 @@ import { queryClient, router } from "./app/router";
 import { installErrorReporting } from "./shared/errorReporting";
 import { persistQueries } from "./shared/queryPersist";
 import { contentReady, earthReady, keepSplash } from "./shared/splash";
+import { installStaleChunkRecovery } from "./shared/staleChunk";
 
 installErrorReporting();
+installStaleChunkRecovery();
 // Public first-screen data (trending, tags, latest, landing teasers) comes back from localStorage, so a repeat visit paints at once.
 persistQueries(queryClient);
 

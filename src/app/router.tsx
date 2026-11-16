@@ -24,6 +24,7 @@ import { tokens } from "@/shared/api";
 import { reportError } from "@/shared/errorReporting";
 import { explainError, isApiError } from "@/shared/http";
 import { useT } from "@/shared/i18n";
+import { reloadForStaleChunk } from "@/shared/staleChunk";
 import { Button } from "@/shared/ui/button";
 import { Galaxy } from "@/shared/ui/galaxy";
 
@@ -173,7 +174,12 @@ function AppToaster() {
 function RouteError({ error, reset }: { error: unknown; reset: () => void }) {
   const t = useT();
   const explained = explainError(error, t);
-  useEffect(() => reportError(error), [error]);
+  // a page chunk from before the last deploy: reload into the new build instead of showing this screen
+  const [reloading] = useState(() => reloadForStaleChunk(error));
+  useEffect(() => {
+    if (!reloading) reportError(error);
+  }, [error, reloading]);
+  if (reloading) return null;
   return (
     <>
       <EmptyState
