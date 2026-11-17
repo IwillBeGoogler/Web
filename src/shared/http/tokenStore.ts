@@ -1,13 +1,31 @@
 /**
- * Holds the bearer token. Memory is the source of truth; localStorage mirrors
+ * Holds the access token (3 hours) and the refresh token (30 days). Memory
+ * is the source of truth; localStorage mirrors
  * it so a reader stays signed in across reloads and tabs. Other tabs' writes
  * arrive as `storage` events: a token another tab rotated (or a sign-out
  * there) replaces the one in memory, so this tab never sends a retired token.
  */
 export interface StoredToken {
+  /** Access token (Authorization: Bearer). */
   token: string;
   expiresAt: string;
+  /** Refresh token for POST /auth/refresh (absent for sessions from before access tokens). */
+  refreshToken?: string;
+  refreshExpiresAt?: string;
 }
+
+/** The stored form of a login/refresh response. */
+export const storedFrom = (s: {
+  token?: string;
+  access_token?: string;
+  expires_at: string;
+  refresh_token?: string | undefined;
+  refresh_expires_at?: string | undefined;
+}): StoredToken => ({
+  token: s.access_token || s.token || "",
+  expiresAt: s.expires_at,
+  ...(s.refresh_token ? { refreshToken: s.refresh_token, refreshExpiresAt: s.refresh_expires_at ?? "" } : {}),
+});
 
 type Listener = (t: StoredToken | null) => void;
 
@@ -31,7 +49,7 @@ export const createTokenStore = (
   events?.addEventListener("storage", (e) => {
     if (e.key !== KEY && e.key !== null) return; // null: storage.clear()
     const next = read(storage);
-    if (next?.token === current?.token) return;
+    if (next?.token === current?.token && next?.refreshToken === current?.refreshToken) return;
     current = next;
     for (const l of listeners) l(next);
   });
@@ -67,7 +85,10 @@ function read(storage: Pick<Storage, "getItem"> | null): StoredToken | null {
     const raw = storage?.getItem(KEY);
     if (!raw) return null;
     const v = JSON.parse(raw) as Partial<StoredToken>;
-    return typeof v.token === "string" && typeof v.expiresAt === "string" ? { token: v.token, expiresAt: v.expiresAt } : null;
+    if (typeof v.token !== "string" || typeof v.expiresAt !== "string") return null;
+    return typeof v.refreshToken === "string"
+      ? { token: v.token, expiresAt: v.expiresAt, refreshToken: v.refreshToken, refreshExpiresAt: v.refreshExpiresAt ?? "" }
+      : { token: v.token, expiresAt: v.expiresAt };
   } catch {
     return null;
   }

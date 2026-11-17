@@ -1,6 +1,7 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 import { tokens } from "@/shared/api";
+import { storedFrom } from "@/shared/http/tokenStore";
 import type { LoginInput, RegisterRequest, Session } from "../domain/account";
 import { accountRepository } from "../infrastructure/accountRepository";
 
@@ -19,7 +20,7 @@ export function useMe() {
 const useStore = () => {
   const qc = useQueryClient();
   return (s: Session) => {
-    tokens.set({ token: s.token, expiresAt: s.expires_at });
+    tokens.set(storedFrom(s));
     qc.setQueryData(meKey, s.user);
     void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== "me" });
   };

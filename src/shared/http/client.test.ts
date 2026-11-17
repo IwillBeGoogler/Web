@@ -9,7 +9,7 @@ import { createTokenStore } from "./tokenStore";
 
 const setup = (token: string | null = "t1") => {
   const tokens = createTokenStore(null);
-  if (token) tokens.set({ token, expiresAt: "2030-01-01T00:00:00Z" });
+  if (token) tokens.set({ token, expiresAt: "2030-01-01T00:00:00Z", refreshToken: "r1", refreshExpiresAt: "2030-02-01T00:00:00Z" });
   const onSessionExpired = vi.fn();
   const client = createHttpClient({ tokens, locale: () => "uz", onSessionExpired });
   return { tokens, client, onSessionExpired };
@@ -75,10 +75,14 @@ describe("http client", () => {
   it("refreshes once on 401 and retries with the rotated token", async () => {
     let refreshes = 0;
     server.use(
-      http.post(api("/auth/refresh"), ({ request }) => {
+      http.post(api("/auth/refresh"), async ({ request }) => {
         refreshes++;
-        expect(request.headers.get("authorization")).toBe("Bearer t1");
-        return HttpResponse.json({ data: { token: "t2", expires_at: "2030-01-01T00:00:00Z" } });
+        // the stored refresh token goes in the body, no bearer
+        expect(request.headers.get("authorization")).toBeNull();
+        expect(await request.json()).toEqual({ refresh_token: "r1" });
+        return HttpResponse.json({
+          data: { access_token: "t2", expires_at: "2030-01-01T00:00:00Z", refresh_token: "r2", refresh_expires_at: "2030-02-01T00:00:00Z" },
+        });
       }),
       http.get(api("/a"), ({ request }) =>
         request.headers.get("authorization") === "Bearer t2" ? HttpResponse.json({ ok: 1 }) : HttpResponse.json({ status: 401 }, { status: 401 }),
@@ -89,7 +93,12 @@ describe("http client", () => {
     expect(a).toEqual({ ok: 1 });
     expect(b).toEqual({ ok: 1 });
     expect(refreshes).toBe(1);
-    expect(tokens.get()?.token).toBe("t2");
+    expect(tokens.get()).toEqual({
+      token: "t2",
+      expiresAt: "2030-01-01T00:00:00Z",
+      refreshToken: "r2",
+      refreshExpiresAt: "2030-02-01T00:00:00Z",
+    });
   });
 
   it("clears the session when refresh fails", async () => {

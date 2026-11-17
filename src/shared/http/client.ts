@@ -1,6 +1,6 @@
 import type { z } from "zod";
 import { ApiError, ContractError, NetworkError, problemSchema } from "./problem";
-import type { TokenStore } from "./tokenStore";
+import { storedFrom, type TokenStore } from "./tokenStore";
 
 export type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 export type Query = Record<string, string | number | boolean | undefined | null>;
@@ -52,15 +52,21 @@ const readBody = async (r: Response): Promise<unknown> => {
   }
 };
 
-const refreshSchema = { token: "", expires_at: "" };
+const refreshSchema = { access_token: "", token: "", expires_at: "", refresh_token: "", refresh_expires_at: "" };
+
+/** Runs fn under a cross-tab lock when the browser has one (Web Locks), so tabs never rotate the refresh token at once. */
+const withTabLock = <T>(fn: () => Promise<T>): Promise<T> => {
+  const locks = typeof navigator === "undefined" ? undefined : navigator.locks;
+  return locks ? (locks.request("auth-refresh", fn) as Promise<T>) : fn();
+};
 
 /**
  * createHttpClient: JSON over fetch with Bearer auth, Accept-Language, RFC 9457
- * errors and Zod-validated responses. A 401 on an authenticated call triggers
- * one shared POST /auth/refresh (the token rotates) and a single retry. The
- * server refreshes only a session that is still valid, so this does not bring
- * back one that ran out (SESSION_IDLE_TIMEOUT / SESSION_ABSOLUTE_TIMEOUT on
- * the API): it covers a token that another tab or device rotated meanwhile.
+ * errors and Zod-validated responses. The access token (ACCESS_TOKEN_TTL on
+ * the API, 3 hours) is short-lived; the refresh token (30 days) is kept next
+ * to it in localStorage. A 401 on an authenticated call triggers one shared
+ * POST /auth/refresh (both tokens rotate) and a single retry. Tabs take turns
+ * refreshing; a tab that waited uses the pair the other one stored.
  */
 export const createHttpClient = (cfg: HttpClientConfig): HttpClient => {
   const base = cfg.baseUrl ?? "/api";
@@ -69,28 +75,34 @@ export const createHttpClient = (cfg: HttpClientConfig): HttpClient => {
   let refreshing: Promise<"ok" | "expired" | "error"> | null = null;
 
   const refresh = (): Promise<"ok" | "expired" | "error"> => {
-    refreshing ??= (async () => {
-      const t = cfg.tokens.get();
-      if (!t) return "expired";
+    const asked = cfg.tokens.get()?.refreshToken;
+    refreshing ??= withTabLock(async (): Promise<"ok" | "expired" | "error"> => {
+      const before = cfg.tokens.get();
+      // another tab refreshed while this one waited for the lock (storage event): use its pair
+      if (before?.refreshToken && asked && before.refreshToken !== asked) return "ok";
       try {
+        if (!before?.refreshToken) return "expired";
         const r = await doFetch(`${base}/auth/refresh`, {
           method: "POST",
-          headers: { Accept: "application/json", Authorization: `Bearer ${t.token}` },
+          headers: { Accept: "application/json", "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh_token: before.refreshToken }),
         });
         if (r.status === 401 || r.status === 403) {
-          // another tab may have rotated the token meanwhile: keep the newer one
+          // a sign-in elsewhere may have left a newer token meanwhile: keep it
           const now = cfg.tokens.get();
-          return now && now.token !== t.token ? "ok" : "expired";
+          return now && now.token !== before?.token ? "ok" : "expired";
         }
         if (!r.ok) return "error";
-        const body = (await readBody(r)) as { data?: typeof refreshSchema } | null;
-        if (!body?.data?.token) return "error";
-        cfg.tokens.set({ token: body.data.token, expiresAt: body.data.expires_at });
+        const body = (await readBody(r)) as { data?: Partial<typeof refreshSchema> } | null;
+        const d = body?.data;
+        const token = d?.access_token || d?.token;
+        if (!token) return "error";
+        cfg.tokens.set(storedFrom({ ...d, token, expires_at: d?.expires_at ?? "" }));
         return "ok";
       } catch {
         return "error";
       }
-    })().finally(() => {
+    }).finally(() => {
       refreshing = null;
     });
     return refreshing;

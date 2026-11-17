@@ -6,10 +6,16 @@ import { useT } from "@/shared/i18n";
 import { Loading } from "@/shared/ui/states";
 
 /** What /api/auth/oidc/callback put in the URL fragment (never the query, so it is not sent to any server or logged). */
-export function parseSsoFragment(hash: string): { token: string; expiresAt: string } | { error: string } {
+export function parseSsoFragment(hash: string): { token: string; expiresAt: string; refreshToken?: string; refreshExpiresAt?: string } | { error: string } {
   const p = new URLSearchParams(hash.replace(/^#/, ""));
-  const token = p.get("token");
-  if (token) return { token, expiresAt: p.get("expires_at") ?? "" };
+  const token = p.get("access_token") || p.get("token");
+  const refreshToken = p.get("refresh_token");
+  if (token)
+    return {
+      token,
+      expiresAt: p.get("expires_at") ?? "",
+      ...(refreshToken ? { refreshToken, refreshExpiresAt: p.get("refresh_expires_at") ?? "" } : {}),
+    };
   return { error: p.get("error") ?? "failed" };
 }
 
@@ -55,7 +61,8 @@ export function SsoCallbackPage() {
   useEffect(() => {
     window.history.replaceState(null, "", window.location.pathname);
     if (!("token" in result)) return;
-    tokens.set({ token: result.token, expiresAt: result.expiresAt });
+    const { token, expiresAt, refreshToken, refreshExpiresAt } = result;
+    tokens.set(refreshToken ? { token, expiresAt, refreshToken, refreshExpiresAt: refreshExpiresAt ?? "" } : { token, expiresAt });
     void qc.invalidateQueries();
     void navigate({ to: "/", replace: true });
   }, [result, qc, navigate]);

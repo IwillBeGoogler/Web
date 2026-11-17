@@ -13,7 +13,13 @@ export const userSchema = z.object({
 });
 export type User = z.infer<typeof userSchema>;
 
-export const sessionSchema = z.object({ token: z.string().min(1), expires_at: z.string(), user: userSchema });
+export const sessionSchema = z.object({
+  token: z.string().min(1),
+  expires_at: z.string(),
+  refresh_token: z.string().optional(),
+  refresh_expires_at: z.string().optional(),
+  user: userSchema,
+});
 export type Session = z.infer<typeof sessionSchema>;
 
 export const loginResultSchema = z.union([

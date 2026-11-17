@@ -1005,7 +1005,11 @@ export function EditorPage({ id: routeId }: { id?: number }) {
             {...form.register("subtitle", { onChange: (e) => grow(e.target) })}
           />
           <div className="mt-6 flex flex-wrap items-center gap-2">
-            <span className="seg" role="group" aria-label={t("rich.mode.label")}>
+            <span
+              className="seg fixed bottom-6 left-1/2 z-40 -translate-x-1/2 bg-bg shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
+              role="group"
+              aria-label={t("rich.mode.label")}
+            >
               <button type="button" className="seg-item h-7" aria-pressed={mode === "rich"} onClick={() => void chooseMode("rich")}>
                 {t("rich.mode.visual")}
               </button>

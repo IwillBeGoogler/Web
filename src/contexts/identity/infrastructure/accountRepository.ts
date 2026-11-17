@@ -1,4 +1,4 @@
-import { http } from "@/shared/api";
+import { http, tokens } from "@/shared/api";
 import { dataEnvelope } from "@/shared/http";
 import {
   type LoginInput,
@@ -22,7 +22,7 @@ export const accountRepository = {
     return (await http("/auth/register", { method: "POST", body, schema: dataEnvelope(sessionSchema), noRefresh: true })).data;
   },
   async logout(): Promise<void> {
-    await http("/auth/logout", { method: "POST", noRefresh: true }).catch(() => undefined);
+    await http("/auth/logout", { method: "POST", body: { refresh_token: tokens.get()?.refreshToken }, noRefresh: true }).catch(() => undefined);
   },
   async me(signal?: AbortSignal): Promise<User> {
     return (await http("/me", { schema: dataEnvelope(userSchema), signal })).data;

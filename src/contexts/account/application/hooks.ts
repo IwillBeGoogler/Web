@@ -2,6 +2,7 @@ import { infiniteQueryOptions, queryOptions, useMutation, useQueryClient } from 
 import { meKey } from "@/contexts/identity/application/session";
 import { tokens } from "@/shared/api";
 import { nextPageRequest, type PageRequest } from "@/shared/http";
+import { storedFrom } from "@/shared/http/tokenStore";
 import type { Hidden } from "../domain/account";
 import { accountSecurityRepository as repo } from "../infrastructure/accountSecurityRepository";
 
@@ -36,7 +37,7 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (v: { old_password: string; new_password: string }) => repo.changePassword(v.old_password, v.new_password),
     onSuccess: (s) => {
-      tokens.set({ token: s.token, expiresAt: s.expires_at });
+      tokens.set(storedFrom(s));
       void qc.invalidateQueries({ queryKey: accountKeys.devices });
     },
   });

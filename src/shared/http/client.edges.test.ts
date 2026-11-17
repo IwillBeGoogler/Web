@@ -9,7 +9,7 @@ const json = (status: number, body: unknown) => new Response(JSON.stringify(body
 
 const make = (fetchImpl: (url: string, init: RequestInit) => Promise<Response>, token: string | null = "t1") => {
   const tokens = createTokenStore(null);
-  if (token) tokens.set({ token, expiresAt: "2030-01-01T00:00:00Z" });
+  if (token) tokens.set({ token, expiresAt: "2030-01-01T00:00:00Z", refreshToken: "r1" });
   const onSessionExpired = vi.fn();
   const client = createHttpClient({ tokens, locale: () => "en", onSessionExpired, fetch: fetchImpl as typeof fetch });
   return { client, tokens, onSessionExpired };
@@ -20,7 +20,7 @@ describe("http client refresh edges", () => {
     let calls = 0;
     const m = make(async (url) => {
       if (url.endsWith("/auth/refresh")) {
-        m.tokens.set({ token: "t2", expiresAt: "2031-01-01T00:00:00Z" });
+        m.tokens.set({ token: "t2", expiresAt: "2031-01-01T00:00:00Z", refreshToken: "r2" });
         return json(401, {});
       }
       return calls++ === 0 ? json(401, {}) : json(200, { ok: 1 });
