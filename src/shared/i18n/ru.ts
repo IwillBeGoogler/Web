@@ -395,6 +395,7 @@ export const ru: Record<keyof typeof en, string> = {
   "rich.lossy.notice":
     "Эту правку нельзя точно записать как Markdown: {why}. Она хранится на этом устройстве и пока не сохранена онлайн, так что ничего не потеряно.",
   "rich.lossy.open": "Открыть в режиме Markdown",
+  "rich.crashed": "Визуальный редактор остановился. Текст сохранён, открыт режим Markdown.",
   "rich.lossy.saveBlocked": "Сначала откройте режим Markdown: эту правку нельзя точно сохранить из визуального редактора.",
   "editor.preview.head": "Предпросмотр · как при публикации",
   "editor.preview.empty": "Пока нечего показывать.",

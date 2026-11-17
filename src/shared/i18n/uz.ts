@@ -395,6 +395,7 @@ export const uz: Record<keyof typeof en, string> = {
   "rich.lossy.notice":
     "Bu tahrirni Markdown sifatida aniq yozib bo‘lmaydi: {why}. U shu qurilmada saqlanadi, hali onlayn saqlanmaydi, shuning uchun hech narsa yo‘qolmaydi.",
   "rich.lossy.open": "Markdown rejimida ochish",
+  "rich.crashed": "Vizual muharrir to'xtadi. Matn saqlangan, Markdown rejimida ochildi.",
   "rich.lossy.saveBlocked": "Avval Markdown rejimini oching: bu tahrirni vizual muharrirdan aniq saqlab bo‘lmaydi.",
   "editor.preview.head": "Ko‘rinish · nashrdagidek",
   "editor.preview.empty": "Hozircha ko‘rsatadigan narsa yo‘q.",

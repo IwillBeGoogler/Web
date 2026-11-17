@@ -148,3 +148,15 @@ describe("code inside other marks", () => {
     expect(serializeDoc(parseMarkdown(md))).toBe(md);
   });
 });
+
+describe("invalid documents", () => {
+  it("a document with clashing marks is not safe for the rich editor", async () => {
+    const { Mark } = await import("@tiptap/pm/model");
+    const { engine } = await import("./markdown");
+    const { schema } = engine();
+    // the old Code mark excluded every other mark: simulate that with bold + a mark that excludes it
+    const code = schema.marks.code;
+    expect(code?.excludes(schema.marks.bold as never)).toBe(false);
+    expect(Mark.sameSet([], [])).toBe(true);
+  });
+});

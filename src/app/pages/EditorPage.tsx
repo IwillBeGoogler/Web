@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { ArrowLeftIcon, BookOpenTextIcon, HistoryIcon, ImageIcon, MaximizeIcon, SaveIcon, ShapesIcon, SparklesIcon, XIcon } from "lucide-react";
 import { Dialog } from "radix-ui";
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Component, lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { accountSecurityRepository } from "@/contexts/account/infrastructure/accountSecurityRepository";
 import { myPublicationsQuery } from "@/contexts/collections/application/hooks";
@@ -28,6 +28,7 @@ import { StoryPreview } from "@/contexts/publishing/ui/StoryPreview";
 import { postByIdQuery, topicsQuery } from "@/contexts/reading/application/queries";
 import { postPath, readTime } from "@/contexts/reading/domain/post";
 import { type TopicNode, topicName } from "@/contexts/reading/domain/topic";
+import { reportError } from "@/shared/errorReporting";
 import { ApiError, explainError } from "@/shared/http";
 import { type MessageKey, useLang, useT } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
@@ -498,6 +499,20 @@ function Revisions({
 }
 
 const toServerStatus = (s: string): ServerStatus => (s === "draft" ? "draft" : s === "scheduled" ? "scheduled" : s === "unlisted" ? "unlisted" : "published");
+
+/** A crash in the visual editor must not replace the page with the error screen: a small notice at the top, and the text opens in Markdown mode. */
+class RichGuard extends Component<{ onFail: (e: unknown) => void; children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(e: unknown) {
+    this.props.onFail(e);
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
 
 export function EditorPage({ id: routeId }: { id?: number }) {
   // the id this editor opened with; the route's id changes once a new story is created, and nothing must reload then
@@ -1006,16 +1021,24 @@ export function EditorPage({ id: routeId }: { id?: number }) {
               <Bone className="mt-6 h-64 w-full" />
             ) : (
               <div hidden={preview}>
-                <Suspense fallback={<Bone className="mt-6 h-64 w-full" />}>
-                  <RichEditor
-                    ref={richRef}
-                    value={body}
-                    epoch={epoch}
-                    onChange={(md) => form.setValue("body", md, { shouldDirty: true })}
-                    onLossy={setLossy}
-                    onDiagram={() => setDiagramPicker(true)}
-                  />
-                </Suspense>
+                <RichGuard
+                  onFail={(e) => {
+                    reportError(e);
+                    toast.error(t("rich.crashed"));
+                    void chooseMode("md");
+                  }}
+                >
+                  <Suspense fallback={<Bone className="mt-6 h-64 w-full" />}>
+                    <RichEditor
+                      ref={richRef}
+                      value={body}
+                      epoch={epoch}
+                      onChange={(md) => form.setValue("body", md, { shouldDirty: true })}
+                      onLossy={setLossy}
+                      onDiagram={() => setDiagramPicker(true)}
+                    />
+                  </Suspense>
+                </RichGuard>
               </div>
             )
           ) : preview ? null : (

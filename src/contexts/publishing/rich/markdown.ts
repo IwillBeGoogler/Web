@@ -826,8 +826,20 @@ function scan(tokens: Tok[], nested: boolean, inLink = false): RichProblem | nul
 const EMBED_URL = /^https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/)\S+$/;
 
 /** The rich view of a body as comparable nodes. */
+/**
+ * The document as a node. Marks that exclude each other or are not allowed in their parent make an invalid document that
+ * crashes the editor on its first transaction (empty blocks are fine: the editor fills them), so such a document is refused.
+ */
 function asNode(ed: Editor, doc: JSONContent): PMNode {
-  return PMNode.fromJSON(ed.schema, cleanDoc(doc));
+  const n = PMNode.fromJSON(ed.schema, cleanDoc(doc));
+  n.descendants((child, _pos, parent) => {
+    if (!child.isInline) return true;
+    const marks = child.marks;
+    const clash = marks.some((m, i) => marks.some((o, j) => i !== j && m.type.excludes(o.type)));
+    if (clash || (parent && !parent.type.allowsMarks(marks))) throw new Error(`invalid marks on ${child.type.name}`);
+    return true;
+  });
+  return n;
 }
 
 const liveOf = (md: string) => scanLive(md).map((b) => `${b.height ?? ""}\u0000${b.code}`);

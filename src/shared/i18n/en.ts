@@ -392,6 +392,7 @@ export const en = {
   "editor.verify.sent": "Verification email sent",
   "rich.lossy.notice": "This edit can't be written as Markdown exactly: {why}. It is kept on this device and not saved online yet, so nothing is lost.",
   "rich.lossy.open": "Open in Markdown mode",
+  "rich.crashed": "The visual editor stopped. Your text is safe; opened in Markdown mode.",
   "rich.lossy.saveBlocked": "Open Markdown mode first: this edit can't be saved exactly from the visual editor.",
   "editor.preview.head": "Preview · as published",
   "editor.preview.empty": "Nothing to preview yet.",
