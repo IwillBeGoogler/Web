@@ -79,7 +79,7 @@ vi.mock("@/contexts/engagement/ui/FeedbackDialog", () => ({ FeedbackDialog: () =
 vi.mock("@/contexts/engagement/application/realtime", () => ({ useLiveNotifications: vi.fn() }));
 vi.mock("@/shared/ui/galaxy", () => ({ Galaxy: (p: { planet: boolean }) => <div data-testid="galaxy">{String(p.planet)}</div> }));
 vi.mock("@/shared/ui/EarthHorizon", () => ({ default: (p: { satellite: boolean }) => <div data-testid="earth">{String(p.satellite)}</div> }));
-vi.mock("@/shared/analytics", () => ({ track: h.track }));
+vi.mock("@/shared/analytics", () => ({ track: h.track, startActiveTime: vi.fn() }));
 vi.mock("@/shared/errorReporting", () => ({ reportError: h.report }));
 
 import { queryClient, router } from "./router";
