@@ -135,3 +135,16 @@ describe("markdown defensive paths", () => {
     expect(sameRichDoc({ type: "nope" }, parseMarkdown("a"))).toBe(false);
   });
 });
+
+describe("code inside other marks", () => {
+  it("**`x`** parses into a valid document the editor can change", async () => {
+    const { Editor } = await import("@tiptap/core");
+    const { patchEditor, richExtensions } = await import("./markdown");
+    const md = "**`Base`** va [`arr[i]`](https://x.uz) *`y`*";
+    const ed = patchEditor(new Editor({ extensions: richExtensions(), content: "" }));
+    ed.commands.setContent(parseMarkdown(md));
+    expect(() => ed.state.doc.check()).not.toThrow();
+    expect(() => ed.commands.insertContent("z")).not.toThrow();
+    expect(serializeDoc(parseMarkdown(md))).toBe(md);
+  });
+});

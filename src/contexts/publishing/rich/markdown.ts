@@ -126,7 +126,9 @@ const RichStrike = Strike.extend({
     return [markInputRule({ find: pair("~~", "~"), type: this.type })];
   },
 });
-const RichCode = Code.extend(noPaste);
+// Markdown allows `**`x`**` (code inside bold, italic, strike or a link); tiptap's Code excludes every other mark, so a
+// parsed story holding it was an invalid document and the editor crashed on its first transaction.
+const RichCode = Code.extend({ ...noPaste, excludes: "" });
 
 /** `group=name` in a fence's info string: fences next to each other with the same name are shown as one block with a tab per language. */
 const GROUP_ATTR = /(?:^|\s)group=([A-Za-z0-9_-]{1,32})(?=\s|$)/;

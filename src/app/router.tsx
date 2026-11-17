@@ -441,7 +441,14 @@ function EditorRoute() {
   const params = useParams({ strict: false }) as { id?: string };
   const id = params.id ? Number(params.id) : undefined;
   const keyRef = useRef<string>(String(id ?? "new"));
-  if (!(id !== undefined && id === adopted.id)) keyRef.current = String(id ?? "new");
+  const prev = useRef(id);
+  const seq = useRef(0);
+  if (id !== prev.current) {
+    // only the editor's own first save (/new-story -> /p/{its id}/edit) keeps the mounted editor; any other move is a new one
+    const adoptedHere = prev.current === undefined && id !== undefined && id === adopted.id;
+    if (!adoptedHere) keyRef.current = id === undefined ? `new-${++seq.current}` : String(id);
+    prev.current = id;
+  }
   return <P.Editor key={keyRef.current} {...(id !== undefined ? { id } : {})} />;
 }
 const editorShell = createRoute({ getParentRoute: () => root, id: "editor", component: EditorRoute });
