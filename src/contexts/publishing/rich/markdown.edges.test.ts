@@ -1,6 +1,6 @@
 import type { JSONContent } from "@tiptap/core";
 import { describe, expect, it } from "vitest";
-import { canRoundTrip, cleanDoc, encodeDest, escapeText, parseMarkdown, sameRichDoc, serializeDoc } from "./markdown";
+import { canRoundTrip, cleanDoc, encodeDest, escapeText, locateProblem, parseMarkdown, sameRichDoc, serializeDoc } from "./markdown";
 
 const doc = (...content: JSONContent[]): JSONContent => ({
   type: "doc",
@@ -158,5 +158,14 @@ describe("invalid documents", () => {
     const code = schema.marks.code;
     expect(code?.excludes(schema.marks.bold as never)).toBe(false);
     expect(Mark.sameSet([], [])).toBe(true);
+  });
+});
+
+describe("locateProblem", () => {
+  it("points at the first line the visual editor cannot keep", () => {
+    expect(locateProblem("Hello\n\nfine **text**\n\n<div>raw</div>\n\nlast")).toEqual({ line: 5, text: "<div>raw</div>" });
+  });
+  it("is null when the text is fine", () => {
+    expect(locateProblem("## a\n\nb")).toBeNull();
   });
 });

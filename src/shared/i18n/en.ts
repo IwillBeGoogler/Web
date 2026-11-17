@@ -460,6 +460,8 @@ export const en = {
   "rich.unsafe": "This edit can't be written as Markdown without changing it. Switch to Markdown mode to keep it exactly.",
   "rich.md.notice": "Opened in Markdown mode: {why}. The visual editor would change or drop it.",
   "rich.md.refuse": "Can't switch to visual mode: {why}. The visual editor would change or drop it.",
+  "rich.md.where": "Line {line}:",
+  "rich.md.goto": "Show",
   "rich.why.html": "it contains raw HTML",
   "rich.why.table": "it contains a table",
   "rich.why.footnote": "it uses footnotes",

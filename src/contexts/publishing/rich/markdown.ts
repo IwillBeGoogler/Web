@@ -880,6 +880,30 @@ export function canRoundTrip(md: string): RoundTrip {
   }
 }
 
+/**
+ * Where the visual editor's trouble is: the first top-level block that cannot be kept exactly on its own, with its
+ * 1-based first line and its first line of text. Null when no single block is to blame (the trouble is in the whole text).
+ */
+export function locateProblem(md: string): { line: number; text: string } | null {
+  try {
+    const lexer = engine().markdown?.instance.lexer as ((s: string) => Tok[]) | undefined;
+    if (!lexer) return null;
+    let line = 1;
+    for (const t of lexer(md)) {
+      const raw = t.raw ?? "";
+      if (t.type !== "space" && !canRoundTrip(raw).ok) {
+        const lead = raw.length - raw.replace(/^\n+/, "").length;
+        const at = line + (raw.slice(0, lead).match(/\n/g)?.length ?? 0);
+        return { line: at, text: (raw.trim().split("\n")[0] ?? "").slice(0, 120) };
+      }
+      line += raw.match(/\n/g)?.length ?? 0;
+    }
+  } catch {
+    // no location
+  }
+  return null;
+}
+
 /** Do two Markdown strings give the same rich document? (Used to keep the original bytes while nothing was edited.) */
 export function sameRichDoc(a: JSONContent, b: JSONContent): boolean {
   const ed = engine();

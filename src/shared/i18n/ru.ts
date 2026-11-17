@@ -463,6 +463,8 @@ export const ru: Record<keyof typeof en, string> = {
   "rich.unsafe": "Эту правку нельзя записать в Markdown без изменений. Перейдите в режим Markdown, чтобы сохранить её точно.",
   "rich.md.notice": "Открыто в режиме Markdown: {why}. Визуальный редактор изменил бы или потерял это.",
   "rich.md.refuse": "Нельзя перейти в визуальный режим: {why}. Визуальный редактор изменил бы или потерял это.",
+  "rich.md.where": "Строка {line}:",
+  "rich.md.goto": "Показать",
   "rich.why.html": "в нём есть сырой HTML",
   "rich.why.table": "в нём есть таблица",
   "rich.why.footnote": "в нём есть сноски",

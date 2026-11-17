@@ -463,6 +463,8 @@ export const uz: Record<keyof typeof en, string> = {
   "rich.unsafe": "Bu o‘zgartirishni Markdown sifatida o‘zgarishsiz yozib bo‘lmaydi. Aniq saqlash uchun Markdown rejimiga o‘ting.",
   "rich.md.notice": "Markdown rejimida ochildi: {why}. Vizual muharrir uni o‘zgartirib yoki o‘chirib yuborar edi.",
   "rich.md.refuse": "Vizual rejimga o‘tib bo‘lmaydi: {why}. Vizual muharrir uni o‘zgartirib yoki o‘chirib yuborar edi.",
+  "rich.md.where": "{line}-qator:",
+  "rich.md.goto": "Ko'rsatish",
   "rich.why.html": "unda xom HTML bor",
   "rich.why.table": "unda jadval bor",
   "rich.why.footnote": "unda izohlar (footnote) bor",

@@ -572,6 +572,28 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const [focus, setFocus] = useState(() => readPref(FOCUS_KEY) === "1");
   const checkSeq = useRef(0);
   const mode: "rich" | "md" = wantRich && !problem ? "rich" : "md";
+  // where in the text the visual editor's trouble is (shown in red, with a jump to it)
+  const [where, setWhere] = useState<{ line: number; text: string } | null>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the problem is the trigger; the text is read when it is set
+  useEffect(() => {
+    if (!problem || !wantRich) {
+      setWhere(null);
+      return;
+    }
+    let live = true;
+    void loadRichMarkdown().then((m) => live && setWhere(m.locateProblem(form.getValues("body") ?? "")));
+    return () => {
+      live = false;
+    };
+  }, [problem, wantRich]);
+  const goToLine = (line: number) => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const lines = el.value.split("\n");
+    const from = lines.slice(0, line - 1).reduce((n, l) => n + l.length + 1, 0);
+    el.focus();
+    el.setSelectionRange(from, from + (lines[line - 1]?.length ?? 0));
+  };
   const loaded = useRef(false);
   const leaving = useRef(false);
 
@@ -657,6 +679,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
 
   const restore = () => {
     if (!banner) return;
+    setChecking(true); // the visual editor must not see the text before it is checked
     form.reset({ ...banner.form, status: saved.status });
     setBanner(null);
     void evaluate(banner.form.body);
@@ -1003,9 +1026,18 @@ export function EditorPage({ id: routeId }: { id?: number }) {
             </button>
           </div>
           {problem && wantRich ? (
-            <p role={refused ? "alert" : "status"} className="mt-3 border-l-[3px] border-fg pl-3 text-sm text-muted">
-              {t(refused ? "rich.md.refuse" : "rich.md.notice", { why: t(`rich.why.${problem}` as MessageKey) })}
-            </p>
+            <div role={refused ? "alert" : "status"} className="mt-3 border-l-[3px] border-danger pl-3 text-sm">
+              <p className="text-muted">{t(refused ? "rich.md.refuse" : "rich.md.notice", { why: t(`rich.why.${problem}` as MessageKey) })}</p>
+              {where ? (
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-danger" data-testid="problem-where">
+                  <span className="font-mono">{t("rich.md.where", { line: where.line })}</span>
+                  <code className="min-w-0 truncate rounded-[2px] bg-danger/10 px-1.5 py-0.5">{where.text}</code>
+                  <button type="button" className="underline" onClick={() => goToLine(where.line)}>
+                    {t("rich.md.goto")}
+                  </button>
+                </p>
+              ) : null}
+            </div>
           ) : null}
           {lossy && mode === "rich" ? (
             <section role="status" className="mt-3 flex flex-wrap items-center gap-3 border-l-[3px] border-danger pl-3 text-sm" data-testid="lossy-notice">
@@ -1119,6 +1151,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
           onOpenChange={setHistory}
           onRestored={(p) => {
             const f = storyToForm(p);
+            setChecking(true);
             form.reset(f);
             setSaved(f);
             setHistory(false);
