@@ -1,7 +1,8 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { tokens } from "@/shared/api";
+import { toast } from "@/shared/ui/toast";
 import { makePost, page, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
@@ -135,12 +136,17 @@ describe("SeriesBefore", () => {
 
 describe("SeriesPage", () => {
   it("lists parts incl. draft status", async () => {
-    server.use(http.get(api("/series/ser"), () => HttpResponse.json({ data: series({ posts: [part(1, 10), part(2, 11, { status: "draft" })] }) })));
+    server.use(
+      http.get(api("/series/ser"), () =>
+        HttpResponse.json({ data: series({ cover_url: "/uploads/c.png", posts: [part(1, 10), part(2, 11, { status: "draft" })] }) }),
+      ),
+    );
     await renderRouted(<SeriesPage slug="ser" />);
     expect(await screen.findByText("My Series")).toBeInTheDocument();
     expect(screen.getByText("About it")).toBeInTheDocument();
     expect(screen.getByText("draft")).toBeInTheDocument();
     expect(screen.getByText("01")).toBeInTheDocument();
+    expect(document.querySelector('img[src="/uploads/c.png"]')).toBeInTheDocument();
   });
 
   it("empty parts, no description", async () => {
@@ -288,5 +294,84 @@ describe("MySeries", () => {
     await waitFor(() => expect(screen.queryByLabelText("Add a story")).toBeNull());
     await user.click(screen.getByRole("button", { name: "Save order" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Save order" })).toBeEnabled());
+  });
+
+  it("auto-orders parts by publish date", async () => {
+    signIn();
+    let savedIds: unknown;
+    server.use(
+      http.get(api("/users/admin/series"), () => HttpResponse.json({ data: [series({ cover_url: "/uploads/list-cover.png" })] })),
+      http.get(api("/series/ser"), () =>
+        HttpResponse.json({
+          data: series({
+            posts: [part(1, 10, { published_at: "2026-10-05T00:00:00Z" }), part(2, 99, { title: "Lone", published_at: "2026-10-01T00:00:00Z" })],
+          }),
+        }),
+      ),
+      http.get(api("/me/posts"), () => page([makePost({ id: 10, title: "Pub ten", published_at: "2026-10-05T00:00:00Z" })])),
+      http.put(api("/series/ser/posts"), async ({ request }) => {
+        savedIds = await request.json();
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { user } = await renderRouted(<MySeries />);
+    expect(await screen.findByText("My Series")).toBeInTheDocument();
+    expect(document.querySelector('img[src="/uploads/list-cover.png"]')).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Parts" }));
+    const dlg = await screen.findByRole("dialog");
+    await user.click(await within(dlg).findByRole("button", { name: "Auto-order by publish date" }));
+    await user.click(within(dlg).getByRole("button", { name: "Save order" }));
+    await waitFor(() => expect(savedIds).toEqual({ post_ids: [99, 10] }));
+  });
+
+  it("uploads, validates, errors, and removes cover image in series form", async () => {
+    signIn();
+    let uploadCalls = 0;
+    let createdBody: unknown;
+    const toastErr = vi.spyOn(toast, "error").mockImplementation(() => "");
+    server.use(
+      http.get(api("/users/admin/series"), () => HttpResponse.json({ data: [] })),
+      http.post(api("/uploads"), () => {
+        uploadCalls++;
+        if (uploadCalls === 1) return HttpResponse.json({ status: 500, detail: "upload failed" }, { status: 500 });
+        return HttpResponse.json({ data: { url: "/uploads/cover.png" } });
+      }),
+      http.post(api("/series"), async ({ request }) => {
+        createdBody = await request.json();
+        return HttpResponse.json({ data: series({ cover_url: "/uploads/cover.png" }) });
+      }),
+    );
+
+    const { user } = await renderRouted(<MySeries />);
+    await user.click(await screen.findByRole("button", { name: "New series" }));
+    const dlg = await screen.findByRole("dialog");
+    const fileInput = dlg.querySelector('input[type="file"]') as HTMLInputElement;
+
+    // Empty file selection is ignored
+    fireEvent.change(fileInput, { target: { files: [] } });
+    expect(uploadCalls).toBe(0);
+
+    // Oversized file (> 5 MB) shows validation error
+    const big = new File([new Uint8Array(5 * 1024 * 1024 + 1)], "big.png", { type: "image/png" });
+    await user.upload(fileInput, big);
+    expect(await within(dlg).findByText("Image must be 5 MB or smaller.")).toBeInTheDocument();
+
+    // Failed upload triggers toast.error
+    const ok = new File(["img"], "cover.png", { type: "image/png" });
+    await user.upload(fileInput, ok);
+    await waitFor(() => expect(toastErr).toHaveBeenCalled());
+
+    // Successful upload sets cover preview and allows removal
+    await user.upload(fileInput, ok);
+    expect(await within(dlg).findByAltText("Series cover")).toHaveAttribute("src", "/uploads/cover.png");
+    await user.click(within(dlg).getByRole("button", { name: "Remove cover" }));
+    expect(within(dlg).queryByAltText("Series cover")).toBeNull();
+
+    // Upload again and submit form
+    await user.upload(fileInput, ok);
+    expect(await within(dlg).findByAltText("Series cover")).toBeInTheDocument();
+    await user.type(within(dlg).getByLabelText("Title"), "With Cover");
+    await user.click(within(dlg).getByRole("button", { name: "Create series" }));
+    await waitFor(() => expect(createdBody).toEqual({ title: "With Cover", description: "", cover_url: "/uploads/cover.png" }));
   });
 });

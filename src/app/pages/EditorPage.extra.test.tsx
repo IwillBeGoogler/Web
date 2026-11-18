@@ -15,11 +15,14 @@ import { EditorPage } from "./EditorPage";
 const rich = vi.hoisted(() => ({
   problem: null as string | null,
   boom: false,
+  crash: false,
+  where: null as { line: number; text: string } | null,
   handle: { flush: vi.fn(), insertDiagram: vi.fn(), insertLive: vi.fn(), focus: vi.fn(), getSelection: vi.fn(() => "") },
 }));
 
 vi.mock("@/contexts/publishing/rich/RichEditor", () => ({
   default: (p: { ref?: unknown; value: string; onChange: (s: string) => void; onLossy: (s: string | null) => void; onDiagram: () => void }) => {
+    if (rich.crash) throw new Error("editor boom");
     useImperativeHandle(p.ref as never, () => rich.handle);
     return (
       <div data-testid="rich">
@@ -42,7 +45,7 @@ vi.mock("@/contexts/publishing/rich/markdown", () => ({
     if (rich.boom) throw new Error("x");
     return rich.problem ? { ok: false, problem: rich.problem } : { ok: true };
   },
-  locateProblem: () => null,
+  locateProblem: () => rich.where,
 }));
 vi.mock("@/contexts/diagrams/ui/DiagramPicker", () => ({
   DiagramPicker: ({ open, onPick }: { open: boolean; onPick: (l: string) => void }) =>
@@ -72,6 +75,8 @@ beforeEach(() => {
   localStorage.clear();
   rich.problem = null;
   rich.boom = false;
+  rich.crash = false;
+  rich.where = null;
   vi.clearAllMocks();
 });
 afterEach(() => {
@@ -183,6 +188,34 @@ describe("EditorPage visual mode", () => {
     await user.click(screen.getByRole("button", { name: "Animation" })); // preview on: falls through to textarea insert
     await user.click(screen.getByRole("button", { name: /edit/i }));
     expect(rich.handle.flush).toHaveBeenCalled();
+  });
+
+  it("recovers from a RichEditor render crash into Markdown mode", async () => {
+    signedIn();
+    existing();
+    rich.crash = true;
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+      expect(await screen.findByLabelText("Story body (Markdown)")).toBeInTheDocument();
+      expect(localStorage.getItem("iwillbegoogler.editor.mode")).toBe("md");
+    } finally {
+      errSpy.mockRestore();
+    }
+  });
+
+  it("shows problem location and jumps to the line in Markdown", async () => {
+    signedIn();
+    existing({ body: "line 1\n| a | b |\nline 3" });
+    rich.problem = "table";
+    rich.where = { line: 2, text: "| a | b |" };
+    const { user } = await renderRouted(<EditorPage id={7} />, { path: "/p/7/edit" });
+    const loc = await screen.findByTestId("problem-where");
+    const ta = screen.getByLabelText("Story body (Markdown)") as HTMLTextAreaElement;
+    await user.click(within(loc).getByRole("button"));
+    expect(ta).toHaveFocus();
+    expect(ta.selectionStart).toBe("line 1\n".length);
+    expect(ta.selectionEnd).toBe("line 1\n| a | b |".length);
   });
 });
 
@@ -734,5 +767,31 @@ describe("EditorPage markdown mode", () => {
       resolveUpload("http://x/pic.png");
     });
     expect(ta.value).toBe("");
+  });
+
+  it("toggles split preview on and off in Markdown mode", async () => {
+    signedIn();
+    localStorage.setItem("iwillbegoogler.editor.mode", "md");
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    await user.type(screen.getByLabelText("Story body (Markdown)"), "split body");
+    const splitBtn = screen.getByRole("button", { name: /side by side/i });
+    expect(splitBtn).toHaveAttribute("aria-pressed", "false");
+    await user.click(splitBtn);
+    expect(splitBtn).toHaveAttribute("aria-pressed", "true");
+    expect(localStorage.getItem("iwillbegoogler.editor.split")).toBe("1");
+    expect(screen.getByText("preview:split body")).toBeInTheDocument();
+    await user.click(splitBtn);
+    expect(splitBtn).toHaveAttribute("aria-pressed", "false");
+    expect(localStorage.getItem("iwillbegoogler.editor.split")).toBe("0");
+  });
+
+  it("shows validation error toast when submitting an invalid form", async () => {
+    signedIn();
+    localStorage.setItem("iwillbegoogler.editor.mode", "md");
+    const { user } = await renderRouted(<EditorPage />, { path: "/new-story" });
+    const longTitle = "a".repeat(201);
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: longTitle } });
+    await user.click(screen.getByRole("button", { name: /save draft/i }));
+    expect(await screen.findByText("Title is too long")).toBeInTheDocument();
   });
 });

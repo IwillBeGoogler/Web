@@ -1,6 +1,13 @@
+import { render } from "@testing-library/react";
+import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 type Mod = typeof import("./splash");
+
+function SplashReadyProbe({ useReady, ready }: { useReady: Mod["useSplashReady"]; ready: boolean }) {
+  useReady(ready);
+  return null;
+}
 
 const mount = (withRoot = true) => {
   document.body.innerHTML = withRoot ? '<div id="root"></div>' : "";
@@ -114,5 +121,39 @@ describe("splash", () => {
     expect((window as unknown as { __splashReplay?: boolean }).__splashReplay).toBeUndefined();
     vi.advanceTimersByTime(4000);
     expect(document.getElementById("splash")?.classList.contains("out")).toBe(true);
+  });
+
+  it("earthReady resolves when EARTH_READY fires and immediately thereafter", async () => {
+    let resolved = false;
+    const pending = m.earthReady().then(() => {
+      resolved = true;
+    });
+    await flush();
+    expect(resolved).toBe(false);
+    window.dispatchEvent(new Event(m.EARTH_READY));
+    await pending;
+    expect(resolved).toBe(true);
+    await expect(m.earthReady()).resolves.toBeUndefined();
+  });
+
+  it("useSplashReady signals contentReady once when ready becomes true", async () => {
+    let resolved = false;
+    const pending = m.contentReady().then(() => {
+      resolved = true;
+    });
+    const view = render(createElement(SplashReadyProbe, { useReady: m.useSplashReady, ready: false }));
+    await flush();
+    expect(resolved).toBe(false);
+
+    view.rerender(createElement(SplashReadyProbe, { useReady: m.useSplashReady, ready: true }));
+    await pending;
+    expect(resolved).toBe(true);
+
+    // Subsequent calls do not dispatch again and contentReady resolves immediately.
+    const spy = vi.spyOn(window, "dispatchEvent");
+    render(createElement(SplashReadyProbe, { useReady: m.useSplashReady, ready: true }));
+    expect(spy).not.toHaveBeenCalled();
+    await expect(m.contentReady()).resolves.toBeUndefined();
+    view.unmount();
   });
 });

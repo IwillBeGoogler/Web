@@ -246,4 +246,48 @@ describe("useStorySaver", () => {
     expect(calls).toHaveLength(0);
     expect(localDraft.read(5)?.form.body).toBe("abc");
   });
+
+  it("auto run skips when a save is already in flight, while manual run waits even if inflight fails", async () => {
+    manual = true;
+    const h = setup("draft", f({ body: "a" }), 5);
+    act(() => h.result.current.type("one"));
+    await tick(3100);
+    expect(calls).toHaveLength(1);
+
+    // auto run while inflight returns null immediately
+    let autoRes: unknown;
+    await act(async () => {
+      autoRes = await h.result.current.saver.run(f({ body: "two" }), "draft", "auto");
+    });
+    expect(autoRes).toBeNull();
+    expect(calls).toHaveLength(1);
+
+    // manual run waits for the inflight promise (even when it rejects), then runs
+    fail = true;
+    let manualDone = false;
+    const manualPromise = h.result.current.saver.run(f({ body: "three" }), "draft", "manual").then((res) => {
+      manualDone = true;
+      return res;
+    });
+    expect(manualDone).toBe(false);
+    // reject inflight, then allow manual to succeed
+    await act(async () => release.shift()?.());
+    fail = false;
+    await tick(0);
+    expect(calls).toHaveLength(2);
+    await act(async () => release.shift()?.());
+    const result = await manualPromise;
+    expect(result?.body).toBe("three");
+  });
+
+  it("flushes local copy when the tab becomes hidden", async () => {
+    const h = setup("draft", f({ body: "a" }), 5);
+    act(() => h.result.current.type("hidden-save"));
+    Object.defineProperty(document, "visibilityState", {
+      value: "hidden",
+      configurable: true,
+    });
+    await act(async () => void document.dispatchEvent(new Event("visibilitychange")));
+    expect(localDraft.read(5)?.form.body).toBe("hidden-save");
+  });
 });

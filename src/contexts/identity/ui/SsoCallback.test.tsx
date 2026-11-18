@@ -1,4 +1,5 @@
 import { screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { tokens } from "@/shared/api";
 import { renderRouted } from "@/test/render";
@@ -60,5 +61,28 @@ describe("SsoCallbackPage", () => {
     await renderRouted(<SsoCallbackPage />, { path: "/sso" });
     const failed = (await screen.findByRole("alert")).textContent;
     expect(unverified).not.toBe(failed);
+  });
+
+  it("stores refresh_token when provided and handles StrictMode double-init", async () => {
+    markSsoStarted();
+    window.history.replaceState(
+      null,
+      "",
+      "/sso#access_token=acc1&expires_at=2030-01-01T00%3A00%3A00Z&refresh_token=ref1&refresh_expires_at=2030-02-01T00%3A00%3A00Z",
+    );
+    await renderRouted(
+      <StrictMode>
+        <SsoCallbackPage />
+      </StrictMode>,
+      { path: "/sso" },
+    );
+    await waitFor(() =>
+      expect(tokens.get()).toEqual({
+        token: "acc1",
+        expiresAt: "2030-01-01T00:00:00Z",
+        refreshToken: "ref1",
+        refreshExpiresAt: "2030-02-01T00:00:00Z",
+      }),
+    );
   });
 });

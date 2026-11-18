@@ -57,4 +57,15 @@ describe("ArticleToc", () => {
     render(<Page html={"<h2>日本語</h2><h2>!!!</h2><h2>x</h2>"} />);
     expect(screen.getAllByRole("link")).toHaveLength(3);
   });
+
+  it("ignores null container ref and preserves existing heading ids", () => {
+    vi.stubGlobal("IntersectionObserver", undefined);
+    render(<ArticleToc container={{ current: null }} deps="x" />);
+    expect(screen.queryByRole("navigation")).toBeNull();
+
+    const { container } = render(<Page html='<div id="intro"></div><h2 id="custom-id">Custom</h2><h2>Intro</h2><h2>Third</h2>' />);
+    const links = screen.getAllByRole("link");
+    expect(links.map((l) => l.getAttribute("href"))).toEqual(["#custom-id", "#intro-2", "#third"]);
+    expect(container.querySelector("h2")?.id).toBe("custom-id");
+  });
 });

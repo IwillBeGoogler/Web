@@ -167,4 +167,68 @@ describe("ArticlePage extras", () => {
     await screen.findByText("I write");
     expect(screen.getByRole("button", { name: "Track ali" })).toBeInTheDocument();
   });
+
+  it("downloads the story as markdown", async () => {
+    const createObjectURL = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:md");
+    const revokeObjectURL = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const { user } = await mount(makePost({ slug: "dl", lang: "uz", languages: ["uz"] }));
+    await screen.findByRole("heading", { level: 1 });
+    await user.click(screen.getByRole("button", { name: "Download as Markdown" }));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    expect(click).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith("blob:md"));
+  });
+
+  it("switches to a translation and falls back on translation error", async () => {
+    server.use(
+      http.get(api("/posts/:id/translations/en"), () =>
+        HttpResponse.json({
+          data: {
+            post_id: 1,
+            lang: "en",
+            title: "Translated Title",
+            subtitle: "Translated Sub",
+            body: "Translated body",
+            body_html: "<p>Translated HTML</p>",
+            reading_time: 5,
+            updated_at: "2026-01-01T00:00:00Z",
+          },
+        }),
+      ),
+      http.get(api("/posts/:id/translations/ru"), () => new HttpResponse(null, { status: 500 })),
+    );
+    const { user } = await mount(makePost({ slug: "tr", title: "Original Title", lang: "uz", languages: ["uz", "en", "ru"] }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Original Title" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "en" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "Translated Title" })).toBeInTheDocument();
+    expect(screen.getByText("Translated Sub")).toBeInTheDocument();
+    expect(screen.getByText("Translated HTML")).toBeInTheDocument();
+    expect(screen.getByText("5 min")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "ru" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "uz" })).toHaveAttribute("aria-pressed", "true"));
+    expect(screen.getByRole("heading", { level: 1, name: "Original Title" })).toBeInTheDocument();
+  });
+
+  it("respects reduced motion and handles undefined body_html", async () => {
+    const origMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query === "(prefers-reduced-motion: reduce)",
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+    try {
+      await mount(makePost({ slug: "rm", body_html: undefined, body: "Fallback body", cover_url: "http://x/c.png" }));
+      expect(await screen.findByText("Fallback body")).toBeInTheDocument();
+    } finally {
+      window.matchMedia = origMatchMedia;
+    }
+  });
 });

@@ -64,6 +64,38 @@ describe("http client refresh edges", () => {
     await expect(m2.client("/x")).rejects.toMatchObject({ status: 401 });
     expect(m2.onSessionExpired).toHaveBeenCalled();
   });
+
+  it("uses Web Locks when navigator.locks is available and skips refresh if another tab already rotated", async () => {
+    const orig = Object.getOwnPropertyDescriptor(Navigator.prototype, "locks") ?? Object.getOwnPropertyDescriptor(navigator, "locks");
+    const request = vi.fn(async (_name: string, fn: () => Promise<unknown>) => {
+      // Simulate another tab rotating the token while this tab waited for the lock.
+      m.tokens.set({ token: "t2", expiresAt: "2031-01-01T00:00:00Z", refreshToken: "r2" });
+      return fn();
+    });
+    Object.defineProperty(navigator, "locks", { configurable: true, value: { request } });
+    let calls = 0;
+    const m = make(async (url) => {
+      if (url.endsWith("/auth/refresh")) throw new Error("should not call refresh");
+      return calls++ === 0 ? json(401, {}) : json(200, { ok: 1 });
+    });
+    try {
+      expect(await m.client("/x")).toEqual({ ok: 1 });
+      expect(request).toHaveBeenCalledWith("auth-refresh", expect.any(Function));
+    } finally {
+      if (orig) Object.defineProperty(navigator, "locks", orig);
+      else Reflect.deleteProperty(navigator, "locks");
+    }
+  });
+
+  it("accepts refresh responses using token without access_token or expires_at", async () => {
+    let calls = 0;
+    const m = make(async (url) => {
+      if (url.endsWith("/auth/refresh")) return json(200, { data: { token: "t2" } });
+      return calls++ === 0 ? json(401, {}) : json(200, { ok: 2 });
+    });
+    expect(await m.client("/x")).toEqual({ ok: 2 });
+    expect(m.tokens.get()).toEqual({ token: "t2", expiresAt: "" });
+  });
 });
 
 describe("http client send edges", () => {

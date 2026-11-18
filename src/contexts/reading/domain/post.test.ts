@@ -21,6 +21,20 @@ describe("post", () => {
     expect(p.claps).toBe(0);
     expect(p.bookmarked).toBe(false);
   });
+  it("coerces null arrays to empty arrays", () => {
+    const p = postSchema.parse({
+      ...raw,
+      languages: null,
+      tags: null,
+      glossary: [{ term: "T", aliases: null, definition: "D" }],
+    });
+    expect(p.languages).toEqual([]);
+    expect(p.tags).toEqual([]);
+    expect(p.glossary[0]?.aliases).toEqual([]);
+
+    const p2 = postSchema.parse({ ...raw, glossary: null });
+    expect(p2.glossary).toEqual([]);
+  });
   it("builds IWillBeGoogler-style paths", () => {
     expect(postPath({ author: "ali", slug: "t-1" })).toBe("/@ali/t-1");
     expect(postPath({ author: "", slug: "t-1" })).toBe("/p/t-1");
@@ -28,6 +42,7 @@ describe("post", () => {
   it("excerpt strips markdown and cuts on a word", () => {
     expect(excerpt(raw.body, 200)).toBe("Hi Some bold link text code.");
     expect(excerpt("one two three four", 9)).toBe("one two…");
+    expect(excerpt("supercalifragilistic", 5)).toBe("super…");
     expect(excerpt("", 10)).toBe("");
   });
   it("readTime is at least one minute", () => {
@@ -44,8 +59,13 @@ describe("toMarkdownFile", () => {
     );
     expect(md).toBe('---\ntitle: "A \\"b\\""\nauthor: "ali"\ndate: 2026-11-01\ntags: ["go"]\nsource: "https://x/p"\n---\n\n# A "b"\n\n> sub\n\n## H\n\ntext\n');
   });
+  it("omits optional front matter fields and subtitle when absent", () => {
+    const md = toMarkdownFile({ title: "Plain", subtitle: "", body: "Body", author: "", published_at: null, tags: [] }, "https://x/p");
+    expect(md).toBe('---\ntitle: "Plain"\nsource: "https://x/p"\n---\n\n# Plain\n\nBody\n');
+  });
   it("names translations by language", () => {
     expect(markdownFileName({ slug: "s", lang: "uz" }, "uz")).toBe("s.md");
+    expect(markdownFileName({ slug: "s", lang: "uz" }, "")).toBe("s.md");
     expect(markdownFileName({ slug: "s", lang: "uz" }, "en")).toBe("s.en.md");
   });
 });

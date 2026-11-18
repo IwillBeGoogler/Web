@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTokenStore } from "./tokenStore";
+import { createTokenStore, storedFrom } from "./tokenStore";
 
 const KEY = "iwillbegoogler.session";
 
@@ -108,5 +108,50 @@ describe("tokenStore", () => {
     } finally {
       if (orig) Object.defineProperty(globalThis, "localStorage", orig);
     }
+  });
+
+  it("falls back to null when localStorage is undefined", () => {
+    const orig = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+    Object.defineProperty(globalThis, "localStorage", { configurable: true, value: undefined });
+    try {
+      const store = createTokenStore();
+      expect(store.get()).toBeNull();
+      store.set({ token: "u", expiresAt: "2030-01-01T00:00:00Z" });
+      expect(store.get()?.token).toBe("u");
+    } finally {
+      if (orig) Object.defineProperty(globalThis, "localStorage", orig);
+    }
+  });
+
+  it("reads refreshToken and refreshExpiresAt from storage and notifies on refreshToken rotation", () => {
+    const f = fakes();
+    f.data.set(KEY, JSON.stringify({ token: "t1", expiresAt: "e1", refreshToken: "r1" }));
+    const store = createTokenStore(f.storage, f.events);
+    expect(store.get()).toEqual({ token: "t1", expiresAt: "e1", refreshToken: "r1", refreshExpiresAt: "" });
+
+    const seen = vi.fn();
+    store.subscribe(seen);
+    f.otherTab(KEY, JSON.stringify({ token: "t1", expiresAt: "e1", refreshToken: "r2", refreshExpiresAt: "re2" }));
+    expect(store.get()).toEqual({ token: "t1", expiresAt: "e1", refreshToken: "r2", refreshExpiresAt: "re2" });
+    expect(seen).toHaveBeenCalledTimes(1);
+  });
+
+  it("storedFrom normalizes access_token/token and optional refresh fields", () => {
+    expect(storedFrom({ access_token: "a", expires_at: "e1", refresh_token: "r", refresh_expires_at: "re" })).toEqual({
+      token: "a",
+      expiresAt: "e1",
+      refreshToken: "r",
+      refreshExpiresAt: "re",
+    });
+    expect(storedFrom({ token: "t", expires_at: "e2", refresh_token: "r2" })).toEqual({
+      token: "t",
+      expiresAt: "e2",
+      refreshToken: "r2",
+      refreshExpiresAt: "",
+    });
+    expect(storedFrom({ expires_at: "e3" })).toEqual({
+      token: "",
+      expiresAt: "e3",
+    });
   });
 });

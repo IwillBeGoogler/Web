@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { canManage, listInputSchema, move, placeSchema, publicationInputSchema, runeRange, slugify } from "./collections";
+import {
+  byPublished,
+  canManage,
+  highlightsSchema,
+  listInputSchema,
+  move,
+  placeSchema,
+  publicationInputSchema,
+  readingPathSchema,
+  runeRange,
+  seriesSchema,
+  slugify,
+} from "./collections";
 
 describe("collections", () => {
   it("list input rules", () => {
@@ -10,6 +22,32 @@ describe("collections", () => {
     expect(move([1, 2, 3], 0, 2)).toEqual([2, 3, 1]);
     expect(move([1, 2, 3], 2, 0)).toEqual([3, 1, 2]);
     expect(move([1, 2], 0, 5)).toEqual([1, 2]);
+    expect(move([1, 2], 1, 1)).toEqual([1, 2]);
+    expect(move([1, 2], -1, 0)).toEqual([1, 2]);
+  });
+  it("orders ids by publish date with unpublished last and stable", () => {
+    const dates: Record<number, string | null | undefined> = {
+      1: "2026-03-01T00:00:00Z",
+      2: null,
+      3: "2026-01-01T00:00:00Z",
+      4: undefined,
+      5: "2026-02-01T00:00:00Z",
+    };
+    expect(byPublished([1, 2, 3, 4, 5], (id) => dates[id])).toEqual([3, 5, 1, 2, 4]);
+  });
+  it("parses highlights and series/reading-path nullable fields", () => {
+    expect(highlightsSchema.parse({ top: null, mine: null })).toEqual({ top: [], mine: [] });
+    expect(
+      highlightsSchema.parse({
+        top: [{ text: "hi", start: 0, end: 2 }],
+        mine: [{ text: "me", start: 3, end: 5 }],
+      }),
+    ).toEqual({
+      top: [{ text: "hi", start: 0, end: 2 }],
+      mine: [{ text: "me", start: 3, end: 5 }],
+    });
+    expect(seriesSchema.parse({ id: 1, slug: "s", title: "S", posts: null }).posts).toEqual([]);
+    expect(readingPathSchema.parse({ prev: null, next: undefined })).toEqual({ source: "", prev: null, next: null });
   });
   it("finds rune offsets for a highlight, tolerating markdown and emoji", () => {
     const body = "😀 Hello **brave** new world";
@@ -23,6 +61,11 @@ describe("collections", () => {
     expect(p.position).toBe(2);
     expect(p.prev?.slug).toBe("a");
     expect(placeSchema.parse({}).parts).toEqual([]);
+    expect(
+      placeSchema.parse({
+        series: { id: 1, slug: "s", title: "S", posts: [{ position: 1, post_id: 9, title: "A", slug: "a" }] },
+      }).parts,
+    ).toHaveLength(1);
   });
   it("publication rules", () => {
     expect(publicationInputSchema.safeParse({ slug: "My Pub", name: "x", description: "" }).success).toBe(false);
