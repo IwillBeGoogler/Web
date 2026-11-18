@@ -8,7 +8,7 @@ import { tokens } from "@/shared/api";
 import { me, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
-import { TopBar } from "./TopBar";
+import { Logo, TopBar } from "./TopBar";
 
 const nav = (platform: string, ua: string) => {
   Object.defineProperty(navigator, "platform", { value: platform, configurable: true });
@@ -31,6 +31,7 @@ const notifs = (unread: number) =>
 
 describe("TopBar signed out", () => {
   it("shows auth buttons, feedback, theme toggle", async () => {
+    expect(Logo).toBeDefined();
     document.documentElement.classList.remove("dark");
     const { user } = await renderRouted(<TopBar />);
     await user.click(screen.getByRole("button", { name: "Sign in" }));

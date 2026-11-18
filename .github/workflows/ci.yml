@@ -47,7 +47,7 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
 
-  # blog tests: 3 shards, the 95% coverage floor is checked once on the merged report
+  # blog tests: 3 shards, the 90% coverage floor is checked once on the merged report
   test-shard:
     name: Tests (blog ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest

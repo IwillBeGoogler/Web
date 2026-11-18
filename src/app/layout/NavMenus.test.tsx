@@ -6,7 +6,7 @@ import { tokens } from "@/shared/api";
 import { me, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
-import { CategoriesMenu, DiagramsMenu } from "./NavMenus";
+import { CategoriesMenu, DiagramsMenu, StoriesMenu } from "./NavMenus";
 
 afterEach(() => {
   tokens.set(null);
@@ -114,5 +114,23 @@ describe("CategoriesMenu", () => {
     expect(within(menu).getByText("…")).toBeInTheDocument();
     await waitFor(() => expect(within(menu).queryByText("…")).toBeNull());
     expect(within(menu).queryAllByRole("menuitem")).toHaveLength(0);
+  });
+});
+
+describe("StoriesMenu", () => {
+  it("navigates to newest, saved, and status tabs", async () => {
+    const { user, router } = await renderRouted(<StoriesMenu />);
+    let menu = await openMenu(user, "Stories");
+    await user.click(within(menu).getByRole("menuitem", { name: "Newest" }));
+    await waitFor(() => expect(router.state.location.search).toEqual({ tab: "latest" }));
+    menu = await openMenu(user, "Stories");
+    await user.click(within(menu).getByRole("menuitem", { name: "Saved" }));
+    await waitFor(() => expect(router.state.location.pathname).toBe("/me/library"));
+    menu = await openMenu(user, "Stories");
+    await user.click(within(menu).getByRole("menuitem", { name: "Drafts" }));
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe("/me/stories");
+      expect(router.state.location.search).toEqual({ tab: "draft" });
+    });
   });
 });

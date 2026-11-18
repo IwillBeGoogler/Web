@@ -6,7 +6,7 @@ import { feedbackDialog } from "@/contexts/engagement/application/feedbackDialog
 import { adopted } from "@/contexts/publishing/application/adopted";
 import { tokens } from "@/shared/api";
 
-const h = vi.hoisted(() => ({ boom: false, mounts: 0, track: vi.fn(), report: vi.fn() }));
+const h = vi.hoisted(() => ({ boom: false, mounts: 0, track: vi.fn(), report: vi.fn(), reload: vi.fn(() => false) }));
 
 const show = (name: string) => (p: object) => <div data-testid={name}>{JSON.stringify(p)}</div>;
 vi.mock("./pages/HomePage", () => ({
@@ -19,6 +19,7 @@ vi.mock("./pages/ArticlePage", () => ({ ArticlePage: show("article") }));
 vi.mock("./pages/ProfilePage", () => ({ ProfilePage: show("profile") }));
 vi.mock("./pages/TagPage", () => ({ TagPage: show("tag") }));
 vi.mock("./pages/SearchPage", () => ({ SearchPage: show("search") }));
+vi.mock("./pages/TranslatePage", () => ({ TranslatePage: show("translate") }));
 vi.mock("./pages/EditorPage", () => ({
   EditorPage: (p: object) => {
     // biome-ignore lint/correctness/useHookAtTopLevel: test mock counts mounts
