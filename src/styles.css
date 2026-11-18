@@ -177,7 +177,8 @@
     padding: 0.625rem 0.75rem;
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-sm);
-    background: var(--card);
+    /* opaque: --card is translucent glass in dark/galaxy/daylight, the text under the tooltip would show through */
+    background: var(--surface);
     color: var(--fg);
     box-shadow: 2px 2px 0 0 var(--fg);
     font-family: var(--font-sans);
