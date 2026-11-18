@@ -10,7 +10,7 @@ import { ArticlePage } from "./ArticlePage";
 
 vi.mock("@/contexts/collections/ui/Highlights", () => ({ Highlighter: () => null, HighlightsPanel: () => null }));
 vi.mock("@/contexts/collections/ui/Lists", () => ({ SaveToList: () => null }));
-vi.mock("@/contexts/collections/ui/Series", () => ({ SeriesNav: () => null, ReadingPathNav: () => null }));
+vi.mock("@/contexts/collections/ui/Series", () => ({ SeriesNav: () => null, SeriesBefore: () => null, ReadingPathNav: () => null }));
 
 const profile = { id: 1, username: "ali", display_name: "Ali V", bio: "I write", followers: 1500, created_at: "x", is_following: false };
 

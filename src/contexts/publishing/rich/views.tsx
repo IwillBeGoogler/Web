@@ -1,9 +1,10 @@
 import { type NodeViewProps, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
-import { ShapesIcon, SparklesIcon, Trash2Icon } from "lucide-react";
+import katex from "katex";
+import { ShapesIcon, SigmaIcon, SparklesIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { HtmlBlock } from "@/contexts/reading/ui/HtmlBlock";
 import { useT } from "@/shared/i18n";
-import { DiagramEmbed, HtmlLive } from "./nodes";
+import { DiagramEmbed, HtmlLive, MathBlock, MathInline } from "./nodes";
 
 const inputs = (e: { event: Event }) =>
   e.event.target instanceof HTMLElement && ["TEXTAREA", "INPUT", "BUTTON", "A", "SELECT"].includes(e.event.target.tagName);
@@ -130,5 +131,87 @@ export const HtmlLiveNode = HtmlLive.extend({
 export const DiagramNode = DiagramEmbed.extend({
   addNodeView() {
     return ReactNodeViewRenderer(DiagramView, { stopEvent: inputs });
+  },
+});
+
+const typeset = (tex: string, display: boolean) => {
+  try {
+    return katex.renderToString(tex, { displayMode: display, throwOnError: false, strict: "ignore", trust: false });
+  } catch {
+    return "";
+  }
+};
+
+/** A formula as a card: TeX in a plain textarea, the typeset result under it. The card is one unit, so Backspace removes the whole formula. */
+function MathBlockView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {
+  const t = useT();
+  const attrs = node.attrs as { tex: string };
+  const [tex, setTex] = useState(attrs.tex);
+  const sent = useRef(attrs.tex);
+  useEffect(() => {
+    if (attrs.tex !== sent.current) {
+      sent.current = attrs.tex;
+      setTex(attrs.tex);
+    }
+  }, [attrs.tex]);
+  return (
+    <NodeViewWrapper className="rich-card" data-selected={selected || undefined} contentEditable={false}>
+      <div className="rich-card-head">
+        <SigmaIcon className="size-3.5" aria-hidden />
+        <span className="min-w-0 flex-1 truncate">{t("rich.math.label")}</span>
+        <button type="button" aria-label={t("rich.math.remove")} title={t("rich.math.remove")} className="rich-card-btn" onClick={() => deleteNode()}>
+          <Trash2Icon className="size-3.5" aria-hidden />
+        </button>
+      </div>
+      <textarea
+        aria-label={t("rich.math.source")}
+        spellCheck={false}
+        rows={Math.min(8, Math.max(2, tex.split("\n").length))}
+        className="block w-full resize-y border-0 bg-transparent p-3 font-mono text-sm outline-none"
+        value={tex}
+        onChange={(e) => {
+          setTex(e.target.value);
+          sent.current = e.target.value;
+          updateAttributes({ tex: e.target.value, oneLine: false });
+        }}
+      />
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: KaTeX output built from the TeX above */}
+      <div className="overflow-x-auto border-t border-line px-3 py-2" dangerouslySetInnerHTML={{ __html: typeset(tex, true) }} />
+    </NodeViewWrapper>
+  );
+}
+
+/** An inline formula: typeset in the line, one unit to delete; double-click edits the TeX. */
+function MathInlineView({ node, updateAttributes, selected }: NodeViewProps) {
+  const t = useT();
+  const tex = String(node.attrs.tex ?? "");
+  return (
+    <NodeViewWrapper
+      as="span"
+      className="rich-math-inline"
+      data-selected={selected || undefined}
+      contentEditable={false}
+      title={tex}
+      aria-label={`${t("rich.math.label")}: ${tex}`}
+      onDoubleClick={() => {
+        const next = window.prompt(t("rich.math.source"), tex);
+        if (next?.trim() && !next.includes("$") && !next.includes("\n")) updateAttributes({ tex: next.trim() });
+      }}
+    >
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: KaTeX output built from the TeX */}
+      <span dangerouslySetInnerHTML={{ __html: typeset(tex, false) }} />
+    </NodeViewWrapper>
+  );
+}
+
+export const MathBlockNode = MathBlock.extend({
+  addNodeView() {
+    return ReactNodeViewRenderer(MathBlockView, { stopEvent: inputs });
+  },
+});
+
+export const MathInlineNode = MathInline.extend({
+  addNodeView() {
+    return ReactNodeViewRenderer(MathInlineView);
   },
 });

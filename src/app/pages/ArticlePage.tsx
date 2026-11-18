@@ -4,7 +4,7 @@ import { CloudOffIcon, DownloadIcon, FileQuestionIcon, LinkIcon, MessageSquareIc
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Highlighter, HighlightsPanel } from "@/contexts/collections/ui/Highlights";
 import { SaveToList } from "@/contexts/collections/ui/Lists";
-import { ReadingPathNav, SeriesNav } from "@/contexts/collections/ui/Series";
+import { ReadingPathNav, SeriesBefore, SeriesNav } from "@/contexts/collections/ui/Series";
 import { BookmarkButton, ClapButton, FollowButton } from "@/contexts/engagement/ui/actions";
 import { PostMenu } from "@/contexts/engagement/ui/PostMenu";
 import { Responses } from "@/contexts/engagement/ui/Responses";
@@ -338,6 +338,7 @@ export function ArticlePage({ slug }: { slug: string }) {
                 </figcaption>
               </figure>
             ) : null}
+            <SeriesBefore postId={post.id} author={post.author} />
             <ArticleToc container={bodyRef} deps={view.body_html ?? view.body} />
             <div className={translated && tr.isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
               {view.body_html ? (

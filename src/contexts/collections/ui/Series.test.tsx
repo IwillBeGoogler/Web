@@ -5,7 +5,7 @@ import { tokens } from "@/shared/api";
 import { makePost, page, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
-import { MySeries, ReadingPathNav, SeriesNav, SeriesPage, UserSeries } from "./Series";
+import { MySeries, ReadingPathNav, SeriesBefore, SeriesNav, SeriesPage, UserSeries } from "./Series";
 
 const part = (position: number, post_id: number, o: Record<string, unknown> = {}) => ({
   position,
@@ -81,7 +81,7 @@ describe("SeriesNav", () => {
     expect(screen.queryByRole("navigation", { name: "Series" })).toBeNull();
   });
 
-  it("shows position, parts, prev and next", async () => {
+  it("shows position, the parts that come next, and View all", async () => {
     server.use(
       http.get(api("/posts/11/series"), () =>
         HttpResponse.json({ data: { series: series(), position: 2, prev: part(1, 10), next: part(3, 12), posts: [part(1, 10), part(2, 11), part(3, 12)] } }),
@@ -89,15 +89,47 @@ describe("SeriesNav", () => {
     );
     await renderRouted(<SeriesNav postId={11} author="admin" />);
     expect(await screen.findByText(/Part 2 of 3/)).toBeInTheDocument();
-    expect(screen.getByText("2. Part 2")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "1. Part 1" })).toHaveAttribute("href", "/@admin/part-1");
-    expect(screen.getByRole("link", { name: "Part 3" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "1. Part 1" })).toBeNull();
+    expect(screen.getByRole("link", { name: "3. Part 3" })).toHaveAttribute("href", "/@admin/part-3");
+    expect(screen.getByRole("link", { name: "View all" })).toBeInTheDocument();
+  });
+
+  it("SeriesBefore shows the previous part with View all", async () => {
+    server.use(
+      http.get(api("/posts/11/series"), () =>
+        HttpResponse.json({ data: { series: series(), position: 2, prev: part(1, 10), next: part(3, 12), posts: [part(1, 10), part(2, 11), part(3, 12)] } }),
+      ),
+    );
+    await renderRouted(<SeriesBefore postId={11} author="admin" />);
+    expect(await screen.findByRole("link", { name: /Part 1/ })).toHaveAttribute("href", "/@admin/part-1");
+    expect(screen.getByRole("link", { name: "View all" })).toBeInTheDocument();
   });
 
   it("without prev/next, falls back to series.parts count", async () => {
     server.use(http.get(api("/posts/10/series"), () => HttpResponse.json({ data: { series: series({ posts: null, parts: 5 }), position: 1 } })));
     await renderRouted(<SeriesNav postId={10} author="admin" />);
     expect(await screen.findByText(/Part 1 of 5/)).toBeInTheDocument();
+  });
+});
+
+describe("SeriesBefore", () => {
+  it("links the previous part and all parts", async () => {
+    server.use(
+      http.get(api("/posts/11/series"), () =>
+        HttpResponse.json({ data: { series: series(), position: 2, prev: part(1, 10), next: part(3, 12), posts: [part(1, 10), part(2, 11), part(3, 12)] } }),
+      ),
+    );
+    await renderRouted(<SeriesBefore postId={11} author="admin" />);
+    const aside = await screen.findByRole("complementary", { name: "Previous part" });
+    expect(within(aside).getByRole("link", { name: /Part 1/ })).toHaveAttribute("href", "/@admin/part-1");
+    expect(within(aside).getByRole("link", { name: "View all" })).toHaveAttribute("href", "/series/ser");
+  });
+
+  it("renders nothing on the first part", async () => {
+    server.use(http.get(api("/posts/10/series"), () => HttpResponse.json({ data: { series: series(), position: 1, prev: null, next: part(2, 11) } })));
+    const { qc } = await renderRouted(<SeriesBefore postId={10} author="admin" />);
+    await waitFor(() => expect(qc.isFetching()).toBe(0));
+    expect(screen.queryByRole("complementary", { name: "Previous part" })).toBeNull();
   });
 });
 

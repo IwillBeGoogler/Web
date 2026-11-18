@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -249,6 +250,54 @@
   }
   .prose-article :where(blockquote p::before, blockquote p::after) {
     content: none;
+  }
+  /* GitHub-style alerts: > [!NOTE] */
+  .prose-article :where(blockquote.alert) {
+    @apply rounded-[var(--radius-sm)] border-l-4 py-3 pr-4 not-italic;
+    background: color-mix(in srgb, var(--alert, var(--color-fg)) 8%, transparent);
+    border-color: var(--alert, var(--color-line-strong));
+  }
+  .prose-article :where(blockquote.alert)::before {
+    @apply mb-1 block text-xs font-bold tracking-wide uppercase;
+    color: var(--alert, inherit);
+  }
+  .prose-article :where(blockquote.alert-note) {
+    --alert: #2f6feb;
+  }
+  .prose-article :where(blockquote.alert-note)::before {
+    content: "Note";
+  }
+  .prose-article :where(blockquote.alert-tip) {
+    --alert: #1a7f37;
+  }
+  .prose-article :where(blockquote.alert-tip)::before {
+    content: "Tip";
+  }
+  .prose-article :where(blockquote.alert-important) {
+    --alert: #8250df;
+  }
+  .prose-article :where(blockquote.alert-important)::before {
+    content: "Important";
+  }
+  .prose-article :where(blockquote.alert-warning) {
+    --alert: #bf8700;
+  }
+  .prose-article :where(blockquote.alert-warning)::before {
+    content: "Warning";
+  }
+  .prose-article :where(blockquote.alert-caution) {
+    --alert: #cf222e;
+  }
+  .prose-article :where(blockquote.alert-caution)::before {
+    content: "Caution";
+  }
+  .prose-article :where(mark) {
+    @apply rounded px-0.5;
+    background: color-mix(in srgb, #f5c400 40%, transparent);
+    color: inherit;
+  }
+  .mermaid-figure {
+    @apply my-6 overflow-x-auto text-center;
   }
   .prose-article :where(:not(pre) > code) {
     @apply font-mono bg-surface-2 rounded px-1 py-0.5;

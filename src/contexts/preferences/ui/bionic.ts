@@ -2,7 +2,7 @@ import { bionicSegments } from "../domain/reading";
 
 const SKIP = new Set(["CODE", "PRE", "KBD", "SAMP", "VAR", "MATH", "SCRIPT", "STYLE", "H1", "H2", "H3", "H4", "H5", "H6", "B"]);
 
-const SKIP_LIVE = "[data-live], [data-code], .glossary-term";
+const SKIP_LIVE = "[data-live], [data-code], .glossary-term, .math-inline, .math-block";
 
 /** Wraps the leading part of each body word under `root` in <b class="bionic">, in place. */
 export function bionicDom(root: Element): void {

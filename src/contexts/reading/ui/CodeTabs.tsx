@@ -3,6 +3,7 @@ import { useT } from "@/shared/i18n";
 import type { CodeItem } from "../domain/codeBlocks";
 import { codeLang, langLabel, pickTab, useCodeLang } from "../domain/codeLang";
 import { highlight, type Span } from "../domain/highlight";
+import { MermaidBlock } from "./MermaidBlock";
 
 /** Highlighted source: runs of the code, classed by token. Plain text until (or unless) the grammar loads. */
 function Source({ code, lang }: CodeItem) {
@@ -77,6 +78,7 @@ export function CodeTabs({ items }: { items: CodeItem[] }) {
   const cur = items[idx] ?? items[0];
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   if (!cur) return null;
+  if (items.length === 1 && cur.lang === "mermaid") return <MermaidBlock code={cur.code} />;
   const many = items.length > 1;
   const panel = many ? { role: "tabpanel", "aria-labelledby": `${id}-t${idx}` } : {};
   const go = (to: number) => {

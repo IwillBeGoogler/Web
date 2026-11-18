@@ -123,7 +123,8 @@ export function findMatches(m: Matcher, text: string): Hit[] {
 }
 
 /** Elements whose text is never marked. */
-export const SKIP_SELECTOR = "code, pre, a, h1, h2, h3, h4, h5, h6, kbd, samp, script, style, button, [data-live], [data-code], .glossary-term";
+export const SKIP_SELECTOR =
+  "code, pre, a, h1, h2, h3, h4, h5, h6, kbd, samp, script, style, button, [data-live], [data-code], .glossary-term, .math-inline, .math-block";
 
 export const TERM_CLASS = "glossary-term";
 

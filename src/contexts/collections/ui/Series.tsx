@@ -51,11 +51,32 @@ export function ReadingPathNav({ postId }: { postId: number }) {
   );
 }
 
-/** Series box under an article: position, prev/next and all parts. */
+/** Above an article's body: the part before this one, with a link to all parts. */
+export function SeriesBefore({ postId, author }: { postId: number; author: string }) {
+  const q = useQuery(postSeriesQuery(postId));
+  const p = q.data;
+  if (!p?.series || !p.prev) return null;
+  return (
+    <aside aria-label="Previous part" className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded border border-line p-4">
+      <a href={partHref(author, p.prev.slug)} className="min-w-0 flex-1 hover:underline">
+        <span className="flex items-center gap-1 text-xs tracking-wide text-muted uppercase">
+          <ChevronLeftIcon className="size-4" aria-hidden /> {p.series.title} · Previous part
+        </span>
+        <span className="mt-1 block truncate font-semibold">{p.prev.title}</span>
+      </a>
+      <Link to="/series/$slug" params={{ slug: p.series.slug }} className="shrink-0 text-sm font-semibold hover:underline">
+        View all
+      </Link>
+    </aside>
+  );
+}
+
+/** Series box under an article: position, the parts that come next, and a link to all parts. */
 export function SeriesNav({ postId, author }: { postId: number; author: string }) {
   const q = useQuery(postSeriesQuery(postId));
   const p = q.data;
   if (!p?.series) return null;
+  const upcoming = p.parts.filter((x) => x.position > p.position);
   return (
     <nav aria-label="Series" className="mt-10 rounded border border-line p-5">
       <p className="text-xs tracking-wide text-muted uppercase">
@@ -64,34 +85,33 @@ export function SeriesNav({ postId, author }: { postId: number; author: string }
       <Link to="/series/$slug" params={{ slug: p.series.slug }} className="mt-1 block text-lg font-bold hover:underline">
         {p.series.title}
       </Link>
-      <ol className="mt-3 space-y-1 text-sm">
-        {p.parts.map((x) => (
-          <li key={x.post_id} className={cn(x.post_id === postId && "font-semibold")}>
-            {x.post_id === postId ? (
-              <span aria-current="page">
-                {x.position}. {x.title}
-              </span>
-            ) : (
-              <a href={partHref(author, x.slug)} className="text-muted hover:text-fg hover:underline">
-                {x.position}. {x.title}
-              </a>
-            )}
-          </li>
-        ))}
-      </ol>
-      <div className="mt-4 flex justify-between text-sm">
-        {p.prev ? (
-          <a href={partHref(author, p.prev.slug)} className="flex items-center gap-1 hover:underline">
-            <ChevronLeftIcon className="size-4" aria-hidden /> {p.prev.title}
+      {upcoming.length ? (
+        <>
+          <p className="mt-4 text-xs tracking-wide text-muted uppercase">Next in this series</p>
+          <ol className="mt-2 space-y-1 text-sm">
+            {upcoming.map((x) => (
+              <li key={x.post_id}>
+                <a href={partHref(author, x.slug)} className="text-muted hover:text-fg hover:underline">
+                  {x.position}. {x.title}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : (
+        <p className="mt-3 text-sm text-muted">You've reached the last part.</p>
+      )}
+      <div className="mt-4 flex items-center justify-between text-sm">
+        {p.next ? (
+          <a href={partHref(author, p.next.slug)} className="flex items-center gap-1 font-semibold hover:underline">
+            {p.next.title} <ChevronRightIcon className="size-4" aria-hidden />
           </a>
         ) : (
           <span />
         )}
-        {p.next ? (
-          <a href={partHref(author, p.next.slug)} className="flex items-center gap-1 hover:underline">
-            {p.next.title} <ChevronRightIcon className="size-4" aria-hidden />
-          </a>
-        ) : null}
+        <Link to="/series/$slug" params={{ slug: p.series.slug }} className="hover:underline">
+          View all
+        </Link>
       </div>
     </nav>
   );

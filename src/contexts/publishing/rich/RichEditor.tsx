@@ -34,7 +34,7 @@ import { scanLive } from "./liveScan";
 import { canRoundTrip, newCodeGroup, parseMarkdown, patchEditor, type RichProblem, richExtensions, sameRichDoc, serializeDoc } from "./markdown";
 import { safeHref } from "./safeLink";
 import { filterSlash, SLASH_ORDER, type SlashId, slashQuery } from "./slash";
-import { DiagramNode, HtmlLiveNode } from "./views";
+import { DiagramNode, HtmlLiveNode, MathBlockNode, MathInlineNode } from "./views";
 
 export type RichHandle = {
   /** Writes pending edits to `onChange` now. */
@@ -365,6 +365,8 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
         case "live":
           c.run();
           return insertLive();
+        case "math":
+          return void c.insertContent({ type: "mathBlock", attrs: { tex: "x^2", oneLine: false } }).run();
       }
     },
     [insertLive],
@@ -379,6 +381,8 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
         placeholder: t("rich.placeholder"),
         htmlLive: HtmlLiveNode,
         diagramEmbed: DiagramNode,
+        mathBlock: MathBlockNode,
+        mathInline: MathInlineNode,
       }),
     [],
   );

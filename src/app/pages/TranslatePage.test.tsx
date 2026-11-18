@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { makePost, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
@@ -23,6 +23,19 @@ function mount(post: Record<string, unknown>, lang?: string) {
 }
 
 describe("TranslatePage", () => {
+  // these cases drive the Markdown textarea; visual mode is covered below
+  beforeEach(() => localStorage.setItem("translate-mode", "md"));
+
+  it("opens in visual mode by default and switches to Markdown", async () => {
+    localStorage.removeItem("translate-mode");
+    mount({ lang: "uz", languages: ["uz"] });
+    expect(await screen.findByRole("button", { name: "Visual" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByLabelText("Body (Markdown)")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Markdown" }));
+    expect(screen.getByLabelText("Body (Markdown)")).toBeInTheDocument();
+    expect(localStorage.getItem("translate-mode")).toBe("md");
+  });
+
   it("shows not-found and forbidden states", async () => {
     signIn();
     server.use(http.get(api("/posts/1"), () => HttpResponse.json({ title: "nope", status: 404 }, { status: 404 })));

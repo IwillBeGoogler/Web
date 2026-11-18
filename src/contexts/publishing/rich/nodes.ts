@@ -181,3 +181,93 @@ export const UploadPlaceholder = Node.create({
   },
   renderMarkdown: () => "",
 });
+
+/** `$$ … $$` on lines of its own (or `$$x$$` on one line): a formula the reader typesets. The TeX is kept exactly as written. */
+export const MathBlock = Node.create({
+  name: "mathBlock",
+  group: "block",
+  atom: true,
+  draggable: true,
+  selectable: true,
+  addAttributes() {
+    return { tex: { default: "" }, oneLine: { default: false } };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: "div[data-math-block]",
+        getAttrs: (el) => ({
+          tex: (el as HTMLElement).getAttribute("data-tex") ?? "",
+          oneLine: (el as HTMLElement).getAttribute("data-one-line") === "1",
+        }),
+      },
+    ];
+  },
+  renderHTML({ node }) {
+    return ["div", { "data-math-block": "", "data-tex": node.attrs.tex, "data-one-line": node.attrs.oneLine ? "1" : "0" }];
+  },
+  markdownTokenName: "mathBlock",
+  markdownTokenizer: {
+    name: "mathBlock",
+    level: "block",
+    start: (src: string) => lineStart(src, /(?:^|\n) {0,3}\$\$/),
+    tokenize(src: string) {
+      const lines = src.split("\n");
+      const first = (lines[0] ?? "").trim();
+      if (!first.startsWith("$$")) return undefined;
+      if (first.length > 4 && first.endsWith("$$")) {
+        return { type: "mathBlock", raw: lines[0] + (lines.length > 1 ? "\n" : ""), tex: first.slice(2, -2).trim(), oneLine: true };
+      }
+      if (first !== "$$") return undefined;
+      for (let i = 1; i < lines.length && i <= 400; i++) {
+        const t = (lines[i] as string).trim();
+        if (t === "$$") {
+          const tex = lines.slice(1, i).join("\n").trim();
+          if (!tex) return undefined;
+          return { type: "mathBlock", raw: lines.slice(0, i + 1).join("\n") + (i + 1 < lines.length ? "\n" : ""), tex, oneLine: false };
+        }
+        if (/^ {0,3}(`{3,}|~{3,})/.test(t)) return undefined;
+      }
+      return undefined;
+    },
+  },
+  parseMarkdown: (token, h) => h.createNode("mathBlock", { tex: token.tex ?? "", oneLine: !!token.oneLine }),
+  renderMarkdown: (node) => {
+    const tex = String(node.attrs?.tex ?? "").trim();
+    if (node.attrs?.oneLine && !tex.includes("\n") && tex) return `$$${tex}$$`;
+    return `$$\n${tex}\n$$`;
+  },
+});
+
+/** `$ … $` inside a line: an inline formula. Same rules as the server: no space just inside the dollars, not before a digit. */
+export const MathInline = Node.create({
+  name: "mathInline",
+  group: "inline",
+  inline: true,
+  atom: true,
+  selectable: true,
+  addAttributes() {
+    return { tex: { default: "" } };
+  },
+  parseHTML() {
+    return [{ tag: "span[data-math-inline]", getAttrs: (el) => ({ tex: (el as HTMLElement).getAttribute("data-tex") ?? "" }) }];
+  },
+  renderHTML({ node }) {
+    return ["span", { "data-math-inline": "", "data-tex": node.attrs.tex }];
+  },
+  markdownTokenName: "mathInline",
+  markdownTokenizer: {
+    name: "mathInline",
+    level: "inline",
+    start: (src: string) => {
+      const i = src.indexOf("$");
+      return i >= 0 && src[i + 1] !== "$" ? i : -1;
+    },
+    tokenize(src: string) {
+      const m = /^\$([^\s$]|[^\s$][^$\n]*[^\s$])\$(?!\d)/.exec(src);
+      return m ? { type: "mathInline", raw: m[0], tex: m[1] } : undefined;
+    },
+  },
+  parseMarkdown: (token, h) => h.createNode("mathInline", { tex: token.tex ?? "" }),
+  renderMarkdown: (node) => `$${String(node.attrs?.tex ?? "")}$`,
+});

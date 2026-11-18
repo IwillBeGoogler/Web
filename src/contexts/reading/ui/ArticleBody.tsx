@@ -4,6 +4,7 @@ import { bionicDom, clearBionic } from "@/contexts/preferences/ui/bionic";
 import { extractCode } from "../domain/codeBlocks";
 import { clearTerms, markTerms, type Term } from "../domain/glossary";
 import { extractLive } from "../domain/liveBlocks";
+import { typesetMath } from "../domain/math";
 import { CodeTabs } from "./CodeTabs";
 import { HtmlBlock } from "./HtmlBlock";
 import { TermTooltip } from "./TermTooltip";
@@ -33,7 +34,7 @@ export function ArticleBody({
     blocks,
     codes,
   } = useMemo(() => {
-    const live = extractLive(html);
+    const live = extractLive(typesetMath(html));
     const code = extractCode(live.html);
     return { html: code.html, blocks: live.blocks, codes: code.hosts };
   }, [html]);

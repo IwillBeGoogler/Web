@@ -232,6 +232,8 @@ describe("router", () => {
   it("home and a writer's profile get the planet, earth and sun; story pages do not", async () => {
     await go("/@ali");
     await waitFor(() => expect(screen.getByTestId("galaxy")).toHaveTextContent("true"));
+    // the Earth waits for the first interaction; do not rely on an earlier test having sent one
+    dispatchEvent(new Event("pointermove"));
     expect(await screen.findByTestId("earth")).toHaveTextContent("true");
     await go("/@ali/some-story");
     await waitFor(() => expect(screen.getByTestId("galaxy")).toHaveTextContent("false"));

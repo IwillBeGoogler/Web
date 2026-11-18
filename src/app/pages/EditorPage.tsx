@@ -754,6 +754,20 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   useEffect(() => {
     for (const el of document.querySelectorAll<HTMLTextAreaElement>('textarea[aria-label="Title"], textarea[aria-label="Subtitle"]')) grow(el);
   }, [titleText, subtitleText]);
+  // the Markdown body grows with its text, so the page scrolls, not a box inside it
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the text, mode and layout are what change the needed height
+  useLayoutEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    const resize = () => {
+      const y = window.scrollY;
+      grow(el);
+      if (window.scrollY !== y) window.scrollTo({ top: y });
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [body, mode, preview, split, focus]);
 
   // Cmd/Ctrl+S saves now. It only ever saves a draft; published and scheduled stories keep a copy on this device until "Update".
   const saveNow = useRef(() => {});
@@ -1127,7 +1141,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                 <textarea
                   aria-label="Story body (Markdown)"
                   placeholder="Start writing — Markdown supported"
-                  className="mt-6 min-h-[60vh] w-full resize-none bg-transparent font-mono text-[16px] leading-7 outline-none placeholder:text-muted/60"
+                  className="mt-6 min-h-[60vh] w-full resize-none overflow-hidden bg-transparent font-mono text-[16px] leading-7 outline-none placeholder:text-muted/60"
                   {...bodyField}
                   onPaste={(e) => {
                     const files = imageFiles(e.clipboardData.files);
@@ -1150,7 +1164,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                   }}
                 />
                 {split ? (
-                  <div className="hidden lg:block">
+                  <div className="hidden lg:sticky lg:top-6 lg:block lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">
                     <StoryPreview body={body} glossary={glossary} />
                   </div>
                 ) : null}

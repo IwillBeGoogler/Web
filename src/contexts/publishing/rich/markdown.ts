@@ -16,7 +16,7 @@ import { Plugin } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import StarterKit from "@tiptap/starter-kit";
 import { scanLive } from "./liveScan";
-import { DiagramEmbed, HtmlLive, UploadPlaceholder } from "./nodes";
+import { DiagramEmbed, HtmlLive, MathBlock, MathInline, UploadPlaceholder } from "./nodes";
 import { keepableHref } from "./safeLink";
 
 /** Why a story cannot be edited visually without losing something. The editor maps each to a short explanation. */
@@ -252,6 +252,8 @@ export type RichOptions = {
   placeholder?: string;
   htmlLive?: AnyExtension;
   diagramEmbed?: AnyExtension;
+  mathBlock?: AnyExtension;
+  mathInline?: AnyExtension;
 };
 
 /** A table in the one shape GFM holds: header cells in the first row only, plain cells below, no merged cells. */
@@ -321,6 +323,8 @@ export function richExtensions(o: RichOptions = {}): Extensions {
     RichImage.configure({ inline: true, allowBase64: false }),
     o.htmlLive ?? HtmlLive,
     o.diagramEmbed ?? DiagramEmbed,
+    o.mathBlock ?? MathBlock,
+    o.mathInline ?? MathInline,
     UploadPlaceholder,
     // GFM tables: one paragraph per cell, since a Markdown cell holds only inline text
     RichTable.configure({ resizable: false }),
@@ -778,6 +782,10 @@ function scan(tokens: Tok[], nested: boolean, inLink = false): RichProblem | nul
       case "blockquote":
       case "list_item":
       case "diagramEmbed":
+      case "mathInline":
+        break;
+      case "mathBlock":
+        if (nested) p = "unknown";
         break;
       case "text":
         if (!inLink && !t.tokens?.length && /(?<!\\)\[\^[^\]\s]+\]/.test(t.raw ?? "")) p = "footnote";
