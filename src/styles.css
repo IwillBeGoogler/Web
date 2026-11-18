@@ -211,6 +211,13 @@
   .prose-article :where(p:first-child) {
     margin-top: 0;
   }
+  .prose-article :where(h1) {
+    @apply font-display font-bold;
+    font-size: 1.875rem;
+    line-height: 1.2;
+    margin: 1.8em 0 0;
+    letter-spacing: -0.02em;
+  }
   .prose-article :where(h2) {
     @apply font-display font-bold;
     font-size: 1.5rem;
@@ -1282,7 +1289,7 @@ html.dark .reading-glass .prose-article code {
     background: none;
     color: inherit;
   }
-  .rich-body :where(p, h2, h3, li, blockquote):first-child {
+  .rich-body :where(p, h1, h2, h3, li, blockquote):first-child {
     margin-top: 0;
   }
   .rich-body p.is-editor-empty:first-child::before {

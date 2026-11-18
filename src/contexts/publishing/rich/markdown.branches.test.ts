@@ -10,7 +10,7 @@ describe("canRoundTrip: what the editor must refuse, and what it keeps", () => {
   it.each([
     ["", "ok"],
     ["plain **bold** and *em* text", "ok"],
-    ["# one\n", "heading"],
+    ["#### one\n", "heading"],
     ["#### four\n", "heading"],
     ["## two\n\ntext", "ok"],
     ["a\r\nb", "crlf"],
@@ -191,11 +191,11 @@ describe("markdown helpers", () => {
 
   it("propertyDocs check reports a doc that does not read back as itself", async () => {
     const { check } = await import("./propertyDocs");
-    const h1 = check({
+    const h4 = check({
       type: "doc",
-      content: [{ type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "H1" }] }],
+      content: [{ type: "heading", attrs: { level: 4 }, content: [{ type: "text", text: "H4" }] }],
     });
-    expect(h1).toContain("reads back differently");
+    expect(h4).toContain("reads back differently");
     const html = check({
       type: "doc",
       content: [{ type: "paragraph", content: [{ type: "text", text: "<b>x</b>" }] }],

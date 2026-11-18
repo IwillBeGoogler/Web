@@ -305,7 +305,7 @@ export function richExtensions(o: RichOptions = {}): Extensions {
     }),
     RichCodeBlock.configure({ enableTabIndentation: false }),
     RichParagraph,
-    RichHeading.configure({ levels: [2, 3] }),
+    RichHeading.configure({ levels: [1, 2, 3] }),
     RichBold,
     RichItalic,
     RichStrike,
@@ -786,7 +786,7 @@ function scan(tokens: Tok[], nested: boolean, inLink = false): RichProblem | nul
         if (nested) p = "live";
         break;
       case "heading":
-        if (t.depth !== 2 && t.depth !== 3) p = "heading";
+        if (t.depth !== 1 && t.depth !== 2 && t.depth !== 3) p = "heading";
         break;
       case "link":
         if (!keepableHref(t.href ?? "")) p = "link";

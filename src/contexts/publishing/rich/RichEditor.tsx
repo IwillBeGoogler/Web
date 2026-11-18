@@ -5,6 +5,7 @@ import { BubbleMenu } from "@tiptap/react/menus";
 import {
   BoldIcon,
   CodeIcon,
+  Heading1Icon,
   Heading2Icon,
   Heading3Icon,
   ImageIcon,
@@ -164,6 +165,7 @@ const toolbarState = (editor: Editor) => ({
   italic: editor.isActive("italic"),
   code: editor.isActive("code"),
   link: editor.isActive("link"),
+  h1: editor.isActive("heading", { level: 1 }),
   h2: editor.isActive("heading", { level: 2 }),
   h3: editor.isActive("heading", { level: 3 }),
   ul: editor.isActive("bulletList"),
@@ -327,6 +329,8 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
       slash.current.open = false;
       setSlashUi(null);
       switch (id) {
+        case "h1":
+          return void c.setNode("heading", { level: 1 }).run();
         case "h2":
           return void c.setNode("heading", { level: 2 }).run();
         case "h3":
@@ -544,6 +548,9 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
     <div className="rich-wrap">
       <div className="rich-toolbar-wrap">
         <div role="toolbar" aria-label={t("rich.tb.label")} aria-orientation="horizontal" className="rich-toolbar" onKeyDown={onToolbarKey}>
+          <Tb label={t("rich.h1")} active={st?.h1} onClick={() => chain().toggleHeading({ level: 1 }).run()}>
+            <Heading1Icon className="size-4" aria-hidden />
+          </Tb>
           <Tb label={t("rich.h2")} active={st?.h2} onClick={() => chain().toggleHeading({ level: 2 }).run()}>
             <Heading2Icon className="size-4" aria-hidden />
           </Tb>

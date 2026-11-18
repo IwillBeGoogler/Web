@@ -4,10 +4,11 @@ export function slashQuery(blockText: string): string | null {
   return m ? (m[1] as string) : null;
 }
 
-export type SlashId = "h2" | "h3" | "image" | "code" | "codegroup" | "quote" | "ul" | "ol" | "hr" | "table" | "diagram" | "live";
+export type SlashId = "h1" | "h2" | "h3" | "image" | "code" | "codegroup" | "quote" | "ul" | "ol" | "hr" | "table" | "diagram" | "live";
 
 /** English words that also find an item, whatever the interface language. */
 export const SLASH_KEYWORDS: Record<SlashId, string> = {
+  h1: "title heading h1",
   h2: "heading title h2",
   h3: "subheading subtitle h3",
   image: "image picture photo upload",
@@ -22,7 +23,7 @@ export const SLASH_KEYWORDS: Record<SlashId, string> = {
   live: "animation html live interactive demo",
 };
 
-export const SLASH_ORDER: SlashId[] = ["h2", "h3", "image", "code", "codegroup", "quote", "ul", "ol", "hr", "table", "diagram", "live"];
+export const SLASH_ORDER: SlashId[] = ["h1", "h2", "h3", "image", "code", "codegroup", "quote", "ul", "ol", "hr", "table", "diagram", "live"];
 
 /** Items whose label or keywords contain the query (all of them for an empty query). */
 export function filterSlash(labels: Record<SlashId, string>, query: string): SlashId[] {
