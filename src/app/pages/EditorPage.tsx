@@ -917,50 +917,6 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                 <HistoryIcon aria-hidden />
               </Button>
             ) : null}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const el = mode === "md" ? bodyRef.current : null;
-                caret.current = el ? { start: el.selectionStart, end: el.selectionEnd } : null;
-                setDiagramPicker(true);
-              }}
-              aria-haspopup="dialog"
-            >
-              <ShapesIcon className="size-3.5" aria-hidden /> {t("dg.insert")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (mode === "rich" && !preview) return richRef.current?.insertLive();
-                const el = bodyRef.current;
-                const sel = el ? { start: el.selectionStart, end: el.selectionEnd } : null;
-                form.setValue("body", insertBlock(bodyNow(), LIVE_STARTER, sel), { shouldDirty: true });
-              }}
-            >
-              <SparklesIcon className="size-3.5" aria-hidden /> {t("live.insert")}
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setGlossaryDraft({ index: -1, term: selectedText() })} aria-haspopup="dialog">
-              <BookOpenTextIcon className="size-3.5" aria-hidden /> {t("glossary.add")}
-            </Button>
-            <span className="seg">
-              <button
-                type="button"
-                className="seg-item h-7"
-                onClick={() => {
-                  richRef.current?.flush();
-                  toggleView();
-                }}
-                aria-pressed={preview}
-                aria-label={preview ? t("editor.edit") : t("editor.preview")}
-              >
-                <span aria-hidden className="grid [&>*]:col-start-1 [&>*]:row-start-1">
-                  <span className={preview ? "invisible" : undefined}>{t("editor.preview")}</span>
-                  <span className={preview ? undefined : "invisible"}>{t("editor.edit")}</span>
-                </span>
-              </button>
-            </span>
           </div>
           {/* outside the row that scrolls sideways: Save and publish are always in reach */}
           <div className="flex shrink-0 items-center gap-2 max-sm:ml-auto">
@@ -1031,7 +987,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
             {/* portal: .reading-glass has backdrop-filter, which makes it the containing block of `fixed` children (bar landed at the article's end, off-screen) */}
             {createPortal(
               <span
-                className="seg fixed bottom-6 left-1/2 z-40 -translate-x-1/2 bg-bg shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
+                className="seg fixed bottom-6 left-1/2 z-40 max-w-[calc(100vw-1rem)] -translate-x-1/2 items-center overflow-x-auto bg-bg shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
                 role="group"
                 aria-label={t("rich.mode.label")}
               >
@@ -1041,6 +997,50 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                 <button type="button" className="seg-item h-7" aria-pressed={mode === "md"} onClick={() => void chooseMode("md")}>
                   {t("rich.mode.md")}
                 </button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const el = mode === "md" ? bodyRef.current : null;
+                    caret.current = el ? { start: el.selectionStart, end: el.selectionEnd } : null;
+                    setDiagramPicker(true);
+                  }}
+                  aria-haspopup="dialog"
+                >
+                  <ShapesIcon className="size-3.5" aria-hidden /> {t("dg.insert")}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (mode === "rich" && !preview) return richRef.current?.insertLive();
+                    const el = bodyRef.current;
+                    const sel = el ? { start: el.selectionStart, end: el.selectionEnd } : null;
+                    form.setValue("body", insertBlock(bodyNow(), LIVE_STARTER, sel), { shouldDirty: true });
+                  }}
+                >
+                  <SparklesIcon className="size-3.5" aria-hidden /> {t("live.insert")}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setGlossaryDraft({ index: -1, term: selectedText() })} aria-haspopup="dialog">
+                  <BookOpenTextIcon className="size-3.5" aria-hidden /> {t("glossary.add")}
+                </Button>
+                <span className="contents">
+                  <button
+                    type="button"
+                    className="seg-item h-7"
+                    onClick={() => {
+                      richRef.current?.flush();
+                      toggleView();
+                    }}
+                    aria-pressed={preview}
+                    aria-label={preview ? t("editor.edit") : t("editor.preview")}
+                  >
+                    <span aria-hidden className="grid [&>*]:col-start-1 [&>*]:row-start-1">
+                      <span className={preview ? "invisible" : undefined}>{t("editor.preview")}</span>
+                      <span className={preview ? undefined : "invisible"}>{t("editor.edit")}</span>
+                    </span>
+                  </button>
+                </span>
               </span>,
               document.body,
             )}

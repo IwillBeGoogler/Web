@@ -712,8 +712,14 @@ export default function RichEditor({ value, epoch, onChange, onDiagram, onLossy,
           <Tb label={t("rich.link")} shortcut="Ctrl/Cmd+K" active={st?.link} onClick={openLink}>
             <LinkIcon className="size-4" aria-hidden />
           </Tb>
+          <Tb label={t("rich.h1")} active={st?.h1} onClick={() => chain().toggleHeading({ level: 1 }).run()}>
+            <Heading1Icon className="size-4" aria-hidden />
+          </Tb>
           <Tb label={t("rich.h2")} active={st?.h2} onClick={() => chain().toggleHeading({ level: 2 }).run()}>
             <Heading2Icon className="size-4" aria-hidden />
+          </Tb>
+          <Tb label={t("rich.h3")} active={st?.h3} onClick={() => chain().toggleHeading({ level: 3 }).run()}>
+            <Heading3Icon className="size-4" aria-hidden />
           </Tb>
           <Tb label={t("rich.quote")} active={st?.quote} onClick={() => chain().toggleBlockquote().run()}>
             <QuoteIcon className="size-4" aria-hidden />
