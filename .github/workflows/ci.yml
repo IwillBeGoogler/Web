@@ -155,3 +155,18 @@ jobs:
           tags: iwillbegoogler-web:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # One Telegram message with the result (never fails the run); a failure makes a sound, a pass is silent.
+  notify:
+    needs: [static, build, test, test-editor, image]
+    if: always()
+    permissions:
+      contents: read
+      actions: read # _notify reads job results and logs
+    uses: ./.github/workflows/_notify.yml
+    with:
+      environment: production
+      mode: ci
+      results: ${{ toJSON(needs) }}
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
