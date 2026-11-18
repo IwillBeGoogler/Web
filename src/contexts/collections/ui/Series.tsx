@@ -16,10 +16,40 @@ import { Field, inputBoxCls, inputCls, ServerError } from "@/shared/ui/form";
 import { Modal } from "@/shared/ui/modal";
 import { Bone, EmptyState } from "@/shared/ui/states";
 import { toast } from "@/shared/ui/toast";
-import { postSeriesQuery, seriesQuery, userSeriesQuery, useSeriesMutations } from "../application/hooks";
-import { move, type Series, seriesInputSchema } from "../domain/collections";
+import { postSeriesQuery, readingPathQuery, seriesQuery, userSeriesQuery, useSeriesMutations } from "../application/hooks";
+import { byPublished, move, type Series, seriesInputSchema } from "../domain/collections";
 
 const partHref = (author: string, slug: string) => postPath({ author, slug });
+
+/** Read before / read next from the topic tree, for posts in no series
+ * (series posts get prev/next in SeriesNav). */
+export function ReadingPathNav({ postId }: { postId: number }) {
+  const q = useQuery(readingPathQuery(postId));
+  const p = q.data;
+  if (!p || p.source !== "topic" || (!p.prev && !p.next)) return null;
+  return (
+    <nav aria-label="Reading path" className="mt-10 grid gap-3 sm:grid-cols-2">
+      {p.prev ? (
+        <a href={postPath({ author: p.prev.author, slug: p.prev.slug })} className="rounded border border-line p-4 hover:border-fg">
+          <span className="flex items-center gap-1 text-xs tracking-wide text-muted uppercase">
+            <ChevronLeftIcon className="size-4" aria-hidden /> Read before
+          </span>
+          <span className="mt-1 block font-semibold">{p.prev.title}</span>
+        </a>
+      ) : (
+        <span className="hidden sm:block" />
+      )}
+      {p.next ? (
+        <a href={postPath({ author: p.next.author, slug: p.next.slug })} className="rounded border border-line p-4 text-right hover:border-fg">
+          <span className="flex items-center justify-end gap-1 text-xs tracking-wide text-muted uppercase">
+            Read next <ChevronRightIcon className="size-4" aria-hidden />
+          </span>
+          <span className="mt-1 block font-semibold">{p.next.title}</span>
+        </a>
+      ) : null}
+    </nav>
+  );
+}
 
 /** Series box under an article: position, prev/next and all parts. */
 export function SeriesNav({ postId, author }: { postId: number; author: string }) {
@@ -246,6 +276,16 @@ function PartsEditor({ s, onDone }: { s: Series; onDone: () => void }) {
             ))}
           </select>
         </label>
+      ) : null}
+      {current.length > 1 ? (
+        <Button
+          variant="ghost"
+          onClick={() =>
+            setIds(byPublished(current, (id) => all.find((p) => p.id === id)?.published_at ?? detail.data?.posts.find((p) => p.post_id === id)?.published_at))
+          }
+        >
+          Auto-order by publish date
+        </Button>
       ) : null}
       <ServerError error={setPosts.error} />
       <Button

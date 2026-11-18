@@ -35,6 +35,8 @@ export const userSeriesQuery = (u: string) => queryOptions({ queryKey: ["series"
 export const recentSeriesQuery = (limit = 8) =>
   queryOptions({ queryKey: ["series", "recent", limit], queryFn: ({ signal }) => seriesRepository.recent(limit, signal), staleTime: 5 * 60_000 });
 export const seriesQuery = (slug: string) => queryOptions({ queryKey: ["series", "one", slug], queryFn: ({ signal }) => seriesRepository.get(slug, signal) });
+export const readingPathQuery = (id: number) =>
+  queryOptions({ queryKey: ["series", "path", id], queryFn: ({ signal }) => seriesRepository.readingPath(id, signal), staleTime: 5 * 60_000 });
 export const postSeriesQuery = (id: number) => queryOptions({ queryKey: ["series", "post", id], queryFn: ({ signal }) => seriesRepository.ofPost(id, signal) });
 
 export function useSeriesMutations() {

@@ -8,7 +8,7 @@ import { ArticlePage } from "./ArticlePage";
 
 vi.mock("@/contexts/collections/ui/Highlights", () => ({ Highlighter: () => null, HighlightsPanel: () => null }));
 vi.mock("@/contexts/collections/ui/Lists", () => ({ SaveToList: () => null }));
-vi.mock("@/contexts/collections/ui/Series", () => ({ SeriesNav: () => null }));
+vi.mock("@/contexts/collections/ui/Series", () => ({ SeriesNav: () => null, ReadingPathNav: () => null }));
 
 describe("ArticlePage with reduced motion", () => {
   it("renders the story without entrance animations", async () => {

@@ -4,7 +4,7 @@ import { CloudOffIcon, DownloadIcon, FileQuestionIcon, LinkIcon, MessageSquareIc
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Highlighter, HighlightsPanel } from "@/contexts/collections/ui/Highlights";
 import { SaveToList } from "@/contexts/collections/ui/Lists";
-import { SeriesNav } from "@/contexts/collections/ui/Series";
+import { ReadingPathNav, SeriesNav } from "@/contexts/collections/ui/Series";
 import { BookmarkButton, ClapButton, FollowButton } from "@/contexts/engagement/ui/actions";
 import { PostMenu } from "@/contexts/engagement/ui/PostMenu";
 import { Responses } from "@/contexts/engagement/ui/Responses";
@@ -356,6 +356,7 @@ export function ArticlePage({ slug }: { slug: string }) {
               </>
             ) : null}
             <SeriesNav postId={post.id} author={post.author} />
+            <ReadingPathNav postId={post.id} />
             {post.tags.length ? (
               <section aria-labelledby="filed-under" className="tile mt-12">
                 <h2 id="filed-under" className="tile-head">

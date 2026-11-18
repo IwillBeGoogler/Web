@@ -9,6 +9,7 @@ import {
   memberSchema,
   placeSchema,
   publicationSchema,
+  readingPathSchema,
   type SeriesInput,
   seriesSchema,
 } from "../domain/collections";
@@ -40,6 +41,8 @@ export const seriesRepository = {
   /** Series with at least two published parts, each with its parts; for the home page. */
   recent: async (limit: number, signal?: AbortSignal) => (await http("/series", { query: { limit }, schema: arr(seriesSchema), signal })).data,
   get: async (slug: string, signal?: AbortSignal) => (await http(`/series/${e(slug)}`, { schema: dataEnvelope(seriesSchema), signal })).data,
+  /** What to read before and after a post (series or topic neighbours). */
+  readingPath: async (id: number, signal?: AbortSignal) => (await http(`/posts/${id}/reading-path`, { schema: dataEnvelope(readingPathSchema), signal })).data,
   /** Where a post sits in its series; null when it is in none (404). */
   async ofPost(id: number, signal?: AbortSignal) {
     try {

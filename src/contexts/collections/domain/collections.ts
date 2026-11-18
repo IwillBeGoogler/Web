@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { postSchema } from "@/contexts/reading/domain/post";
 
 export const listSchema = z.object({
   id: z.number(),
@@ -67,6 +68,27 @@ export const placeSchema = z
   .loose()
   .transform((p) => ({ series: p.series, position: p.position ?? 0, prev: p.prev ?? null, next: p.next ?? null, parts: p.posts ?? p.series?.posts ?? [] }));
 export type SeriesPlace = z.infer<typeof placeSchema>;
+
+/** Read before / read next: series neighbours, else topic-tree neighbours. */
+export const readingPathSchema = z.object({
+  source: z.string().default(""),
+  prev: postSchema
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  next: postSchema
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+});
+export type ReadingPath = z.infer<typeof readingPathSchema>;
+
+/** Orders ids oldest published first; unknown or unpublished ids last, stable. */
+export const byPublished = (ids: number[], at: (id: number) => string | null | undefined): number[] =>
+  ids
+    .map((id, i) => ({ id, i, t: at(id) ? Date.parse(at(id) as string) : Number.POSITIVE_INFINITY }))
+    .sort((a, b) => a.t - b.t || a.i - b.i)
+    .map((x) => x.id);
 
 /** Moves item at `from` to `to` (reordering series parts). */
 export const move = <T>(arr: T[], from: number, to: number): T[] => {

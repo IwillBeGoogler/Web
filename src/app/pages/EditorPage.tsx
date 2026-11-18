@@ -529,20 +529,23 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const [banner, setBanner] = useState<LocalCopy | null>(null);
   const [publishing, setPublishing] = useState(false);
   const [preview, setPreview] = useState(false);
-  // Each view keeps its own scroll position: swapping editor and preview changes the page height, and the browser
-  // would otherwise clamp the scroll (usually to the top) when the taller one goes away.
-  const scrollAt = useRef({ edit: 0, preview: 0 });
+  // Swapping editor and preview keeps the page exactly where it is: the view area holds at least the height the
+  // other view had (so the browser never clamps the scroll while the preview loads), and the scroll is put back.
+  const viewRef = useRef<HTMLDivElement | null>(null);
+  const keep = useRef<{ y: number; h: number } | null>(null);
+  const [viewMinH, setViewMinH] = useState(0);
   const toggleView = () => {
-    scrollAt.current[preview ? "preview" : "edit"] = window.scrollY;
+    const h = viewRef.current?.offsetHeight ?? 0;
+    keep.current = { y: window.scrollY, h };
+    setViewMinH(h);
     setPreview(!preview);
   };
-  const firstView = useRef(true);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the view switch is the trigger
   useLayoutEffect(() => {
-    if (firstView.current) {
-      firstView.current = false; // opening the editor keeps the browser's own scroll restoration
-      return;
-    }
-    window.scrollTo({ top: scrollAt.current[preview ? "preview" : "edit"], behavior: "instant" });
+    const k = keep.current;
+    if (!k) return;
+    keep.current = null;
+    window.scrollTo({ top: k.y, behavior: "instant" });
   }, [preview]);
   const [history, setHistory] = useState(false);
   const [diagramPicker, setDiagramPicker] = useState(false);
@@ -935,8 +938,12 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                   toggleView();
                 }}
                 aria-pressed={preview}
+                aria-label={preview ? t("editor.edit") : t("editor.preview")}
               >
-                {preview ? t("editor.edit") : t("editor.preview")}
+                <span aria-hidden className="grid [&>*]:col-start-1 [&>*]:row-start-1">
+                  <span className={preview ? "invisible" : undefined}>{t("editor.preview")}</span>
+                  <span className={preview ? undefined : "invisible"}>{t("editor.edit")}</span>
+                </span>
               </button>
             </span>
           </div>
@@ -1056,59 +1063,61 @@ export function EditorPage({ id: routeId }: { id?: number }) {
               </Button>
             </section>
           ) : null}
-          {preview ? <StoryPreview body={body} glossary={glossary} /> : null}
-          {mode === "rich" ? (
-            checking || !ready ? (
-              <Bone className="mt-6 h-64 w-full" />
-            ) : (
-              <div hidden={preview}>
-                <RichGuard
-                  onFail={(e) => {
-                    reportError(e);
-                    toast.error(t("rich.crashed"));
-                    void chooseMode("md");
-                  }}
-                >
-                  <Suspense fallback={<Bone className="mt-6 h-64 w-full" />}>
-                    <RichEditor
-                      ref={richRef}
-                      value={body}
-                      epoch={epoch}
-                      onChange={(md) => form.setValue("body", md, { shouldDirty: true })}
-                      onLossy={setLossy}
-                      onDiagram={() => setDiagramPicker(true)}
-                    />
-                  </Suspense>
-                </RichGuard>
-              </div>
-            )
-          ) : preview ? null : (
-            <textarea
-              aria-label="Story body (Markdown)"
-              placeholder="Start writing — Markdown supported"
-              className="mt-6 min-h-[60vh] w-full resize-none bg-transparent font-mono text-[16px] leading-7 outline-none placeholder:text-muted/60"
-              {...bodyField}
-              onPaste={(e) => {
-                const files = imageFiles(e.clipboardData.files);
-                if (!files.length) return; // plain text pastes as usual
-                e.preventDefault();
-                addImages(files);
-              }}
-              onDragOver={(e) => {
-                if (e.dataTransfer.types.includes("Files")) e.preventDefault();
-              }}
-              onDrop={(e) => {
-                const files = imageFiles(e.dataTransfer.files);
-                if (!files.length) return;
-                e.preventDefault();
-                addImages(files);
-              }}
-              ref={(el) => {
-                bodyField.ref(el);
-                bodyRef.current = el;
-              }}
-            />
-          )}
+          <div ref={viewRef} style={viewMinH ? { minHeight: viewMinH } : undefined}>
+            {preview ? <StoryPreview body={body} glossary={glossary} /> : null}
+            {mode === "rich" ? (
+              checking || !ready ? (
+                <Bone className="mt-6 h-64 w-full" />
+              ) : (
+                <div hidden={preview}>
+                  <RichGuard
+                    onFail={(e) => {
+                      reportError(e);
+                      toast.error(t("rich.crashed"));
+                      void chooseMode("md");
+                    }}
+                  >
+                    <Suspense fallback={<Bone className="mt-6 h-64 w-full" />}>
+                      <RichEditor
+                        ref={richRef}
+                        value={body}
+                        epoch={epoch}
+                        onChange={(md) => form.setValue("body", md, { shouldDirty: true })}
+                        onLossy={setLossy}
+                        onDiagram={() => setDiagramPicker(true)}
+                      />
+                    </Suspense>
+                  </RichGuard>
+                </div>
+              )
+            ) : preview ? null : (
+              <textarea
+                aria-label="Story body (Markdown)"
+                placeholder="Start writing — Markdown supported"
+                className="mt-6 min-h-[60vh] w-full resize-none bg-transparent font-mono text-[16px] leading-7 outline-none placeholder:text-muted/60"
+                {...bodyField}
+                onPaste={(e) => {
+                  const files = imageFiles(e.clipboardData.files);
+                  if (!files.length) return; // plain text pastes as usual
+                  e.preventDefault();
+                  addImages(files);
+                }}
+                onDragOver={(e) => {
+                  if (e.dataTransfer.types.includes("Files")) e.preventDefault();
+                }}
+                onDrop={(e) => {
+                  const files = imageFiles(e.dataTransfer.files);
+                  if (!files.length) return;
+                  e.preventDefault();
+                  addImages(files);
+                }}
+                ref={(el) => {
+                  bodyField.ref(el);
+                  bodyRef.current = el;
+                }}
+              />
+            )}
+          </div>
           {mode === "md" ? (
             <p className="focus-hide mt-4 flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted">
               Markdown:
