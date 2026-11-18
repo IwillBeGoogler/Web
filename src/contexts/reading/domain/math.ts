@@ -12,7 +12,7 @@ export function typesetMath(html: string): string {
   for (const el of tpl.content.querySelectorAll<HTMLElement>(".math-inline[data-tex], .math-block[data-tex]")) {
     const block = el.classList.contains("math-block");
     try {
-      el.innerHTML = katex.renderToString(el.dataset.tex ?? "", { displayMode: block, throwOnError: false, strict: "ignore", maxExpand: 1000, trust: false });
+      el.innerHTML = katex.renderToString(String(el.dataset.tex), { displayMode: block, throwOnError: false, strict: "ignore", maxExpand: 1000, trust: false });
     } catch {
       // leave the TeX as the fallback text the server wrote
     }

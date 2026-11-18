@@ -213,7 +213,7 @@ export const MathBlock = Node.create({
     start: (src: string) => lineStart(src, /(?:^|\n) {0,3}\$\$/),
     tokenize(src: string) {
       const lines = src.split("\n");
-      const first = (lines[0] ?? "").trim();
+      const first = (lines[0] as string).trim();
       if (!first.startsWith("$$")) return undefined;
       if (first.length > 4 && first.endsWith("$$")) {
         return { type: "mathBlock", raw: lines[0] + (lines.length > 1 ? "\n" : ""), tex: first.slice(2, -2).trim(), oneLine: true };

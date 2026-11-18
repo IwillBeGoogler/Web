@@ -134,13 +134,8 @@ export const DiagramNode = DiagramEmbed.extend({
   },
 });
 
-const typeset = (tex: string, display: boolean) => {
-  try {
-    return katex.renderToString(tex, { displayMode: display, throwOnError: false, strict: "ignore", trust: false });
-  } catch {
-    return "";
-  }
-};
+// throwOnError: false shows a bad formula in red instead of throwing
+const typeset = (tex: string, display: boolean) => katex.renderToString(tex, { displayMode: display, throwOnError: false, strict: "ignore", trust: false });
 
 /** A formula as a card: TeX in a plain textarea, the typeset result under it. The card is one unit, so Backspace removes the whole formula. */
 function MathBlockView({ node, updateAttributes, deleteNode, selected }: NodeViewProps) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DiagramEmbed, HtmlLive, UploadPlaceholder } from "./nodes";
+import { DiagramEmbed, HtmlLive, MathBlock, MathInline, UploadPlaceholder } from "./nodes";
 
 // biome-ignore lint/suspicious/noExplicitAny: calling Tiptap node config hooks directly
 const cfg = (n: unknown) => (n as { config: any }).config;
@@ -95,5 +95,84 @@ describe("UploadPlaceholder node", () => {
     expect(c.renderHTML({ node: { attrs: { id: "1", name: "" } } })[2]).toBe("image…");
     expect(c.renderHTML({ node: { attrs: { id: "1", name: "a.png" } } })[2]).toBe("a.png…");
     expect(c.renderMarkdown()).toBe("");
+  });
+});
+
+describe("MathBlock node", () => {
+  const t = cfg(MathBlock).markdownTokenizer;
+  it("parses and renders HTML", () => {
+    expect(attrsOf(MathBlock, '<div data-math-block data-tex="x" data-one-line="1"></div>')).toEqual({ tex: "x", oneLine: true });
+    expect(attrsOf(MathBlock, "<div data-math-block></div>")).toEqual({ tex: "", oneLine: false });
+    expect(cfg(MathBlock).addAttributes.call({}).tex.default).toBe("");
+    expect(cfg(MathBlock).renderHTML({ node: { attrs: { tex: "a", oneLine: true } } })[1]["data-one-line"]).toBe("1");
+    expect(cfg(MathBlock).renderHTML({ node: { attrs: { tex: "a", oneLine: false } } })[1]["data-one-line"]).toBe("0");
+  });
+  it("finds the start", () => {
+    expect(t.start("a\n$$\nx\n$$")).toBe(2);
+    expect(t.start("$$x$$")).toBe(0);
+    expect(t.start("no math")).toBe(-1);
+  });
+  it("tokenizes fenced and one-line blocks, keeping the raw text", () => {
+    expect(t.tokenize("$$\na\nb\n$$\nrest")).toMatchObject({ tex: "a\nb", oneLine: false, raw: "$$\na\nb\n$$\n" });
+    expect(t.tokenize("$$\na\n$$")).toMatchObject({ raw: "$$\na\n$$" });
+    expect(t.tokenize("$$a+b$$\nnext")).toMatchObject({ tex: "a+b", oneLine: true, raw: "$$a+b$$\n" });
+    expect(t.tokenize("$$a+b$$")).toMatchObject({ raw: "$$a+b$$" });
+  });
+  it("refuses what the server would not treat as a block", () => {
+    expect(t.tokenize("plain")).toBeUndefined();
+    expect(t.tokenize("$$ text after")).toBeUndefined();
+    expect(t.tokenize("$$\n\n$$")).toBeUndefined();
+    expect(t.tokenize("$$\nnever closed")).toBeUndefined();
+    expect(t.tokenize("$$\n```\n$$")).toBeUndefined();
+  });
+  it("parses a token and writes the Markdown back as it was", () => {
+    const made: unknown[] = [];
+    const h = { createNode: (n: string, a: unknown) => made.push([n, a]) };
+    cfg(MathBlock).parseMarkdown({ tex: "x", oneLine: true }, h);
+    cfg(MathBlock).parseMarkdown({}, h);
+    expect(made).toEqual([
+      ["mathBlock", { tex: "x", oneLine: true }],
+      ["mathBlock", { tex: "", oneLine: false }],
+    ]);
+    const out = (attrs: Record<string, unknown>) => cfg(MathBlock).renderMarkdown({ attrs });
+    expect(out({ tex: "x", oneLine: true })).toBe("$$x$$");
+    expect(out({ tex: "x", oneLine: false })).toBe("$$\nx\n$$");
+    expect(out({ tex: "a\nb", oneLine: true })).toBe("$$\na\nb\n$$");
+    expect(out({ tex: "", oneLine: true })).toBe("$$\n\n$$");
+    expect(cfg(MathBlock).renderMarkdown({})).toBe("$$\n\n$$");
+  });
+});
+
+describe("MathInline node", () => {
+  const t = cfg(MathInline).markdownTokenizer;
+  it("parses and renders HTML", () => {
+    expect(attrsOf(MathInline, '<span data-math-inline data-tex="x"></span>')).toEqual({ tex: "x" });
+    expect(attrsOf(MathInline, "<span data-math-inline></span>")).toEqual({ tex: "" });
+    expect(cfg(MathInline).addAttributes.call({}).tex.default).toBe("");
+    expect(cfg(MathInline).renderHTML({ node: { attrs: { tex: "a" } } })[1]["data-tex"]).toBe("a");
+  });
+  it("finds a single dollar, not a double one", () => {
+    expect(t.start("a $x$")).toBe(2);
+    expect(t.start("a $$x$$")).toBe(-1);
+    expect(t.start("none")).toBe(-1);
+  });
+  it("tokenizes like the server: no inner spaces, not before a digit", () => {
+    expect(t.tokenize("$x^2$ rest")).toMatchObject({ tex: "x^2", raw: "$x^2$" });
+    expect(t.tokenize("$a$")).toMatchObject({ tex: "a" });
+    expect(t.tokenize("$5 and $6")).toBeUndefined();
+    expect(t.tokenize("$x$5")).toBeUndefined();
+    expect(t.tokenize("$ x$")).toBeUndefined();
+  });
+  it("parses a token and writes it back", () => {
+    const made: unknown[] = [];
+    const h = { createNode: (n: string, a: unknown) => made.push([n, a]) };
+    cfg(MathInline).parseMarkdown({ tex: "x" }, h);
+    cfg(MathInline).parseMarkdown({}, h);
+    expect(made).toEqual([
+      ["mathInline", { tex: "x" }],
+      ["mathInline", { tex: "" }],
+    ]);
+    expect(cfg(MathInline).renderMarkdown({ attrs: { tex: "x" } })).toBe("$x$");
+    expect(cfg(MathInline).renderMarkdown({})).toBe("$$");
   });
 });

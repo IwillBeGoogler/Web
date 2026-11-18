@@ -637,3 +637,60 @@ describe("RichEditor edge cases", () => {
     act(() => ref.current?.flush());
   });
 });
+
+describe("RichEditor math", () => {
+  it("block formula: edits the TeX, shows the typeset result, removes itself", async () => {
+    const { ref, onChange } = setup("$$\nx^2\n$$");
+    await body();
+    const src = await screen.findByLabelText("TeX source");
+    expect(src).toHaveValue("x^2");
+    fireEvent.change(src, { target: { value: "y^3" } });
+    expect(src).toHaveValue("y^3");
+    act(() => ref.current?.flush());
+    expect(md(onChange)).toContain("y^3");
+    // an outside change (undo) is followed
+    await userEvent.setup().click(screen.getByRole("button", { name: /^Undo/ }));
+    await waitFor(() => expect(screen.getByLabelText("TeX source")).toHaveValue("x^2"));
+    await userEvent.setup().click(screen.getByRole("button", { name: "Remove formula" }));
+    await waitFor(() => expect(screen.queryByLabelText("TeX source")).toBeNull());
+  });
+
+  it("inline formula: double-click edits through the prompt; bad or cancelled input changes nothing", async () => {
+    const { ref, onChange } = setup("see $a+b$ here");
+    await body();
+    const f = await screen.findByLabelText("Formula · TeX: a+b");
+    const prompt = vi.spyOn(window, "prompt");
+    prompt.mockReturnValueOnce(null);
+    fireEvent.doubleClick(f);
+    prompt.mockReturnValueOnce("x$y");
+    fireEvent.doubleClick(f);
+    prompt.mockReturnValueOnce("   ");
+    fireEvent.doubleClick(f);
+    prompt.mockReturnValueOnce("c*d");
+    fireEvent.doubleClick(f);
+    await screen.findByLabelText("Formula · TeX: c*d");
+    act(() => ref.current?.flush());
+    expect(md(onChange)).toContain("$c*d$");
+  });
+
+  it("/formula inserts a block", async () => {
+    const { onChange, ref } = setup("/formula");
+    const el = await body();
+    act(() => el.focus());
+    const sel = window.getSelection() as Selection;
+    const range = document.createRange();
+    const node = el.querySelector("p")?.firstChild as Node;
+    range.setStart(node, node.textContent?.length ?? 0);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    act(() => {
+      document.dispatchEvent(new Event("selectionchange"));
+    });
+    const list = await screen.findByRole("listbox");
+    fireEvent.mouseDown(within(list).getByRole("option", { name: "Formula" }));
+    await screen.findByLabelText("TeX source");
+    act(() => ref.current?.flush());
+    expect(md(onChange)).toContain("$$\nx^2\n$$");
+  });
+});
