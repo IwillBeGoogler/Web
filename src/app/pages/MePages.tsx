@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { BellIcon, BookmarkIcon } from "lucide-react";
 import { useState } from "react";
 import { Settings, type SettingsTab } from "@/contexts/account/ui/Settings";
@@ -56,7 +56,9 @@ export function LibraryPage() {
 type StoriesTab = "draft" | "published" | "unlisted" | "scheduled" | "series";
 
 export function StoriesPage() {
-  const [tab, setTab] = useState<StoriesTab>("draft");
+  const nav = useNavigate();
+  const tab: StoriesTab = useSearch({ strict: false, select: (s: { tab?: StoriesTab }) => s.tab }) ?? "draft";
+  const setTab = (t: StoriesTab) => void nav({ to: "/me/stories", search: { tab: t }, replace: true });
   return (
     <HomeGrid>
       <div className="flex flex-wrap items-end justify-between gap-3">

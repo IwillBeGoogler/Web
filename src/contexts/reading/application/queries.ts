@@ -39,6 +39,14 @@ export const postByIdQuery = (id: number) =>
     queryKey: ["post-id", id],
     queryFn: ({ signal }) => readingRepository.byId(id, signal),
   });
+/** One translation of a story; a 404 means the story has none in that language. */
+export const translationQuery = (id: number, lang: string) =>
+  queryOptions({
+    queryKey: ["post-translation", id, lang],
+    queryFn: ({ signal }) => readingRepository.translation(id, lang, signal),
+    staleTime: 60_000,
+    retry: false,
+  });
 /** Site-wide glossary for the reader's language; it changes rarely. */
 export const glossaryQuery = (lang: string) =>
   queryOptions({

@@ -38,6 +38,7 @@ export const seriesSchema = z.object({
   description: z.string().default(""),
   user_id: z.number().default(0),
   author: z.string().default(""),
+  cover_url: z.string().default(""),
   parts: z.number().default(0),
   posts: z
     .array(partSchema)
@@ -50,7 +51,9 @@ export type Series = z.infer<typeof seriesSchema>;
 export const seriesInputSchema = z.object({
   title: z.string().trim().min(1, "Give your series a title").max(120, "At most 120 characters"),
   description: z.string().trim().max(500, "At most 500 characters"),
+  cover_url: z.string().default(""),
 });
+export type SeriesInput = z.input<typeof seriesInputSchema>;
 
 /** GET /posts/{id}/series: where a post sits in its series. Tolerant of shape. */
 export const placeSchema = z

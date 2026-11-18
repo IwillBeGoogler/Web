@@ -11,12 +11,13 @@ import { Responses } from "@/contexts/engagement/ui/Responses";
 import { useMe } from "@/contexts/identity/application/session";
 import { useReadingPrefs } from "@/contexts/preferences/application/store";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
-import { glossaryQuery, postQuery, profileQuery, relatedQuery } from "@/contexts/reading/application/queries";
+import { glossaryQuery, postQuery, profileQuery, relatedQuery, translationQuery } from "@/contexts/reading/application/queries";
 import { mergeTerms } from "@/contexts/reading/domain/glossary";
 import { excerpt, type Post, postPath, readTime } from "@/contexts/reading/domain/post";
 import { safeHtml } from "@/contexts/reading/domain/sanitize";
 import { readingRepository } from "@/contexts/reading/infrastructure/readingRepository";
 import { ArticleBody } from "@/contexts/reading/ui/ArticleBody";
+import { LangSwitch } from "@/contexts/reading/ui/LangSwitch";
 import { TopicChips } from "@/contexts/reading/ui/TopicChips";
 import { useReadTime } from "@/shared/analytics";
 import { useHead } from "@/shared/head";
@@ -123,9 +124,28 @@ export function ArticlePage({ slug }: { slug: string }) {
   const author = useQuery({ ...profileQuery(post?.author ?? ""), enabled: !!post?.author && !!post?.user_id });
   const related = useQuery({ ...relatedQuery(post?.id ?? 0), enabled: !!post });
   useReadTime(post?.id);
+  const lang = useLang();
+  const [shown, setShown] = useState<string | null>(null);
+  const postId = post?.id;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset only when another story opens
+  useEffect(() => setShown(null), [postId]);
+  const current = post ? (shown && post.languages.includes(shown) ? shown : post.languages.includes(lang) ? lang : post.lang) : "";
+  const translated = !!post && current !== post.lang;
+  const tr = useQuery({ ...translationQuery(post?.id ?? 0, current), enabled: translated });
+  useEffect(() => {
+    if (tr.isError) {
+      toast.error("Couldn't load this translation.");
+      if (post) setShown(post.lang);
+    }
+  }, [tr.isError, post]);
+  const view =
+    post && translated && tr.data
+      ? { ...post, title: tr.data.title, subtitle: tr.data.subtitle, body: tr.data.body, body_html: tr.data.body_html, reading_time: tr.data.reading_time }
+      : post;
+  const original = !translated || !tr.data;
   useHead({
-    title: post?.title,
-    description: post ? post.subtitle || excerpt(post.body, 160) : undefined,
+    title: view?.title,
+    description: view ? view.subtitle || excerpt(view.body, 160) : undefined,
     canonical: post ? post.canonical_url || postPath(post) : undefined,
     image: post?.cover_url || undefined,
     type: post ? "article" : undefined,
@@ -135,14 +155,13 @@ export function ArticlePage({ slug }: { slug: string }) {
   const nav = useNavigate();
   const bodyRef = useRef<HTMLDivElement>(null);
   const prefs = useReadingPrefs();
-  const lang = useLang();
-  const globalTerms = useQuery({ ...glossaryQuery(lang), enabled: !!post?.body_html });
+  const globalTerms = useQuery({ ...glossaryQuery(lang), enabled: !!view?.body_html });
   const terms = useMemo(() => mergeTerms(post?.glossary ?? [], globalTerms.data ?? []), [post?.glossary, globalTerms.data]);
   const articleRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   useReadTracking(post?.id);
   // a ::diagram embed opens the viewer without reloading the site (the figure's link is plain HTML from the server)
-  const hasBody = !!post?.body_html;
+  const hasBody = !!view?.body_html;
   useEffect(() => {
     const el = bodyRef.current;
     if (!el || !hasBody) return;
@@ -156,12 +175,12 @@ export function ArticlePage({ slug }: { slug: string }) {
     return () => el.removeEventListener("click", onClick);
   }, [hasBody, nav]);
   useEffect(() => {
-    if (post) document.title = `${post.title} | IWillBeGoogler`;
-  }, [post]);
+    if (view) document.title = `${view.title} | IWillBeGoogler`;
+  }, [view]);
 
   return (
     <main id="main">
-      <article ref={articleRef} className="article-column reading-glass mx-auto px-4 pt-8 pb-24 md:px-6 md:pt-12">
+      <article ref={articleRef} lang={current || undefined} className="article-column reading-glass mx-auto px-4 pt-8 pb-24 md:px-6 md:pt-12">
         {q.isPending ? (
           <ArticleSkeleton />
         ) : q.isError && !(isApiError(q.error) && q.error.status >= 400 && q.error.status < 500) ? (
@@ -176,7 +195,7 @@ export function ArticlePage({ slug }: { slug: string }) {
               </Button>
             }
           />
-        ) : q.isError || !post ? (
+        ) : q.isError || !post || !view ? (
           <EmptyState
             icon={FileQuestionIcon}
             code={isApiError(q.error) && q.error.isForbidden ? "403 · no access" : "404 · not found"}
@@ -201,14 +220,28 @@ export function ArticlePage({ slug }: { slug: string }) {
                   </Link>
                 </>
               ) : null}
+              <span className="ml-auto">
+                <LangSwitch
+                  languages={post.languages}
+                  value={current}
+                  onChange={setShown}
+                  addHref={me && me.id === post.user_id ? { to: "/p/$id/translate", params: { id: String(post.id) } } : undefined}
+                />
+              </span>
             </nav>
-            <motion.header initial={reduce ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease }}>
+            <motion.header
+              aria-busy={translated && tr.isPending}
+              className={translated && tr.isPending ? "opacity-60 transition-opacity" : "transition-opacity"}
+              initial={reduce ? false : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, ease }}
+            >
               <h1 className="font-display text-[34px] leading-[38px] font-extrabold tracking-[-0.04em] text-balance md:text-[56px] md:leading-[60px]">
-                <Bio>{post.title}</Bio>
+                <Bio>{view.title}</Bio>
               </h1>
-              {post.subtitle ? (
+              {view.subtitle ? (
                 <h2 className="mt-4 font-sans text-lg leading-7 font-normal tracking-normal text-muted md:text-[22px] md:leading-8">
-                  <Bio>{post.subtitle}</Bio>
+                  <Bio>{view.subtitle}</Bio>
                 </h2>
               ) : null}
               <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-md)] border border-line-strong bg-line md:grid-cols-4">
@@ -252,7 +285,7 @@ export function ArticlePage({ slug }: { slug: string }) {
                     </span>
                     Length
                   </dt>
-                  <dd className="mt-1 text-sm font-medium">{readTime(post.reading_time)}</dd>
+                  <dd className="mt-1 text-sm font-medium">{readTime(view.reading_time)}</dd>
                 </div>
                 <div className="bg-card px-4 py-3">
                   <dt className="kicker">
@@ -288,18 +321,24 @@ export function ArticlePage({ slug }: { slug: string }) {
                 </figcaption>
               </figure>
             ) : null}
-            {post.body_html ? (
-              <ArticleBody html={safeHtml(post.body_html)} bionic={prefs.bionic} bodyRef={bodyRef} terms={terms} />
-            ) : (
-              <div ref={bodyRef} className="prose-article mt-10 whitespace-pre-wrap">
-                {post.body}
-              </div>
-            )}
+            <div className={translated && tr.isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
+              {view.body_html ? (
+                <ArticleBody html={safeHtml(view.body_html)} bionic={prefs.bionic} bodyRef={bodyRef} terms={terms} />
+              ) : (
+                <div ref={bodyRef} className="prose-article mt-10 whitespace-pre-wrap">
+                  {view.body}
+                </div>
+              )}
+            </div>
             {/* Sticky-bottom only holds an element whose flow position is below the viewport, so the floating
                 toolbar sits after the body: it rides the bottom edge while reading and docks at the end. */}
             <ActionDeck post={post} onResponses={() => setResponses(true)} />
-            <Highlighter postId={post.id} body={post.body} container={bodyRef} />
-            <HighlightsPanel postId={post.id} />
+            {original ? (
+              <>
+                <Highlighter postId={post.id} body={post.body} container={bodyRef} />
+                <HighlightsPanel postId={post.id} />
+              </>
+            ) : null}
             <SeriesNav postId={post.id} author={post.author} />
             {post.tags.length ? (
               <section aria-labelledby="filed-under" className="tile mt-12">

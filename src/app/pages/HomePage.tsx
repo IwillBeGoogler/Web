@@ -2,7 +2,7 @@ import { useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ListIcon, LockIcon, PenLineIcon, UsersIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { myListsQuery, userSeriesQuery } from "@/contexts/collections/application/hooks";
+import { myListsQuery, recentSeriesQuery } from "@/contexts/collections/application/hooks";
 import type { Series } from "@/contexts/collections/domain/collections";
 import { FollowButton } from "@/contexts/engagement/ui/actions";
 import { authDialog } from "@/contexts/identity/application/authDialog";
@@ -510,19 +510,11 @@ function TopPosts() {
   );
 }
 
-/** Multi-part series from trending authors: the one place home surfaces connected reading. Hidden when none qualify. */
+/** Recently active multi-part series: the one place home surfaces connected reading. Hidden when none qualify. */
 function SeriesShelf() {
-  const trending = useQuery(trendingQuery());
-  const authors = [...new Set((trending.data ?? []).map((p) => p.author).filter(Boolean))];
-  const lists = useQueries({ queries: authors.map((u) => userSeriesQuery(u)) });
-  const pending = trending.isPending || lists.some((q) => q.isPending);
-  const shelf = lists
-    .flatMap((q) => q.data ?? [])
-    .map((x) => ({ ...x, posts: x.posts.filter((p) => p.status === "published").sort((a, b) => a.position - b.position) }))
-    .filter((x) => x.posts.length >= 2)
-    .sort((a, b) => b.posts.length - a.posts.length)
-    .slice(0, 4);
-  if (pending)
+  const q = useQuery(recentSeriesQuery(8));
+  const shelf = (q.data ?? []).map((x) => ({ ...x, posts: [...x.posts].sort((a, b) => a.position - b.position) })).filter((x) => x.posts.length >= 2);
+  if (q.isPending)
     return (
       <div aria-hidden className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
@@ -536,11 +528,11 @@ function SeriesShelf() {
       <h2 id="series-shelf" className="kicker mb-3">
         Read in order
       </h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <Carousel label="Series" slide="basis-[80%] sm:basis-1/2 lg:basis-1/4">
         {shelf.map((x) => (
           <SeriesCard key={x.id} series={x} />
         ))}
-      </div>
+      </Carousel>
     </section>
   );
 }
@@ -548,7 +540,12 @@ function SeriesShelf() {
 function SeriesCard({ series: x }: { series: Series }) {
   const [first] = x.posts;
   return (
-    <article className="tile flex flex-col">
+    <article className="tile flex h-full flex-col">
+      {x.cover_url ? (
+        <Link to="/series/$slug" params={{ slug: x.slug }} tabIndex={-1} aria-hidden className="block border-b border-line">
+          <img src={x.cover_url} alt="" loading="lazy" className="aspect-[16/9] w-full object-cover" />
+        </Link>
+      ) : null}
       <div className="tile-head">
         <span className="tabular-nums">{x.posts.length} parts</span>
         <span className="ml-auto truncate">@{x.author}</span>

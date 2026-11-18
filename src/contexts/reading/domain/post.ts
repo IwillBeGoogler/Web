@@ -18,6 +18,12 @@ export const postSchema = z.object({
   subtitle: z.string().default(""),
   slug: z.string(),
   status: z.string(),
+  lang: z.string().default("uz"),
+  languages: z
+    .array(z.string())
+    .nullable()
+    .default([])
+    .transform((a) => a ?? []),
   body: z.string().default(""),
   body_html: z.string().optional(),
   reading_time: z.number().default(1),
@@ -49,6 +55,19 @@ export const postSchema = z.object({
   updated_at: z.string(),
 });
 export type Post = z.infer<typeof postSchema>;
+
+/** A story's title, subtitle and body in a language other than its original. */
+export const translationSchema = z.object({
+  post_id: z.number(),
+  lang: z.string(),
+  title: z.string(),
+  subtitle: z.string().default(""),
+  body: z.string().default(""),
+  body_html: z.string().optional(),
+  reading_time: z.number().default(1),
+  updated_at: z.string(),
+});
+export type Translation = z.infer<typeof translationSchema>;
 
 /** "/@author/slug"; anonymous posts fall back to /p/slug. */
 export const postPath = (p: { author: string; slug: string }) => (p.author ? `/@${p.author}/${p.slug}` : `/p/${p.slug}`);

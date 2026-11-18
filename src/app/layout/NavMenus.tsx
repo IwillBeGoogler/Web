@@ -1,6 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronDownIcon, DatabaseIcon, FolderIcon, LayoutTemplateIcon, NetworkIcon, WorkflowIcon } from "lucide-react";
+import {
+  BookmarkIcon,
+  CalendarClockIcon,
+  ChevronDownIcon,
+  DatabaseIcon,
+  EyeOffIcon,
+  FilePenIcon,
+  FolderIcon,
+  LayersIcon,
+  LayoutTemplateIcon,
+  NetworkIcon,
+  RadioIcon,
+  SparklesIcon,
+  WorkflowIcon,
+} from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import type { NewDiagramKind } from "@/contexts/diagrams/domain/diagram";
 import { useStartDiagram } from "@/contexts/diagrams/ui/WriteMenu";
@@ -54,6 +68,41 @@ export function DiagramsMenu() {
           <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/templates" })}>
             <LayoutTemplateIcon aria-hidden /> {t("nav.templates")}
           </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  );
+}
+
+/** "Stories ▾": newest and saved for reading, then the signed-in writer's own stories by status. */
+export function StoriesMenu() {
+  const t = useT();
+  const nav = useNavigate();
+  const mine: { tab: "draft" | "published" | "unlisted" | "scheduled" | "series"; label: string; Icon: typeof NetworkIcon }[] = [
+    { tab: "draft", label: t("nav.drafts"), Icon: FilePenIcon },
+    { tab: "published", label: t("nav.live"), Icon: RadioIcon },
+    { tab: "unlisted", label: t("nav.unlisted"), Icon: EyeOffIcon },
+    { tab: "scheduled", label: t("nav.scheduled"), Icon: CalendarClockIcon },
+    { tab: "series", label: t("nav.series"), Icon: LayersIcon },
+  ];
+  return (
+    <DropdownMenu.Root>
+      <Trigger label={t("nav.storiesMenu")} />
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content align="start" sideOffset={8} className={`${content} w-56`}>
+          <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/", search: { tab: "latest" } })}>
+            <SparklesIcon aria-hidden /> {t("nav.latest")}
+          </DropdownMenu.Item>
+          <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/me/library" })}>
+            <BookmarkIcon aria-hidden /> {t("nav.library")}
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator className="my-1 h-px bg-line" />
+          <DropdownMenu.Label className="px-2.5 py-1 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">{t("nav.stories")}</DropdownMenu.Label>
+          {mine.map(({ tab, label, Icon }) => (
+            <DropdownMenu.Item key={tab} className={item} onSelect={() => nav({ to: "/me/stories", search: { tab } })}>
+              <Icon aria-hidden /> {label}
+            </DropdownMenu.Item>
+          ))}
         </DropdownMenu.Content>
       </DropdownMenu.Portal>
     </DropdownMenu.Root>

@@ -120,7 +120,7 @@ describe("TopBar signed in", () => {
     server.use(http.get(api("/me/notifications"), () => HttpResponse.json({ data: [], meta: { unread, page: 1, limit: 20, total: 0, has_more: false } })));
     const { qc } = await renderRouted(<TopBar />);
     expect(await screen.findByRole("link", { name: "Notifications, 2 unread" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Saved" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Stories" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "New draft" })).toHaveAttribute("href", "/new-story");
     unread = 12;
     await act(async () => {

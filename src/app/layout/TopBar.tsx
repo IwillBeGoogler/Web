@@ -30,7 +30,7 @@ import { Avatar } from "@/shared/ui/avatar";
 import { Button } from "@/shared/ui/button";
 import { useDark } from "@/shared/ui/theme";
 import { Logo } from "./Logo";
-import { CategoriesMenu, DiagramsMenu } from "./NavMenus";
+import { CategoriesMenu, DiagramsMenu, StoriesMenu } from "./NavMenus";
 
 const item =
   "flex h-9 cursor-pointer items-center gap-3 rounded-[var(--radius-xs)] px-2.5 text-[13px] text-fg outline-none data-[highlighted]:bg-inverse data-[highlighted]:text-on-inverse [&_svg]:size-4 [&_svg]:text-muted data-[highlighted]:[&_svg]:text-on-inverse";
@@ -229,14 +229,13 @@ export function TopBar() {
         <Logo />
         {sep}
         <nav aria-label="Primary" className="seg hidden md:inline-flex">
-          <Link to="/" search={{ tab: "latest" }} className={navLink} activeOptions={{ includeSearch: true }}>
-            {t("nav.latest")}
-          </Link>
           {me ? (
-            <Link to="/me/library" className={navLink}>
-              {t("nav.library")}
+            <StoriesMenu />
+          ) : (
+            <Link to="/" search={{ tab: "latest" }} className={navLink} activeOptions={{ includeSearch: true }}>
+              {t("nav.latest")}
             </Link>
-          ) : null}
+          )}
           <DiagramsMenu />
           <CategoriesMenu />
         </nav>

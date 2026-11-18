@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { nextPageRequest, type PageRequest } from "@/shared/http";
-import type { ListInput } from "../domain/collections";
+import type { ListInput, SeriesInput } from "../domain/collections";
 import { highlightsRepository, listsRepository, publicationsRepository, seriesRepository } from "../infrastructure/collectionsRepository";
 
 const LIMIT = 20;
@@ -32,6 +32,8 @@ export function useListMutations() {
 }
 
 export const userSeriesQuery = (u: string) => queryOptions({ queryKey: ["series", "user", u], queryFn: ({ signal }) => seriesRepository.ofUser(u, signal) });
+export const recentSeriesQuery = (limit = 8) =>
+  queryOptions({ queryKey: ["series", "recent", limit], queryFn: ({ signal }) => seriesRepository.recent(limit, signal), staleTime: 5 * 60_000 });
 export const seriesQuery = (slug: string) => queryOptions({ queryKey: ["series", "one", slug], queryFn: ({ signal }) => seriesRepository.get(slug, signal) });
 export const postSeriesQuery = (id: number) => queryOptions({ queryKey: ["series", "post", id], queryFn: ({ signal }) => seriesRepository.ofPost(id, signal) });
 
@@ -41,7 +43,7 @@ export function useSeriesMutations() {
   return {
     create: useMutation({ mutationFn: seriesRepository.create, onSuccess: refresh }),
     update: useMutation({
-      mutationFn: ({ slug, body }: { slug: string; body: { title: string; description: string } }) => seriesRepository.update(slug, body),
+      mutationFn: ({ slug, body }: { slug: string; body: SeriesInput }) => seriesRepository.update(slug, body),
       onSuccess: refresh,
     }),
     remove: useMutation({ mutationFn: seriesRepository.remove, onSuccess: refresh }),

@@ -10,6 +10,8 @@ export const makePost = (o: Record<string, unknown> = {}) => ({
   subtitle: "A subtitle",
   slug: "hello-iwillbegoogler",
   status: "published",
+  lang: "uz",
+  languages: ["uz"],
   body: "Some body text here.",
   body_html: "<p>Some body text here.</p>",
   reading_time: 3,

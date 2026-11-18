@@ -253,6 +253,7 @@ const P = {
   Topics: lazy(() => import("./pages/TopicsPage"), "TopicsPage"),
   Topic: lazy(() => import("./pages/TopicsPage"), "TopicPage"),
   Search: lazy(() => import("./pages/SearchPage"), "SearchPage"),
+  Translate: lazy(() => import("./pages/TranslatePage"), "TranslatePage"),
   Editor: lazy(() => import("./pages/EditorPage"), "EditorPage"),
   Settings: lazy(() => import("./pages/MePages"), "SettingsPage"),
   Stats: lazy(() => import("./pages/MePages"), "StatsRoute"),
@@ -296,6 +297,16 @@ const articleAnon = createRoute({
   getParentRoute: () => shell,
   path: "/p/$slug",
   component: page(P.Article, () => ({ slug: useParams({ from: "/shell/p/$slug" }).slug })),
+});
+const translate = createRoute({
+  getParentRoute: () => shell,
+  path: "/p/$id/translate",
+  beforeLoad: signedIn,
+  validateSearch: s({ lang: str }),
+  component: page(P.Translate, () => ({
+    id: Number(useParams({ from: "/shell/p/$id/translate" }).id),
+    lang: useSearch({ from: "/shell/p/$id/translate" }).lang,
+  })),
 });
 const profile = createRoute({
   getParentRoute: () => shell,
@@ -376,7 +387,14 @@ const unsubscribe = createRoute({
 });
 
 const library = createRoute({ getParentRoute: () => shell, path: "/me/library", beforeLoad: signedIn, component: meLazy("LibraryPage") });
-const stories = createRoute({ getParentRoute: () => shell, path: "/me/stories", beforeLoad: signedIn, component: meLazy("StoriesPage") });
+const storiesTabs = ["draft", "published", "unlisted", "scheduled", "series"] as const;
+const stories = createRoute({
+  getParentRoute: () => shell,
+  path: "/me/stories",
+  beforeLoad: signedIn,
+  validateSearch: s({ tab: z.enum(storiesTabs).optional().catch(undefined) }),
+  component: meLazy("StoriesPage"),
+});
 const notifications = createRoute({ getParentRoute: () => shell, path: "/me/notifications", beforeLoad: signedIn, component: meLazy("NotificationsPage") });
 const publications = createRoute({ getParentRoute: () => shell, path: "/me/publications", beforeLoad: signedIn, component: meLazy("PublicationsPage") });
 const stats = createRoute({
@@ -460,6 +478,7 @@ const routeTree = root.addChildren([
     home,
     article,
     articleAnon,
+    translate,
     profile,
     tag,
     topics,

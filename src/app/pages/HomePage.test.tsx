@@ -72,7 +72,13 @@ function publicApi(over: { trending?: unknown[]; tags?: unknown[]; latest?: unkn
         ? HttpResponse.json({ data: prof("bob", 9, { bio: "", display_name: "" }) })
         : HttpResponse.json({ data: prof(u, u === "ali" ? 20 : 4) });
     }),
-    http.get(api("/users/:u/series"), ({ params }) => HttpResponse.json({ data: over.series?.[String(params.u)] ?? [] })),
+    http.get(api("/series"), () =>
+      HttpResponse.json({
+        data: Object.values(over.series ?? {})
+          .flat()
+          .map((x) => ({ ...(x as object), posts: ((x as { posts?: { status: string }[] }).posts ?? []).filter((p) => p.status === "published") })),
+      }),
+    ),
     http.get(api("/me/for-you"), () => page([makePost({ title: "For you story" })])),
     http.get(api("/me/feed"), () => page([])),
   );

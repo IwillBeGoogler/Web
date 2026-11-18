@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon, LayersIcon, XIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon, ImageIcon, LayersIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { engagementRepository } from "@/contexts/engagement/infrastructure/engagementRepository";
 import { useMe } from "@/contexts/identity/application/session";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
 import { feedQuery } from "@/contexts/reading/application/queries";
@@ -80,6 +81,9 @@ export function SeriesPage({ slug }: { slug: string }) {
         </Link>
       </p>
       <h1 className="mt-2 font-display text-[32px] leading-tight font-bold tracking-tight md:text-[42px]">{s.title}</h1>
+      {s.cover_url ? (
+        <img src={s.cover_url} alt="" className="mt-6 aspect-[16/9] w-full rounded-[var(--radius-md)] border border-line-strong object-cover" />
+      ) : null}
       {s.description ? (
         <p className="mt-3 font-serif text-lg text-muted">
           <Bio>{s.description}</Bio>
@@ -103,10 +107,69 @@ export function SeriesPage({ slug }: { slug: string }) {
   );
 }
 
+const MAX_COVER = 5 * 1024 * 1024;
+
+/** Cover picker: uploads to /uploads and hands back the stored URL. */
+function CoverField({ value, onChange }: { value: string; onChange: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState("");
+  return (
+    <div>
+      <span className="mb-1.5 block text-sm font-medium">Cover image</span>
+      <label
+        className={cn(
+          "flex aspect-[16/9] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-[var(--radius-sm)] border border-dashed border-line-strong p-4 text-center font-mono text-[12px] text-muted has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent",
+          value ? "p-0" : "hatch",
+        )}
+      >
+        {value ? (
+          <img src={value} alt="Series cover" className="size-full object-cover" />
+        ) : (
+          <>
+            <ImageIcon className="mb-2 size-6" aria-hidden />
+            {uploading ? "Uploading…" : "Choose an image (PNG, JPG, WebP, GIF · max 5 MB)"}
+          </>
+        )}
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          className="sr-only"
+          disabled={uploading}
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            if (file.size > MAX_COVER) return setErr("Image must be 5 MB or smaller.");
+            setErr("");
+            setUploading(true);
+            try {
+              onChange(await engagementRepository.upload(file));
+            } catch (x) {
+              toast.error(x);
+            } finally {
+              setUploading(false);
+            }
+          }}
+        />
+      </label>
+      {value ? (
+        <Button variant="ghost" size="sm" className="mt-2" onClick={() => onChange("")}>
+          Remove cover
+        </Button>
+      ) : null}
+      {err ? <p className="mt-2 font-mono text-[12px] text-danger">{err}</p> : null}
+    </div>
+  );
+}
+
 function SeriesForm({ initial, onDone }: { initial?: Series; onDone: () => void }) {
   const m = useSeriesMutations();
   const mut = initial ? m.update : m.create;
-  const f = useForm({ resolver: zodResolver(seriesInputSchema), defaultValues: { title: initial?.title ?? "", description: initial?.description ?? "" } });
+  const f = useForm({
+    resolver: zodResolver(seriesInputSchema),
+    defaultValues: { title: initial?.title ?? "", description: initial?.description ?? "", cover_url: initial?.cover_url ?? "" },
+  });
+  const cover = f.watch("cover_url");
   return (
     <form
       noValidate
@@ -122,6 +185,7 @@ function SeriesForm({ initial, onDone }: { initial?: Series; onDone: () => void 
       <Field label="Description" error={f.formState.errors.description?.message}>
         {(a) => <textarea {...a} className={cn(inputCls, "h-20 py-2")} {...f.register("description")} />}
       </Field>
+      <CoverField value={cover ?? ""} onChange={(url) => f.setValue("cover_url", url, { shouldDirty: true })} />
       <Button type="submit" variant="accent" loading={mut.isPending}>
         {initial ? "Save" : "Create series"}
       </Button>
@@ -224,6 +288,9 @@ export function MySeries() {
         <ul>
           {q.data.map((s) => (
             <li key={s.id} className="flex flex-wrap items-center gap-3 border-b border-line py-5">
+              {s.cover_url ? (
+                <img src={s.cover_url} alt="" className="aspect-[16/9] w-24 shrink-0 rounded-[var(--radius-sm)] border border-line object-cover" />
+              ) : null}
               <div className="min-w-0 flex-1">
                 <Link to="/series/$slug" params={{ slug: s.slug }} className="text-lg font-bold hover:underline">
                   {s.title}

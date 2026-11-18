@@ -2,7 +2,16 @@ import { z } from "zod";
 import { postSchema } from "@/contexts/reading/domain/post";
 import { http } from "@/shared/api";
 import { dataEnvelope, type PageRequest, pageEnvelope } from "@/shared/http";
-import { highlightsSchema, type ListInput, listSchema, memberSchema, placeSchema, publicationSchema, seriesSchema } from "../domain/collections";
+import {
+  highlightsSchema,
+  type ListInput,
+  listSchema,
+  memberSchema,
+  placeSchema,
+  publicationSchema,
+  type SeriesInput,
+  seriesSchema,
+} from "../domain/collections";
 
 const q = (r: PageRequest) => ({ page: r.page, limit: r.limit, cursor: r.cursor });
 const arr = <S extends z.ZodType>(s: S) =>
@@ -28,6 +37,8 @@ export const listsRepository = {
 
 export const seriesRepository = {
   ofUser: async (u: string, signal?: AbortSignal) => (await http(`/users/${e(u)}/series`, { schema: arr(seriesSchema), signal })).data,
+  /** Series with at least two published parts, each with its parts; for the home page. */
+  recent: async (limit: number, signal?: AbortSignal) => (await http("/series", { query: { limit }, schema: arr(seriesSchema), signal })).data,
   get: async (slug: string, signal?: AbortSignal) => (await http(`/series/${e(slug)}`, { schema: dataEnvelope(seriesSchema), signal })).data,
   /** Where a post sits in its series; null when it is in none (404). */
   async ofPost(id: number, signal?: AbortSignal) {
@@ -38,9 +49,8 @@ export const seriesRepository = {
       throw x;
     }
   },
-  create: async (body: { title: string; description: string }) => (await http("/series", { method: "POST", body, schema: dataEnvelope(seriesSchema) })).data,
-  update: async (slug: string, body: { title: string; description: string }) =>
-    (await http(`/series/${e(slug)}`, { method: "PATCH", body, schema: dataEnvelope(seriesSchema) })).data,
+  create: async (body: SeriesInput) => (await http("/series", { method: "POST", body, schema: dataEnvelope(seriesSchema) })).data,
+  update: async (slug: string, body: SeriesInput) => (await http(`/series/${e(slug)}`, { method: "PATCH", body, schema: dataEnvelope(seriesSchema) })).data,
   remove: (slug: string) => http(`/series/${e(slug)}`, { method: "DELETE" }).then(() => undefined),
   setPosts: (slug: string, post_ids: number[]) => http(`/series/${e(slug)}/posts`, { method: "PUT", body: { post_ids } }).then(() => undefined),
 };

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { type Post, postSchema } from "@/contexts/reading/domain/post";
+import { type Post, postSchema, type Translation, translationSchema } from "@/contexts/reading/domain/post";
 import { http } from "@/shared/api";
 import { dataEnvelope, type Page, type PageRequest, pageEnvelope } from "@/shared/http";
 import { revisionDetailSchema, revisionSchema } from "../domain/revision";
@@ -28,6 +28,18 @@ export const storyRepository = {
     await http(`/posts/${id}`, { method: "DELETE" });
   },
 };
+
+export type TranslationPayload = { title: string; subtitle: string; body: string };
+
+/** PUT /posts/{id}/translations/{lang}: creates or replaces one translation. */
+export async function saveTranslation(id: number, lang: string, body: TranslationPayload): Promise<Translation> {
+  return (await http(`/posts/${id}/translations/${lang}`, { method: "PUT", body, schema: dataEnvelope(translationSchema) })).data;
+}
+
+/** DELETE /posts/{id}/translations/{lang} */
+export async function deleteTranslation(id: number, lang: string): Promise<void> {
+  await http(`/posts/${id}/translations/${lang}`, { method: "DELETE" });
+}
 
 /** POST /posts/preview: the body rendered and sanitized by the same server code that renders published stories. */
 export async function previewBody(body: string, signal?: AbortSignal): Promise<string> {

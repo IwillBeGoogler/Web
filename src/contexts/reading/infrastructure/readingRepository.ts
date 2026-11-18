@@ -12,7 +12,9 @@ import {
   siteStatsSchema,
   suggestionSchema,
   type Tag,
+  type Translation,
   tagSchema,
+  translationSchema,
 } from "../domain/post";
 import { type Topic, topicSchema } from "../domain/topic";
 
@@ -89,6 +91,9 @@ export const readingRepository = {
   },
   async byId(id: number, signal?: AbortSignal): Promise<Post> {
     return (await http(`/posts/${id}`, { schema: dataEnvelope(postSchema), signal })).data;
+  },
+  async translation(id: number, lang: string, signal?: AbortSignal): Promise<Translation> {
+    return (await http(`/posts/${id}/translations/${lang}`, { schema: dataEnvelope(translationSchema), signal })).data;
   },
   async trending(signal?: AbortSignal): Promise<Post[]> {
     return (
