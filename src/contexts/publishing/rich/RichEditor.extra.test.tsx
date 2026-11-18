@@ -426,16 +426,20 @@ describe("RichEditor node views", () => {
     await waitFor(() => expect(screen.queryByLabelText("HTML source")).toBeNull());
   });
 
-  it("live block follows a change that comes from outside (undo)", async () => {
-    const { ref } = setup("hi");
+  it("live block follows a change that comes from outside (undo) and rebuilds default-height preview", async () => {
+    setup("```html-live\n<p>a</p>\n```");
     await body();
-    act(() => ref.current?.insertLive());
     const code = (await screen.findByLabelText("HTML source")) as HTMLTextAreaElement;
-    const original = code.value;
+    expect(code).toHaveValue("<p>a</p>");
+    // let the 500ms preview timer fire with height=null
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 600));
+    });
     fireEvent.change(code, { target: { value: "<b>x</b>" } });
+    expect(code).toHaveValue("<b>x</b>");
     const user = userEvent.setup();
     await user.click(tb("Undo"));
-    await waitFor(() => expect((screen.queryByLabelText("HTML source") as HTMLTextAreaElement | null)?.value ?? original).not.toBe("<b>x</b>"));
+    await waitFor(() => expect(screen.getByLabelText("HTML source")).toHaveValue("<p>a</p>"));
   });
 });
 
@@ -644,6 +648,7 @@ describe("RichEditor math", () => {
     await body();
     const src = await screen.findByLabelText("TeX source");
     expect(src).toHaveValue("x^2");
+    await userEvent.setup().click(screen.getByText("Formula · TeX"));
     fireEvent.change(src, { target: { value: "y^3" } });
     expect(src).toHaveValue("y^3");
     act(() => ref.current?.flush());

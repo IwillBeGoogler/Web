@@ -97,7 +97,7 @@ describe("PublishDialog", () => {
 describe("PublicViewer", () => {
   it("shows the byline, tags and share for anonymous visitors and opens the editor read-only by slug", async () => {
     server.use(http.get(api("/diagrams/public/checkout-1a2b3c4d"), () => HttpResponse.json({ data: diagram() })));
-    await renderRouted(<PublicViewer slug="checkout-1a2b3c4d" />, { path: "/d/v/checkout-1a2b3c4d" });
+    const { router } = await renderRouted(<PublicViewer slug="checkout-1a2b3c4d" />, { path: "/d/v/checkout-1a2b3c4d" });
     expect(await screen.findByRole("heading", { level: 1, name: "Checkout flow" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "@ali" })).toHaveAttribute("href", "/@ali");
     expect(screen.getByRole("link", { name: /#payments/ })).toHaveAttribute("href", "/tag/payments");
@@ -112,6 +112,8 @@ describe("PublicViewer", () => {
     await waitFor(() => expect(document.title).toBe("Checkout flow — IWillBeGoogler"));
     expect(document.head.querySelector('meta[property="og:image"]')?.getAttribute("content")).toMatch(/\/api\/diagrams\/assets\/abc$/);
     expect(document.head.querySelector('meta[name="robots"]')).toBeNull();
+    (p.onNavigate as () => void)();
+    await waitFor(() => expect(router.state.location.pathname).toBe("/"));
   });
 
   it("reports a diagram: dialog -> POST /reports with target_type diagram and the file id", async () => {

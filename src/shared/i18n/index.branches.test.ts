@@ -88,4 +88,21 @@ describe("?lang= in the URL", () => {
     expect((await import("./index")).i18n.get()).toBe("en");
     history.replaceState(null, "", "/");
   });
+
+  it("ignores URLSearchParams errors on load", async () => {
+    localStorage.clear();
+    vi.stubGlobal(
+      "URLSearchParams",
+      class {
+        constructor() {
+          throw new Error("bad url");
+        }
+      },
+    );
+    try {
+      expect((await fresh()).i18n.get()).toBe("en");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

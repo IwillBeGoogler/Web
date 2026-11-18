@@ -390,4 +390,59 @@ describe("markdown helpers", () => {
     expect(smallProp.randomDoc(1).type).toBe("doc");
     vi.unstubAllEnvs();
   });
+
+  it("covers nested mathBlock, clashing marks, locateProblem fallbacks, and extension config edges", async () => {
+    const { engine, locateProblem, sameRichDoc } = await import("./markdown");
+    const ed = engine();
+
+    // asNode: clashing marks (duplicate bold excludes itself)
+    expect(
+      sameRichDoc(
+        {
+          type: "doc",
+          content: [{ type: "paragraph", content: [{ type: "text", text: "x", marks: [{ type: "bold" }, { type: "bold" }] }] }],
+        },
+        { type: "doc" },
+      ),
+    ).toBe(false);
+
+    // locateProblem when lexer is missing or returns token without raw; nested mathBlock in scan
+    const mdMgr = ed.markdown as { instance?: { lexer?: unknown } } | undefined;
+    const origLexer = mdMgr?.instance?.lexer;
+    try {
+      if (mdMgr?.instance) {
+        mdMgr.instance.lexer = () => [{ type: "blockquote", tokens: [{ type: "mathBlock" }] }];
+        expect(canRoundTrip("x")).toEqual({ ok: false, problem: "unknown" });
+
+        mdMgr.instance.lexer = undefined;
+        expect(locateProblem("hello")).toBeNull();
+
+        mdMgr.instance.lexer = () => [{ type: "mystery" }];
+        expect(locateProblem("hello")).toBeNull();
+      }
+    } finally {
+      if (mdMgr?.instance) mdMgr.instance.lexer = origLexer;
+    }
+
+    // Extension config defensive branches (missing attrs, missing parent, non-fenced code token, missing table schema nodes)
+    const byName = (name: string) =>
+      ed.extensionManager.extensions.find((e) => e.name === name)?.config as unknown as Record<string, (...a: unknown[]) => unknown>;
+    const call = (name: string, method: string, ...args: unknown[]) => byName(name)[method]?.(...args);
+    const callThis = (name: string, method: string, ...args: unknown[]) => byName(name)[method]?.call({}, ...args);
+    const h = { renderChildren: () => "x", createNode: vi.fn(), createTextNode: vi.fn() };
+
+    expect(call("link", "renderMarkdown", { type: "link" }, h, undefined)).toBe("[x]()");
+    expect(callThis("paragraph", "renderMarkdown", { type: "paragraph" }, h, undefined)).toBe("");
+    expect(callThis("heading", "renderMarkdown", { type: "heading" }, h, undefined)).toBe("");
+    expect(callThis("codeBlock", "addProseMirrorPlugins")).toHaveLength(1);
+    expect(call("codeBlock", "parseMarkdown", { raw: "plain", text: "plain", lang: "" }, h)).toEqual([]);
+    expect(call("codeBlock", "renderMarkdown", { attrs: { language: "js" }, content: [{ type: "text" }] })).toBe("```js\n\n```");
+    expect(call("image", "renderMarkdown", { type: "image" })).toBe("![]()");
+    const imgParse = (byName("image").parseHTML as unknown as () => Array<{ getAttrs: (el: HTMLElement) => unknown }>)();
+    expect(imgParse[0]?.getAttrs(document.createElement("img"))).toBe(false);
+
+    const tablePlugins = callThis("table", "addProseMirrorPlugins") as Array<{ spec?: { appendTransaction?: (...a: unknown[]) => unknown } }>;
+    expect(tablePlugins).toHaveLength(1);
+    expect(tablePlugins[0]?.spec?.appendTransaction?.([{ docChanged: true }], {}, { schema: { nodes: {} }, tr: {} })).toBeNull();
+  });
 });

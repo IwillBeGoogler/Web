@@ -82,6 +82,7 @@ vi.mock("@/shared/ui/galaxy", () => ({ Galaxy: (p: { planet: boolean }) => <div 
 vi.mock("@/shared/ui/EarthHorizon", () => ({ default: (p: { satellite: boolean }) => <div data-testid="earth">{String(p.satellite)}</div> }));
 vi.mock("@/shared/analytics", () => ({ track: h.track, startActiveTime: vi.fn() }));
 vi.mock("@/shared/errorReporting", () => ({ reportError: h.report }));
+vi.mock("@/shared/staleChunk", () => ({ reloadForStaleChunk: h.reload }));
 
 import { queryClient, router } from "./router";
 
@@ -104,6 +105,7 @@ beforeEach(async () => {
 afterEach(() => {
   tokens.set(null);
   h.boom = false;
+  h.reload.mockReturnValue(false);
   adopted.id = null;
   feedbackDialog.close();
 });
@@ -207,6 +209,8 @@ describe("router", () => {
     await waitFor(() => expect(screen.getByTestId("stats")).toHaveTextContent('"post":7'));
     await go("/me/stats?post=-1");
     await waitFor(() => expect(screen.getByTestId("stats")).not.toHaveTextContent("post"));
+    await go("/p/42/translate?lang=ru");
+    await waitFor(() => expect(screen.getByTestId("translate")).toHaveTextContent('"id":42,"lang":"ru"'));
     await go("/d/p/pr1");
     expect(await screen.findByTestId("dproject")).toHaveTextContent('"projectId":"pr1"');
     await go("/d/f/f1");
@@ -271,6 +275,9 @@ describe("router", () => {
     await go("/p/6/edit");
     await waitFor(() => expect(screen.getByTestId("editor")).toHaveTextContent('"id":6'));
     expect(h.mounts).toBe(mounts + 1);
+    await go("/new-story");
+    await waitFor(() => expect(screen.getByTestId("editor")).toHaveTextContent("{}"));
+    expect(h.mounts).toBe(mounts + 2);
   });
 
   it("not found page", async () => {
@@ -292,6 +299,43 @@ describe("router", () => {
     fireEvent.click(retry);
     expect(await screen.findByTestId("home")).toBeInTheDocument();
     err.mockRestore();
+  });
+
+  it("error boundary: returns null without reporting when reloading stale chunk", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    h.report.mockClear();
+    h.reload.mockReturnValue(true);
+    await go("/privacy");
+    h.boom = true;
+    await go("/");
+    await waitFor(() => expect(screen.queryByTestId("privacy")).toBeNull());
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+    expect(h.report).not.toHaveBeenCalled();
+    err.mockRestore();
+  });
+
+  it("defers earth until load + timeout and mounts immediately when #splash exists", async () => {
+    const origReady = Object.getOwnPropertyDescriptor(document, "readyState");
+    Object.defineProperty(document, "readyState", { value: "loading", configurable: true });
+    vi.useFakeTimers();
+    await go("/privacy");
+    await go("/");
+    expect(screen.queryByTestId("earth")).toBeNull();
+    act(() => {
+      dispatchEvent(new Event("load"));
+      vi.advanceTimersByTime(4000);
+    });
+    vi.useRealTimers();
+    expect(await screen.findByTestId("earth")).toHaveTextContent("true");
+    if (origReady) Object.defineProperty(document, "readyState", origReady);
+
+    const splash = document.createElement("div");
+    splash.id = "splash";
+    document.body.append(splash);
+    await go("/privacy");
+    await go("/");
+    expect(await screen.findByTestId("earth")).toHaveTextContent("true");
+    splash.remove();
   });
 });
 

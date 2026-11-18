@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { renderRouted } from "@/test/render";
@@ -83,7 +83,7 @@ describe("VersionsDialog", () => {
     expect(screen.getByPlaceholderText("Version name")).toHaveValue("X");
   });
 
-  it("restores an older version after confirming; the newest has no restore button", async () => {
+  it("restores an older version after confirming and can cancel; the newest has no restore button", async () => {
     list([ver(2), ver(1)]);
     asRole("owner");
     let restored = 0;
@@ -93,8 +93,39 @@ describe("VersionsDialog", () => {
     expect(buttons).toHaveLength(1);
     await user.click(buttons[0] as HTMLElement);
     expect(await screen.findByText("Restore version 1?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByText("Restore version 1?")).toBeNull());
+    await user.click(buttons[0] as HTMLElement);
+    expect(await screen.findByText("Restore version 1?")).toBeInTheDocument();
     await user.click(screen.getAllByRole("button", { name: "Restore" }).at(-1) as HTMLElement);
     await waitFor(() => expect(restored).toBe(1));
+  });
+
+  it("ignores submitting an empty version name", async () => {
+    list([ver(1)]);
+    asRole("owner");
+    const { user } = await open();
+    await user.click(await screen.findByRole("button", { name: "Save version…" }));
+    const input = screen.getByPlaceholderText("Version name");
+    fireEvent.submit(input.closest("form") as HTMLFormElement);
+    expect(screen.getByPlaceholderText("Version name")).toBeInTheDocument();
+  });
+
+  it("omits empty diff groups when only nodes changed", async () => {
+    list([ver(2), ver(1)]);
+    asRole("viewer");
+    getVersion({
+      1: doc([{ id: "a", label: "A" }]),
+      2: doc([
+        { id: "a", label: "A" },
+        { id: "b", label: "B" },
+      ]),
+    });
+    const { user } = await open();
+    await user.click(await screen.findByRole("checkbox", { name: "Compare v1" }));
+    await user.click(screen.getByRole("checkbox", { name: "Compare v2" }));
+    expect(await screen.findByText("Nodes")).toBeInTheDocument();
+    expect(screen.queryByText("Edges")).toBeNull();
   });
 
   it("a failed restore reports an error", async () => {

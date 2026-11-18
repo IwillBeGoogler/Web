@@ -109,10 +109,17 @@ describe("PublicViewer extras", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "T" })).toBeInTheDocument();
     await waitFor(() => expect(document.head.querySelector('meta[name="robots"]')).not.toBeNull());
   });
-  it("says offline for a server error and missing for a 404", async () => {
-    server.use(http.get(api("/diagrams/public/s"), () => HttpResponse.json({}, { status: 500 })));
-    await renderRouted(<PublicViewer slug="s" />, { path: "/d/v/s" });
+  it("says offline for a server error, retries, and copies the share link", async () => {
+    let calls = 0;
+    server.use(http.get(api("/diagrams/public/s"), () => (calls++ === 0 ? HttpResponse.json({}, { status: 500 }) : HttpResponse.json({ data: diagram() }))));
+    const { user } = await renderRouted(<PublicViewer slug="s" />, { path: "/d/v/s" });
+    const write = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, "clipboard", { value: { writeText: write }, configurable: true });
     expect(await screen.findByText(/offline/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { level: 1, name: "T" })).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Share/ }));
+    expect(write).toHaveBeenCalledWith(expect.stringMatching(/\/d\/v\/s$/));
   });
 });
 

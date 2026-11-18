@@ -19,6 +19,11 @@ vi.mock("../infrastructure/diagramRepository", () => ({
   versionsRepository: {},
 }));
 
+vi.mock("@diagram-starter", () => ({
+  starterProject: vi.fn(() => ({ pages: [] })),
+}));
+
+import { starterProject } from "@diagram-starter";
 import { diagramRepository as repo } from "../infrastructure/diagramRepository";
 import { projectsQuery, publicDiagramsQuery, publishedQuery, useCreateDiagram, useDiagramBookmark, useDiagramClap, useImportSdd } from "./hooks";
 
@@ -69,6 +74,23 @@ describe("useCreateDiagram", () => {
     });
     expect(vi.mocked(repo.createProject).mock.calls[0]?.[0]).toBe("Mine");
     expect(repo.setKind).toHaveBeenCalledWith("f", "erd");
+  });
+  it("falls back to undefined when starterProject throws or returns null", async () => {
+    vi.mocked(repo.createProject).mockResolvedValue({ project: { id: "p" }, file: { id: "f", kind: "erd" } } as never);
+    vi.mocked(starterProject).mockImplementationOnce(() => {
+      throw new Error("load failed");
+    });
+    const { wrapper } = setup();
+    const { result } = renderHook(() => useCreateDiagram(), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ kind: "erd", name: "Fail" });
+    });
+    expect(vi.mocked(repo.createProject).mock.calls[0]?.[2]).toBeUndefined();
+    vi.mocked(starterProject).mockReturnValueOnce(null as never);
+    await act(async () => {
+      await result.current.mutateAsync({ kind: "erd", name: "Null" });
+    });
+    expect(vi.mocked(repo.createProject).mock.calls[1]?.[2]).toBeUndefined();
   });
 });
 
