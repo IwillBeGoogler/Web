@@ -5,7 +5,7 @@ import { tokens } from "@/shared/api";
 import { makePost, page, signIn } from "@/test/fixtures";
 import { renderRouted } from "@/test/render";
 import { api, server } from "@/test/server";
-import { MySeries, SeriesNav, SeriesPage, UserSeries } from "./Series";
+import { MySeries, ReadingPathNav, SeriesNav, SeriesPage, UserSeries } from "./Series";
 
 const part = (position: number, post_id: number, o: Record<string, unknown> = {}) => ({
   position,
@@ -31,6 +31,46 @@ const series = (o: Record<string, unknown> = {}) => ({
 afterEach(() => {
   tokens.set(null);
   vi.restoreAllMocks();
+});
+
+describe("ReadingPathNav", () => {
+  const neighbour = (n: number) => makePost({ id: n, title: `Post ${n}`, slug: `post-${n}` });
+
+  it("links read before and read next for topic neighbours", async () => {
+    server.use(http.get(api("/posts/5/reading-path"), () => HttpResponse.json({ data: { source: "topic", prev: neighbour(4), next: neighbour(6) } })));
+    await renderRouted(<ReadingPathNav postId={5} />);
+    const nav = await screen.findByRole("navigation", { name: "Reading path" });
+    expect(within(nav).getByText("Read before")).toBeInTheDocument();
+    expect(within(nav).getByText("Read next")).toBeInTheDocument();
+    expect(within(nav).getByText("Post 4").closest("a")).toHaveAttribute("href", expect.stringContaining("post-4"));
+    expect(within(nav).getByText("Post 6").closest("a")).toHaveAttribute("href", expect.stringContaining("post-6"));
+  });
+
+  it("only next: keeps the grid slot, no read before", async () => {
+    server.use(http.get(api("/posts/1/reading-path"), () => HttpResponse.json({ data: { source: "topic", next: neighbour(2) } })));
+    await renderRouted(<ReadingPathNav postId={1} />);
+    const nav = await screen.findByRole("navigation", { name: "Reading path" });
+    expect(within(nav).queryByText("Read before")).toBeNull();
+    expect(within(nav).getByText("Read next")).toBeInTheDocument();
+  });
+
+  it("only prev: no read next", async () => {
+    server.use(http.get(api("/posts/9/reading-path"), () => HttpResponse.json({ data: { source: "topic", prev: neighbour(8) } })));
+    await renderRouted(<ReadingPathNav postId={9} />);
+    const nav = await screen.findByRole("navigation", { name: "Reading path" });
+    expect(within(nav).getByText("Read before")).toBeInTheDocument();
+    expect(within(nav).queryByText("Read next")).toBeNull();
+  });
+
+  it.each([
+    ["series source (SeriesNav owns it)", { source: "series", prev: null, next: null }],
+    ["no neighbours", { source: "topic" }],
+  ])("renders nothing for %s", async (_n, body) => {
+    server.use(http.get(api("/posts/7/reading-path"), () => HttpResponse.json({ data: body })));
+    const { qc } = await renderRouted(<ReadingPathNav postId={7} />);
+    await waitFor(() => expect(qc.isFetching()).toBe(0));
+    expect(screen.queryByRole("navigation", { name: "Reading path" })).toBeNull();
+  });
 });
 
 describe("SeriesNav", () => {
