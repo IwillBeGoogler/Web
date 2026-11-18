@@ -17,6 +17,7 @@ import { excerpt, markdownFileName, type Post, postPath, readTime, toMarkdownFil
 import { safeHtml } from "@/contexts/reading/domain/sanitize";
 import { readingRepository } from "@/contexts/reading/infrastructure/readingRepository";
 import { ArticleBody } from "@/contexts/reading/ui/ArticleBody";
+import { ArticleToc } from "@/contexts/reading/ui/ArticleToc";
 import { LangSwitch } from "@/contexts/reading/ui/LangSwitch";
 import { TopicChips } from "@/contexts/reading/ui/TopicChips";
 import { useReadTime } from "@/shared/analytics";
@@ -337,6 +338,7 @@ export function ArticlePage({ slug }: { slug: string }) {
                 </figcaption>
               </figure>
             ) : null}
+            <ArticleToc container={bodyRef} deps={view.body_html ?? view.body} />
             <div className={translated && tr.isPending ? "opacity-60 transition-opacity" : "transition-opacity"}>
               {view.body_html ? (
                 <ArticleBody html={safeHtml(view.body_html)} bionic={prefs.bionic} bodyRef={bodyRef} terms={terms} />

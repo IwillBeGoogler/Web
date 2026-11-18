@@ -413,6 +413,8 @@ export const uz: Record<keyof typeof en, string> = {
   "rich.mode.label": "Muharrir rejimi",
   "rich.mode.visual": "Vizual",
   "rich.mode.md": "Markdown",
+  "rich.split": "Yonma-yon",
+  "toc.label": "Mundarija",
   "rich.focus": "Diqqat rejimi",
   "rich.loading": "Muharrir yuklanmoqda…",
   "rich.body": "Maqola matni",

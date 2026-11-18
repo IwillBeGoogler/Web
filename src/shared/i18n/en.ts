@@ -410,6 +410,8 @@ export const en = {
   "rich.mode.label": "Editor mode",
   "rich.mode.visual": "Visual",
   "rich.mode.md": "Markdown",
+  "rich.split": "Side by side",
+  "toc.label": "Contents",
   "rich.focus": "Focus mode",
   "rich.loading": "Loading the editor…",
   "rich.body": "Story body",

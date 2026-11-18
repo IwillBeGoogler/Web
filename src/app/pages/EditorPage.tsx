@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
-import { ArrowLeftIcon, BookOpenTextIcon, HistoryIcon, ImageIcon, MaximizeIcon, SaveIcon, ShapesIcon, SparklesIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, BookOpenTextIcon, Columns2Icon, HistoryIcon, ImageIcon, MaximizeIcon, SaveIcon, ShapesIcon, SparklesIcon, XIcon } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { Component, lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -48,6 +48,7 @@ const RichEditor = lazy(loadRichEditor);
 
 const MODE_KEY = "iwillbegoogler.editor.mode";
 const FOCUS_KEY = "iwillbegoogler.editor.focus";
+const SPLIT_KEY = "iwillbegoogler.editor.split";
 const readPref = (key: string): string | null => {
   try {
     return localStorage.getItem(key);
@@ -574,8 +575,17 @@ export function EditorPage({ id: routeId }: { id?: number }) {
   const [checking, setChecking] = useState(!!id);
   const [epoch, setEpoch] = useState(0);
   const [focus, setFocus] = useState(() => readPref(FOCUS_KEY) === "1");
+  // Markdown mode on a wide screen: the rendered story beside the text, like a code editor's side preview
+  const [split, setSplit] = useState(() => readPref(SPLIT_KEY) === "1");
   const checkSeq = useRef(0);
   const mode: "rich" | "md" = wantRich && !problem ? "rich" : "md";
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the mode switch is the trigger
+  useLayoutEffect(() => {
+    const k = keep.current;
+    if (!k) return;
+    keep.current = null;
+    window.scrollTo({ top: k.y, behavior: "instant" });
+  }, [mode]);
   // where in the text the visual editor's trouble is (shown in red, with a jump to it)
   const [where, setWhere] = useState<{ line: number; text: string } | null>(null);
   // biome-ignore lint/correctness/useExhaustiveDependencies: the problem is the trigger; the text is read when it is set
@@ -803,6 +813,11 @@ export function EditorPage({ id: routeId }: { id?: number }) {
 
   /** Visual or Markdown. Going visual re-checks the text as it is now, and is refused (with the reason) when the editor could not keep it exactly. */
   const chooseMode = async (to: "rich" | "md") => {
+    if (to !== mode) {
+      // the page stays where it is across the switch: same trick as Edit/Preview
+      keep.current = { y: window.scrollY, h: viewRef.current?.offsetHeight ?? 0 };
+      setViewMinH(keep.current.h);
+    }
     if (to === "md") {
       richRef.current?.flush();
       setLossy(null);
@@ -1040,6 +1055,19 @@ export function EditorPage({ id: routeId }: { id?: number }) {
             >
               <MaximizeIcon className="size-3.5" aria-hidden /> {t("rich.focus")}
             </button>
+            {mode === "md" ? (
+              <button
+                type="button"
+                className="seg-item hidden h-7 items-center gap-1.5 rounded-[var(--radius-xs)] border border-line-strong px-2 font-mono text-[11px] uppercase aria-pressed:bg-inverse aria-pressed:text-on-inverse lg:inline-flex"
+                aria-pressed={split}
+                onClick={() => {
+                  setSplit(!split);
+                  writePref(SPLIT_KEY, split ? "0" : "1");
+                }}
+              >
+                <Columns2Icon className="size-3.5" aria-hidden /> {t("rich.split")}
+              </button>
+            ) : null}
           </div>
           {problem && wantRich ? (
             <div role={refused ? "alert" : "status"} className="mt-3 border-l-[3px] border-danger pl-3 text-sm">
@@ -1063,7 +1091,11 @@ export function EditorPage({ id: routeId }: { id?: number }) {
               </Button>
             </section>
           ) : null}
-          <div ref={viewRef} style={viewMinH ? { minHeight: viewMinH } : undefined}>
+          <div
+            ref={viewRef}
+            style={viewMinH ? { minHeight: viewMinH } : undefined}
+            className={mode === "md" && split && !preview ? "lg:relative lg:left-1/2 lg:w-[min(1400px,calc(100vw-3rem))] lg:-translate-x-1/2" : undefined}
+          >
             {preview ? <StoryPreview body={body} glossary={glossary} /> : null}
             {mode === "rich" ? (
               checking || !ready ? (
@@ -1091,31 +1123,38 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                 </div>
               )
             ) : preview ? null : (
-              <textarea
-                aria-label="Story body (Markdown)"
-                placeholder="Start writing — Markdown supported"
-                className="mt-6 min-h-[60vh] w-full resize-none bg-transparent font-mono text-[16px] leading-7 outline-none placeholder:text-muted/60"
-                {...bodyField}
-                onPaste={(e) => {
-                  const files = imageFiles(e.clipboardData.files);
-                  if (!files.length) return; // plain text pastes as usual
-                  e.preventDefault();
-                  addImages(files);
-                }}
-                onDragOver={(e) => {
-                  if (e.dataTransfer.types.includes("Files")) e.preventDefault();
-                }}
-                onDrop={(e) => {
-                  const files = imageFiles(e.dataTransfer.files);
-                  if (!files.length) return;
-                  e.preventDefault();
-                  addImages(files);
-                }}
-                ref={(el) => {
-                  bodyField.ref(el);
-                  bodyRef.current = el;
-                }}
-              />
+              <div className={split ? "lg:grid lg:grid-cols-2 lg:gap-6" : undefined}>
+                <textarea
+                  aria-label="Story body (Markdown)"
+                  placeholder="Start writing — Markdown supported"
+                  className="mt-6 min-h-[60vh] w-full resize-none bg-transparent font-mono text-[16px] leading-7 outline-none placeholder:text-muted/60"
+                  {...bodyField}
+                  onPaste={(e) => {
+                    const files = imageFiles(e.clipboardData.files);
+                    if (!files.length) return; // plain text pastes as usual
+                    e.preventDefault();
+                    addImages(files);
+                  }}
+                  onDragOver={(e) => {
+                    if (e.dataTransfer.types.includes("Files")) e.preventDefault();
+                  }}
+                  onDrop={(e) => {
+                    const files = imageFiles(e.dataTransfer.files);
+                    if (!files.length) return;
+                    e.preventDefault();
+                    addImages(files);
+                  }}
+                  ref={(el) => {
+                    bodyField.ref(el);
+                    bodyRef.current = el;
+                  }}
+                />
+                {split ? (
+                  <div className="hidden lg:block">
+                    <StoryPreview body={body} glossary={glossary} />
+                  </div>
+                ) : null}
+              </div>
             )}
           </div>
           {mode === "md" ? (

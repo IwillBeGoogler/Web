@@ -413,6 +413,8 @@ export const ru: Record<keyof typeof en, string> = {
   "rich.mode.label": "Режим редактора",
   "rich.mode.visual": "Визуальный",
   "rich.mode.md": "Markdown",
+  "rich.split": "Рядом",
+  "toc.label": "Содержание",
   "rich.focus": "Режим фокуса",
   "rich.loading": "Загрузка редактора…",
   "rich.body": "Текст истории",
