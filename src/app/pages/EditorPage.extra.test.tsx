@@ -42,6 +42,7 @@ vi.mock("@/contexts/publishing/rich/markdown", () => ({
     if (rich.boom) throw new Error("x");
     return rich.problem ? { ok: false, problem: rich.problem } : { ok: true };
   },
+  locateProblem: () => null,
 }));
 vi.mock("@/contexts/diagrams/ui/DiagramPicker", () => ({
   DiagramPicker: ({ open, onPick }: { open: boolean; onPick: (l: string) => void }) =>
