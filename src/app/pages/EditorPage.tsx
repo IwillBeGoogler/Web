@@ -4,6 +4,7 @@ import { Link, useBlocker, useNavigate } from "@tanstack/react-router";
 import { ArrowLeftIcon, BookOpenTextIcon, HistoryIcon, ImageIcon, MaximizeIcon, SaveIcon, ShapesIcon, SparklesIcon, XIcon } from "lucide-react";
 import { Dialog } from "radix-ui";
 import { Component, lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useForm, useWatch } from "react-hook-form";
 import { accountSecurityRepository } from "@/contexts/account/infrastructure/accountSecurityRepository";
 import { myPublicationsQuery } from "@/contexts/collections/application/hooks";
@@ -1005,18 +1006,22 @@ export function EditorPage({ id: routeId }: { id?: number }) {
             {...form.register("subtitle", { onChange: (e) => grow(e.target) })}
           />
           <div className="mt-6 flex flex-wrap items-center gap-2">
-            <span
-              className="seg fixed bottom-6 left-1/2 z-40 -translate-x-1/2 bg-bg shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
-              role="group"
-              aria-label={t("rich.mode.label")}
-            >
-              <button type="button" className="seg-item h-7" aria-pressed={mode === "rich"} onClick={() => void chooseMode("rich")}>
-                {t("rich.mode.visual")}
-              </button>
-              <button type="button" className="seg-item h-7" aria-pressed={mode === "md"} onClick={() => void chooseMode("md")}>
-                {t("rich.mode.md")}
-              </button>
-            </span>
+            {/* portal: .reading-glass has backdrop-filter, which makes it the containing block of `fixed` children (bar landed at the article's end, off-screen) */}
+            {createPortal(
+              <span
+                className="seg fixed bottom-6 left-1/2 z-40 -translate-x-1/2 bg-bg shadow-[0_6px_24px_rgba(0,0,0,0.45)]"
+                role="group"
+                aria-label={t("rich.mode.label")}
+              >
+                <button type="button" className="seg-item h-7" aria-pressed={mode === "rich"} onClick={() => void chooseMode("rich")}>
+                  {t("rich.mode.visual")}
+                </button>
+                <button type="button" className="seg-item h-7" aria-pressed={mode === "md"} onClick={() => void chooseMode("md")}>
+                  {t("rich.mode.md")}
+                </button>
+              </span>,
+              document.body,
+            )}
             <button
               type="button"
               className="seg-item ml-auto inline-flex h-7 items-center gap-1.5 rounded-[var(--radius-xs)] border border-line-strong px-2 font-mono text-[11px] uppercase aria-pressed:bg-inverse aria-pressed:text-on-inverse"
