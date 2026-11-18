@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { CloudOffIcon, FileQuestionIcon, LinkIcon, MessageSquareIcon, PencilIcon } from "lucide-react";
+import { CloudOffIcon, DownloadIcon, FileQuestionIcon, LinkIcon, MessageSquareIcon, PencilIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Highlighter, HighlightsPanel } from "@/contexts/collections/ui/Highlights";
 import { SaveToList } from "@/contexts/collections/ui/Lists";
@@ -13,7 +13,7 @@ import { useReadingPrefs } from "@/contexts/preferences/application/store";
 import { Bio } from "@/contexts/preferences/ui/BionicText";
 import { glossaryQuery, postQuery, profileQuery, relatedQuery, translationQuery } from "@/contexts/reading/application/queries";
 import { mergeTerms } from "@/contexts/reading/domain/glossary";
-import { excerpt, type Post, postPath, readTime } from "@/contexts/reading/domain/post";
+import { excerpt, markdownFileName, type Post, postPath, readTime, toMarkdownFile } from "@/contexts/reading/domain/post";
 import { safeHtml } from "@/contexts/reading/domain/sanitize";
 import { readingRepository } from "@/contexts/reading/infrastructure/readingRepository";
 import { ArticleBody } from "@/contexts/reading/ui/ArticleBody";
@@ -32,7 +32,17 @@ import { Bone, EmptyState, Loading } from "@/shared/ui/states";
 import { toast } from "@/shared/ui/toast";
 
 /** "ActionDeck": one segmented toolbar of labelled keys with counts. Rides the bottom edge while reading, docks at the end. */
-function ActionDeck({ post, onResponses }: { post: Post; onResponses: () => void }) {
+/** Saves the story as it is shown (original or translation) as a .md file. */
+function downloadMarkdown(post: Post, lang: string) {
+  const url = URL.createObjectURL(new Blob([toMarkdownFile(post, location.origin + postPath(post))], { type: "text/markdown;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = markdownFileName(post, lang);
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function ActionDeck({ post, lang, onResponses }: { post: Post; lang: string; onResponses: () => void }) {
   const { me } = useMe();
   return (
     <div
@@ -70,6 +80,12 @@ function ActionDeck({ post, onResponses }: { post: Post; onResponses: () => void
         <LinkIcon className="size-4" aria-hidden strokeWidth={1.5} />
         <span aria-hidden className="hidden tracking-[0.08em] uppercase sm:inline">
           Copy link
+        </span>
+      </button>
+      <button type="button" className="key" aria-label="Download as Markdown" onClick={() => downloadMarkdown(post, lang)}>
+        <DownloadIcon className="size-4" aria-hidden strokeWidth={1.5} />
+        <span aria-hidden className="hidden tracking-[0.08em] uppercase sm:inline">
+          .md
         </span>
       </button>
       <span className="grid place-items-center px-0.5 empty:hidden">
@@ -332,7 +348,7 @@ export function ArticlePage({ slug }: { slug: string }) {
             </div>
             {/* Sticky-bottom only holds an element whose flow position is below the viewport, so the floating
                 toolbar sits after the body: it rides the bottom edge while reading and docks at the end. */}
-            <ActionDeck post={post} onResponses={() => setResponses(true)} />
+            <ActionDeck post={view ?? post} lang={original ? post.lang : current} onResponses={() => setResponses(true)} />
             {original ? (
               <>
                 <Highlighter postId={post.id} body={post.body} container={bodyRef} />

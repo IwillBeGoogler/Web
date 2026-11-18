@@ -87,6 +87,24 @@ export const excerpt = (md: string, max = 160): string => {
   return `${(sp > 0 ? cut.slice(0, sp) : cut).trimEnd()}…`;
 };
 
+/** The story as a standalone Markdown file: front matter, title, subtitle, body. */
+export const toMarkdownFile = (p: Pick<Post, "title" | "subtitle" | "body" | "author" | "published_at" | "tags">, url: string): string => {
+  const q = (s: string) => JSON.stringify(s);
+  const front = [
+    "---",
+    `title: ${q(p.title)}`,
+    p.author ? `author: ${q(p.author)}` : "",
+    p.published_at ? `date: ${p.published_at.slice(0, 10)}` : "",
+    p.tags.length ? `tags: [${p.tags.map(q).join(", ")}]` : "",
+    `source: ${q(url)}`,
+    "---",
+  ].filter(Boolean);
+  return `${front.join("\n")}\n\n# ${p.title}\n\n${p.subtitle ? `> ${p.subtitle}\n\n` : ""}${p.body.trim()}\n`;
+};
+
+/** "slug.md", or "slug.en.md" for a language other than the original. */
+export const markdownFileName = (p: Pick<Post, "slug" | "lang">, lang: string) => `${p.slug}${lang && lang !== p.lang ? `.${lang}` : ""}.md`;
+
 export const readTime = (minutes: number) => `${Math.max(1, minutes)} min`;
 
 export const profileSchema = z.object({

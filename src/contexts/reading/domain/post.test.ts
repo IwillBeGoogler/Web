@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { excerpt, postPath, postSchema, readTime } from "./post";
+import { excerpt, markdownFileName, postPath, postSchema, readTime, toMarkdownFile } from "./post";
 
 const raw = {
   id: 1,
@@ -33,5 +33,19 @@ describe("post", () => {
   it("readTime is at least one minute", () => {
     expect(readTime(0)).toBe("1 min");
     expect(readTime(7)).toBe("7 min");
+  });
+});
+
+describe("toMarkdownFile", () => {
+  it("writes front matter, title, subtitle and body", () => {
+    const md = toMarkdownFile(
+      { title: 'A "b"', subtitle: "sub", body: "## H\n\ntext\n\n", author: "ali", published_at: "2026-11-01T10:00:00Z", tags: ["go"] },
+      "https://x/p",
+    );
+    expect(md).toBe('---\ntitle: "A \\"b\\""\nauthor: "ali"\ndate: 2026-11-01\ntags: ["go"]\nsource: "https://x/p"\n---\n\n# A "b"\n\n> sub\n\n## H\n\ntext\n');
+  });
+  it("names translations by language", () => {
+    expect(markdownFileName({ slug: "s", lang: "uz" }, "uz")).toBe("s.md");
+    expect(markdownFileName({ slug: "s", lang: "uz" }, "en")).toBe("s.en.md");
   });
 });
