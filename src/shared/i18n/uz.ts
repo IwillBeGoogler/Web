@@ -96,6 +96,7 @@ export const uz: Record<keyof typeof en, string> = {
   "footer.legal": "Huquqiy",
   "footer.site": "Sayt",
   "info.about": "Biz haqimizda",
+  "info.aboutMe": "Muallif haqida",
   "info.contact": "Aloqa",
   "info.help": "Yordam",
   "footer.preferences": "Sozlamalar",

@@ -268,6 +268,7 @@ const P = {
   Privacy: lazy(() => import("./pages/LegalPages"), "PrivacyPage"),
   Terms: lazy(() => import("./pages/LegalPages"), "TermsPage"),
   About: lazy(() => import("./pages/LegalPages"), "AboutPage"),
+  AboutMe: lazy(() => import("./pages/AboutMePage"), "AboutMePage"),
   Contact: lazy(() => import("./pages/LegalPages"), "ContactPage"),
   Help: lazy(() => import("./pages/LegalPages"), "HelpPage"),
   Diagrams: lazy(() => import("./pages/DiagramPages"), "DiagramsPage"),
@@ -349,6 +350,7 @@ const pub = createRoute({
 const privacy = createRoute({ getParentRoute: () => shell, path: "/privacy", component: P.Privacy });
 const terms = createRoute({ getParentRoute: () => shell, path: "/terms", component: P.Terms });
 const about = createRoute({ getParentRoute: () => shell, path: "/about", component: P.About });
+const aboutMe = createRoute({ getParentRoute: () => shell, path: "/about-me", component: P.AboutMe });
 const contact = createRoute({ getParentRoute: () => shell, path: "/contact", component: P.Contact });
 const help = createRoute({ getParentRoute: () => shell, path: "/help", component: P.Help });
 // Links in emails sent before stories moved to /p/$slug.
@@ -490,6 +492,7 @@ const routeTree = root.addChildren([
     privacy,
     terms,
     about,
+    aboutMe,
     contact,
     help,
     legacyPost,

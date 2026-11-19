@@ -97,6 +97,7 @@ export const ru: Record<keyof typeof en, string> = {
   "footer.legal": "Правовая информация",
   "footer.site": "Сайт",
   "info.about": "О нас",
+  "info.aboutMe": "Об авторе",
   "info.contact": "Контакты",
   "info.help": "Помощь",
   "footer.preferences": "Настройки",

@@ -95,6 +95,7 @@ export const en = {
   "footer.legal": "Legal",
   "footer.site": "Site",
   "info.about": "About",
+  "info.aboutMe": "About me",
   "info.contact": "Contact",
   "info.help": "Help",
   "footer.preferences": "Preferences",

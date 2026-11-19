@@ -52,6 +52,7 @@ vi.mock("./pages/LegalPages", () => ({
   ContactPage: show("contact"),
   HelpPage: show("help"),
 }));
+vi.mock("./pages/AboutMePage", () => ({ AboutMePage: show("aboutme") }));
 vi.mock("./pages/TopicsPage", () => ({
   TopicsPage: show("topics"),
   TopicPage: show("topic"),
@@ -144,6 +145,7 @@ describe("router", () => {
       ["/privacy", "privacy", ""],
       ["/terms", "terms", ""],
       ["/about", "about", ""],
+      ["/about-me", "aboutme", ""],
       ["/contact", "contact", ""],
       ["/help", "help", ""],
       ["/topics", "topics", ""],

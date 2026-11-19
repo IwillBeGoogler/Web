@@ -60,6 +60,9 @@ export function Footer() {
             <Link to="/about" className={link}>
               {t("info.about")}
             </Link>
+            <Link to="/about-me" className={link}>
+              {t("info.aboutMe")}
+            </Link>
             <Link to="/help" className={link}>
               {t("info.help")}
             </Link>
