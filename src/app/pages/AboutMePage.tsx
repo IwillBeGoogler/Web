@@ -46,7 +46,11 @@ export function AboutMePage() {
         <ul className="mt-5 grid gap-3 md:grid-cols-2">
           {projects.map((p) => (
             <li key={p.name}>
-              <a href={`${profile.github}/${p.name}`} {...ext} className="block h-full rounded-2xl border border-line bg-surface-2/85 p-4 shadow-lg backdrop-blur-xl transition-colors hover:bg-surface-2">
+              <a
+                href={`${profile.github}/${p.name}`}
+                {...ext}
+                className="block h-full rounded-2xl border border-line bg-surface-2/85 p-4 shadow-lg backdrop-blur-xl transition-colors hover:bg-surface-2"
+              >
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="font-mono font-bold">{p.name}</span>
                   <span className="font-mono text-xs text-muted">{p.version}</span>
