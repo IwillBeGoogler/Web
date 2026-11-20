@@ -496,7 +496,13 @@ describe("EditorPage markdown mode", () => {
     Object.defineProperty(huge, "size", { value: 9 * 1024 * 1024 });
     fireEvent.paste(ta, { clipboardData: { files: [png, bad, svg, huge] } });
     await waitFor(() => expect(ta.value).toContain("![a](http://x/a.png)"));
-    fireEvent.paste(ta, { clipboardData: { files: [] } }); // text paste untouched
+    fireEvent.paste(ta, { clipboardData: { files: [], getData: () => "" } }); // text paste untouched
+    // a copied table lands as a Markdown table, through the browser's insertText
+    const insert = vi.fn(() => true);
+    Object.defineProperty(document, "execCommand", { value: insert, configurable: true });
+    const grid = "A\n\nB\n\n\n\nC\n\nD";
+    fireEvent.paste(ta, { clipboardData: { files: [], getData: (t: string) => (t === "text/plain" ? grid : "") } });
+    expect(insert).toHaveBeenCalledWith("insertText", false, "| A | B |\n| --- | --- |\n| C | D |");
     const drop = new File(["b"], "b.png", { type: "image/png" });
     fireEvent.dragOver(ta, { dataTransfer: { types: ["Files"], files: [drop] } });
     fireEvent.dragOver(ta, { dataTransfer: { types: ["text/plain"], files: [] } });

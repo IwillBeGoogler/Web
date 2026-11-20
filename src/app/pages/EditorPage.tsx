@@ -18,6 +18,7 @@ import { canAutosave, clockTime, type ServerStatus, sameStory } from "@/contexts
 import type { GlossaryEntry } from "@/contexts/publishing/domain/glossary";
 import { insertBlock, LIVE_STARTER } from "@/contexts/publishing/domain/insert";
 import { type LocalCopy, localDraft, shouldOfferRestore } from "@/contexts/publishing/domain/localDraft";
+import { gridTextToMarkdown, htmlTablesToMarkdown } from "@/contexts/publishing/domain/pasteTable";
 import { diffStats } from "@/contexts/publishing/domain/revision";
 import { emptyStory, normTags, type StoryForm, storyFormSchema, storyToForm } from "@/contexts/publishing/domain/story";
 import { type ImageResult, imageFiles, settlePlaceholder, shiftCaret, uploadImages } from "@/contexts/publishing/domain/uploadImages";
@@ -765,8 +766,18 @@ export function EditorPage({ id: routeId }: { id?: number }) {
       if (window.scrollY !== y) window.scrollTo({ top: y });
     };
     resize();
+    // the width can change without a window resize (side panes, focus mode), and the monospace font can swap in after
+    // the first measure and wrap the lines anew; either would leave the box shorter than its text, with a scroll inside
+    const ro = new ResizeObserver(resize);
+    if (el.parentElement) ro.observe(el.parentElement);
+    let live = true;
+    void document.fonts?.ready.then(() => live && resize());
     window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
+    return () => {
+      live = false;
+      ro.disconnect();
+      window.removeEventListener("resize", resize);
+    };
   }, [body, mode, preview, split, focus]);
 
   // Cmd/Ctrl+S saves now. It only ever saves a draft; published and scheduled stories keep a copy on this device until "Update".
@@ -1145,7 +1156,15 @@ export function EditorPage({ id: routeId }: { id?: number }) {
                   {...bodyField}
                   onPaste={(e) => {
                     const files = imageFiles(e.clipboardData.files);
-                    if (!files.length) return; // plain text pastes as usual
+                    if (!files.length) {
+                      // a copied table lands as a Markdown table; other text pastes as usual
+                      const md = htmlTablesToMarkdown(e.clipboardData.getData("text/html")) ?? gridTextToMarkdown(e.clipboardData.getData("text/plain"));
+                      if (!md) return;
+                      e.preventDefault();
+                      // insertText keeps the browser's undo and fires the input event the form listens to
+                      document.execCommand("insertText", false, md);
+                      return;
+                    }
                     e.preventDefault();
                     addImages(files);
                   }}
