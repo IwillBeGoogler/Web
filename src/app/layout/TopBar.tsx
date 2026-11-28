@@ -205,6 +205,8 @@ function ThemeToggle() {
   return (
     <Button
       variant="ghost-icon"
+      // No room on phones: the footer and the account menu switch colors too.
+      className="max-sm:hidden"
       aria-label={t("nav.toggleTheme")}
       title={t("nav.toggleTheme")}
       onClick={() => readingPrefs.set({ palette: dark ? "daylight" : "galaxy" })}
@@ -230,7 +232,7 @@ export function TopBar() {
   const scrolled = useScrolled();
   return (
     <header data-chrome className={`liquid-glass sticky top-0 z-40 h-14 border-x-0 border-t-0 ${scrolled ? "shadow-[0_2px_0_0_var(--line)]" : ""}`}>
-      <div className="mx-auto flex h-full max-w-shell items-center gap-4 px-4 md:px-6">
+      <div className="mx-auto flex h-full max-w-shell items-center gap-2 px-4 md:gap-4 md:px-6">
         <Logo />
         {sep}
         <nav aria-label="Primary" className="seg hidden md:inline-flex">
@@ -249,7 +251,7 @@ export function TopBar() {
         </nav>
         {sep}
         <SearchBox />
-        <div className="ml-auto flex items-center gap-2 md:gap-3">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2 md:gap-3">
           <Button variant="ghost-icon" asChild className="md:hidden">
             <Link to="/search" aria-label={t("nav.search")}>
               <SearchIcon strokeWidth={1.5} aria-hidden />

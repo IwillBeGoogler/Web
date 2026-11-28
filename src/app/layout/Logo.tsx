@@ -38,7 +38,8 @@ export function Logo({ className }: { className?: string }) {
     <Link
       to="/"
       aria-label={`${BRAND} home`}
-      className={cn("group text-fg", className)}
+      // Narrow phones keep only the square mark, so the header buttons fit.
+      className={cn("group text-fg max-[420px]:[&>span>span:last-child]:hidden", className)}
       onClick={(e) => {
         // New-tab clicks (modifier / middle button) leave this tab alone.
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
