@@ -43,4 +43,15 @@ describe("notifications", () => {
     expect(commentSearch("9007199254740993")).toBe("9007199254740993");
     expect(commentSearch("c_1")).toBe("c_1");
   });
+  it("words challenge notifications in the reader's language", () => {
+    const c = (type: string, text: string, actor = "") => notificationSchema.parse({ id: 3, type, actor, text, challenge_id: 5, created_at: "x" });
+    expect(describeNotification(c("challenge_day", "4", "ali"))).toBe("ali wrote day 4 of their challenge");
+    expect(describeNotification(c("challenge_milestone", "7", "ali"))).toBe("ali reached 7 days in their challenge");
+    expect(describeNotification(c("challenge_milestone", "7"))).toContain("7 days");
+    expect(describeNotification(c("challenge_nudge", "evening.2"), "uz")).toContain("Sen uddalaysan!");
+    for (const lang of ["en", "uz", "ru"] as const)
+      for (const kind of ["praise", "evening", "broken", "silent"])
+        for (let v = 0; v < 4; v++) expect(describeNotification(c("challenge_nudge", `${kind}.${v}`), lang)).not.toContain("notif.");
+    expect(describeNotification(c("challenge_nudge", "odd.9"))).toBe("News from your challenge");
+  });
 });

@@ -7,6 +7,7 @@ import {
   BuildingIcon,
   ChevronDownIcon,
   FileTextIcon,
+  FlameIcon,
   LogOutIcon,
   MessageSquareWarningIcon,
   MoonIcon,
@@ -154,6 +155,10 @@ function UserMenu() {
             <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/me/stories" })}>
               <FileTextIcon aria-hidden /> {t("nav.stories")}
             </DropdownMenu.Item>
+            {/* the primary nav is hidden on phones */}
+            <DropdownMenu.Item className={`${item} md:hidden`} onSelect={() => nav({ to: "/challenges" })}>
+              <FlameIcon aria-hidden /> {t("nav.challenges")}
+            </DropdownMenu.Item>
             <DropdownMenu.Item className={item} onSelect={() => nav({ to: "/me/stats" })}>
               <BarChart3Icon aria-hidden /> {t("nav.stats")}
             </DropdownMenu.Item>
@@ -238,6 +243,9 @@ export function TopBar() {
           )}
           <DiagramsMenu />
           <CategoriesMenu />
+          <Link to="/challenges" className={navLink}>
+            {t("nav.challenges")}
+          </Link>
         </nav>
         {sep}
         <SearchBox />

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { type Lang, type MessageKey, translate } from "@/shared/i18n";
 
 export const notificationSchema = z
   .object({
@@ -12,6 +13,8 @@ export const notificationSchema = z
     diagram_file_id: z.string().default(""),
     diagram_comment_id: z.string().default(""),
     text: z.string().default(""),
+    // challenge_* notifications: `text` is the day, milestone or message variant ("evening.2")
+    challenge_id: z.number().default(0),
     read_at: z.string().nullable().optional(),
     created_at: z.string(),
   })
@@ -41,8 +44,23 @@ export const isDiagramNotification = (n: Notification) => n.type.startsWith("dia
 export const diagramTarget = (n: Notification): { fileId: string; comment?: string } | null =>
   isDiagramNotification(n) && n.diagram_file_id ? { fileId: n.diagram_file_id, ...(n.diagram_comment_id ? { comment: n.diagram_comment_id } : {}) } : null;
 
-export const describeNotification = (n: Notification) =>
-  isDiagramNotification(n) && n.text ? n.text : `${n.actor || "Someone"} ${verbs[n.type] ?? diagramVerbs[n.type] ?? "interacted with you"}`;
+export const isChallengeNotification = (n: Notification) => n.type.startsWith("challenge_");
+
+/** The sentence for a challenge notification; an empty actor means the reader's own challenge. */
+function describeChallenge(n: Notification, lang: Lang) {
+  const say = (key: string) => translate(lang, key as MessageKey, { actor: n.actor, n: n.text });
+  if (n.type === "challenge_day" && n.actor) return say("notif.challenge.day");
+  if (n.type === "challenge_milestone") return say(n.actor ? "notif.challenge.milestone" : "notif.challenge.milestoneOwn");
+  // praise and nudge: text is "<kind>.<variant>"
+  if (/^(praise|evening|broken|silent)\.[0-3]$/.test(n.text)) return say(`notif.challenge.${n.text}`);
+  return say("notif.challenge.other");
+}
+
+export const describeNotification = (n: Notification, lang: Lang = "en") => {
+  if (isChallengeNotification(n)) return describeChallenge(n, lang);
+  if (isDiagramNotification(n) && n.text) return n.text;
+  return `${n.actor || "Someone"} ${verbs[n.type] ?? diagramVerbs[n.type] ?? "interacted with you"}`;
+};
 
 /** The `?comment=` value for a comment id: digits stay unquoted in the URL (the router writes strings as JSON), unless too long to survive as a number. */
 export const commentSearch = (id: string): string | number => (/^[1-9]\d{0,14}$/.test(id) ? Number(id) : id);

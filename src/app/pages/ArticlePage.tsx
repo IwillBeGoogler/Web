@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { CloudOffIcon, DownloadIcon, FileQuestionIcon, LinkIcon, MessageSquareIcon, PencilIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ChallengeBadge } from "@/contexts/challenges/ui/ChallengeBadge";
 import { Highlighter, HighlightsPanel } from "@/contexts/collections/ui/Highlights";
 import { SaveToList } from "@/contexts/collections/ui/Lists";
 import { ReadingPathNav, SeriesBefore, SeriesNav } from "@/contexts/collections/ui/Series";
@@ -261,6 +262,7 @@ export function ArticlePage({ slug }: { slug: string }) {
                   <Bio>{view.subtitle}</Bio>
                 </h2>
               ) : null}
+              <ChallengeBadge postId={post.id} />
               <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-md)] border border-line-strong bg-line md:grid-cols-4">
                 <div className="bg-card px-4 py-3">
                   <dt className="kicker">

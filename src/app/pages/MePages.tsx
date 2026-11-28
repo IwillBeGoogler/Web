@@ -9,11 +9,11 @@ import { MySeries, SeriesPage } from "@/contexts/collections/ui/Series";
 import { bookmarkedDiagramsQuery } from "@/contexts/diagrams/application/hooks";
 import { DiagramList } from "@/contexts/diagrams/ui/DiagramList";
 import { notificationsQuery, useMarkAllRead, useMarkRead } from "@/contexts/engagement/application/hooks";
-import { commentSearch, describeNotification, diagramTarget } from "@/contexts/engagement/domain/notification";
+import { commentSearch, describeNotification, diagramTarget, isChallengeNotification } from "@/contexts/engagement/domain/notification";
 import { useMe } from "@/contexts/identity/application/session";
 import { ImportStory, StatsPage, StoryList } from "@/contexts/publishing/ui/Studio";
 import { Feed } from "@/contexts/reading/ui/Feed";
-import { useT } from "@/shared/i18n";
+import { useLang, useT } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { timeAgo } from "@/shared/lib/format";
 import { Avatar } from "@/shared/ui/avatar";
@@ -88,6 +88,7 @@ export function StoriesPage() {
 }
 
 export function NotificationsPage() {
+  const lang = useLang();
   const q = useInfiniteQuery(notificationsQuery());
   const mark = useMarkAllRead();
   const markOne = useMarkRead();
@@ -115,14 +116,15 @@ export function NotificationsPage() {
             const to = diagramTarget(n);
             const body = (
               <>
-                <Avatar name={n.actor} />
+                <Avatar name={n.actor || "IWillBeGoogler"} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm">{describeNotification(n)}</p>
+                  <p className="text-sm">{describeNotification(n, lang)}</p>
                   <p className="text-[13px] text-muted">{timeAgo(n.created_at)}</p>
                 </div>
               </>
             );
             const read = () => n.unread && markOne.mutate(n.id);
+            const challenge = isChallengeNotification(n) ? n.challenge_id : 0;
             return (
               <li key={n.id} className={cn("flex items-center gap-4 border-b border-line py-5", n.unread && "font-medium")}>
                 {to ? (
@@ -133,6 +135,10 @@ export function NotificationsPage() {
                     className="flex min-w-0 flex-1 items-center gap-4"
                     onClick={read}
                   >
+                    {body}
+                  </Link>
+                ) : challenge ? (
+                  <Link to="/challenges/$id" params={{ id: String(challenge) }} className="flex min-w-0 flex-1 items-center gap-4" onClick={read}>
                     {body}
                   </Link>
                 ) : n.unread ? (
