@@ -7,6 +7,8 @@ import { Component, lazy, Suspense, useCallback, useEffect, useLayoutEffect, use
 import { createPortal } from "react-dom";
 import { useForm, useWatch } from "react-hook-form";
 import { accountSecurityRepository } from "@/contexts/account/infrastructure/accountSecurityRepository";
+import { runningChallengesQuery, useChallengeMutations } from "@/contexts/challenges/application/hooks";
+import { ChallengeSelect } from "@/contexts/challenges/ui/ChallengeSelect";
 import { myPublicationsQuery } from "@/contexts/collections/application/hooks";
 import { DiagramPicker } from "@/contexts/diagrams/ui/DiagramPicker";
 import { engagementRepository } from "@/contexts/engagement/infrastructure/engagementRepository";
@@ -200,6 +202,7 @@ function PublishDialog({
   onPublish,
   pending,
   initialVisibility = "published",
+  challenge,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -207,6 +210,8 @@ function PublishDialog({
   onPublish: (when: "now" | "later", visibility: "published" | "unlisted") => void;
   pending: boolean;
   initialVisibility?: "published" | "unlisted";
+  /** Running challenges and the one picked; hidden when there is none. */
+  challenge: Parameters<typeof ChallengeSelect>[0];
 }) {
   const t = useT();
   const { me } = useMe();
@@ -339,6 +344,11 @@ function PublishDialog({
                     ))}
                   </select>
                 </label>
+                {challenge.challenges.length ? (
+                  <div className="mt-3">
+                    <ChallengeSelect {...challenge} />
+                  </div>
+                ) : null}
               </div>
             </li>
             <li className={step}>
@@ -740,6 +750,23 @@ export function EditorPage({ id: routeId }: { id?: number }) {
     const el = bodyRef.current;
     return el ? el.value.slice(el.selectionStart, el.selectionEnd).trim() : "";
   };
+  // the challenge picked in the publish dialog; null until the author touches it
+  const running = useQuery({ ...runningChallengesQuery(), enabled: publishing && !!me });
+  const [picked, setPicked] = useState<number | null>(null);
+  const linked = (postId && running.data?.find((c) => c.post_ids.includes(postId))?.id) || 0;
+  const { setPost: setChallengePost } = useChallengeMutations();
+  /** After a save: moves the story to the picked challenge. A failure only warns, the story is saved. */
+  const saveChallenge = async (id: number) => {
+    if (picked === null) return;
+    // the post's current link: the server's list knows it, also for a story first saved from this dialog
+    const from = running.data?.find((c) => c.post_ids.includes(id))?.id ?? 0;
+    try {
+      await setChallengePost.mutateAsync({ postId: id, from, to: picked });
+      setPicked(null);
+    } catch (e) {
+      toast.error(e);
+    }
+  };
   const words = body.trim() ? body.trim().split(/\s+/).length : 0;
   // the form is read after flushing the visual editor: an edit typed a moment ago still counts
   const unsaved = () => !sameStory(getLatest(), saved);
@@ -813,6 +840,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
         try {
           const p = await saver.run(v, target, "manual");
           if (!p) return;
+          if (target !== "draft") await saveChallenge(p.id);
           if (target === "scheduled") {
             leaving.current = true;
             toast.ok(`Scheduled for ${shortDate(v.publishAt)}`);
@@ -1233,6 +1261,7 @@ export function EditorPage({ id: routeId }: { id?: number }) {
         pending={saver.saving}
         onPublish={(when, visibility) => submit(when === "later" ? "scheduled" : visibility)}
         initialVisibility={isUnlisted ? "unlisted" : "published"}
+        challenge={{ challenges: running.data ?? [], value: picked ?? linked, onChange: setPicked }}
       />
       {postId ? (
         <Revisions

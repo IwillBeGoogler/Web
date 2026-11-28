@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowDownIcon, ArrowUpIcon, ChevronLeftIcon, ChevronRightIcon, ImageIcon, LayersIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { engagementRepository } from "@/contexts/engagement/infrastructure/engagementRepository";
 import { useMe } from "@/contexts/identity/application/session";
@@ -243,13 +243,21 @@ function SeriesForm({ initial, onDone }: { initial?: Series; onDone: () => void 
   );
 }
 
+/** Every story of the author in one state: the feed comes in pages, and a story past the first page must still be addable. */
+function useAllMine(status: "published" | "unlisted" | "scheduled" | "draft") {
+  const q = useInfiniteQuery(feedQuery({ kind: "mine", status }));
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = q;
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  return q.data?.pages.flatMap((p) => p.items) ?? [];
+}
+
 function PartsEditor({ s, onDone }: { s: Series; onDone: () => void }) {
   const detail = useQuery(seriesQuery(s.slug));
-  const mine = useInfiniteQuery(feedQuery({ kind: "mine", status: "published" }));
-  const drafts = useInfiniteQuery(feedQuery({ kind: "mine", status: "draft" }));
+  const all = [...useAllMine("published"), ...useAllMine("unlisted"), ...useAllMine("scheduled"), ...useAllMine("draft")];
   const { setPosts } = useSeriesMutations();
   const [ids, setIds] = useState<number[] | null>(null);
-  const all = [...(mine.data?.pages.flatMap((p) => p.items) ?? []), ...(drafts.data?.pages.flatMap((p) => p.items) ?? [])];
   const title = (id: number) => all.find((p) => p.id === id)?.title ?? detail.data?.posts.find((p) => p.post_id === id)?.title ?? `#${id}`;
   const current = ids ?? detail.data?.posts.map((p) => p.post_id) ?? [];
   const available = all.filter((p) => !current.includes(p.id));

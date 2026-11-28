@@ -5,6 +5,7 @@ import { CircleHelpIcon, MonitorIcon, ShieldCheckIcon, SmartphoneIcon, TabletIco
 import QRCode from "qrcode";
 import { type ReactNode, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { TelegramPanel } from "@/contexts/challenges/ui/TelegramPanel";
 import { engagementRepository } from "@/contexts/engagement/infrastructure/engagementRepository";
 import { useChangeUsername, useMe, useUpdateProfile } from "@/contexts/identity/application/session";
 import { displayName } from "@/contexts/identity/domain/account";
@@ -540,7 +541,12 @@ export function Settings({ tab, onTab }: { tab: SettingsTab; onTab: (t: Settings
     <>
       <h1 className="font-display text-[32px] leading-tight font-bold tracking-tight md:text-[42px]">Settings</h1>
       <Tabs className="mt-8" value={tab} onChange={onTab} items={(Object.keys(tabs) as SettingsTab[]).map((t) => [t, tabs[t]])} />
-      {tab === "profile" ? <ProfileTab /> : null}
+      {tab === "profile" ? (
+        <>
+          <ProfileTab />
+          <TelegramPanel className="mb-8 max-w-md" />
+        </>
+      ) : null}
       {tab === "security" ? (
         <>
           <Section title="Password">

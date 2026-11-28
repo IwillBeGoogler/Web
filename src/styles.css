@@ -505,6 +505,25 @@ html.focus-mode [data-chrome] {
   --shadow-lift: 0 2px 6px rgb(0 0 0 / 0.06), 0 24px 48px -20px rgb(0 0 0 / 0.24);
   --radius-card: var(--radius-md);
 }
+/* A certificate looks the same in both themes, on screen and exported. The --color-* overrides repaint
+   theme-coloured children (the logo). */
+.certificate {
+  --cert-paper: #ffffff;
+  --cert-ink: #0f2414;
+  --cert-muted: #3f5f46;
+  --cert-line: #cfe6d3;
+  --cert-accent: #2f7d45;
+  --cert-panel: #0f2414;
+  --cert-panel-ink: #f3faf4;
+  --color-fg: var(--cert-ink);
+  --color-inverse: var(--cert-ink);
+  --color-on-inverse: var(--cert-paper);
+  --line-strong: var(--cert-line);
+  background: var(--cert-paper);
+  color: var(--cert-ink);
+  color-scheme: light;
+}
+
 .dark {
   --brand-2: #9aa6ff;
   --brand-3: #b18cff;

@@ -258,6 +258,10 @@ const P = {
   Settings: lazy(() => import("./pages/MePages"), "SettingsPage"),
   Stats: lazy(() => import("./pages/MePages"), "StatsRoute"),
   List: lazy(() => import("./pages/MePages"), "ListRoute"),
+  Challenges: lazy(() => import("./pages/ChallengePages"), "ChallengesRoute"),
+  NewChallenge: lazy(() => import("./pages/ChallengePages"), "NewChallengeRoute"),
+  Challenge: lazy(() => import("./pages/ChallengePages"), "ChallengeRoute"),
+  Certificate: lazy(() => import("./pages/ChallengePages"), "CertificateRoute"),
   Series: lazy(() => import("./pages/MePages"), "SeriesRoute"),
   Publication: lazy(() => import("./pages/MePages"), "PublicationRoute"),
   SsoCallback: lazy(() => import("@/contexts/identity/ui/SsoCallback"), "SsoCallbackPage"),
@@ -340,6 +344,18 @@ const series = createRoute({
   getParentRoute: () => shell,
   path: "/series/$slug",
   component: page(P.Series, () => ({ slug: useParams({ from: "/shell/series/$slug" }).slug })),
+});
+const challenges = createRoute({ getParentRoute: () => shell, path: "/challenges", component: P.Challenges });
+const newChallenge = createRoute({ getParentRoute: () => shell, path: "/challenges/new", beforeLoad: signedIn, component: P.NewChallenge });
+const challenge = createRoute({
+  getParentRoute: () => shell,
+  path: "/challenges/$id",
+  component: page(P.Challenge, () => ({ id: Number(useParams({ from: "/shell/challenges/$id" }).id) })),
+});
+const certificate = createRoute({
+  getParentRoute: () => shell,
+  path: "/certificates/$id",
+  component: page(P.Certificate, () => ({ id: useParams({ from: "/shell/certificates/$id" }).id })),
 });
 const pub = createRoute({
   getParentRoute: () => shell,
@@ -488,6 +504,10 @@ const routeTree = root.addChildren([
     search,
     list,
     series,
+    challenges,
+    newChallenge,
+    challenge,
+    certificate,
     pub,
     privacy,
     terms,
